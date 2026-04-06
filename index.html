@@ -3,25 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <title>POS Inventario Pro</title>
-    
+    <title>POS Pro - Sonido & Stock</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* Estilos optimizados para Móvil */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #0a0a0a; color: #fff; padding: 10px; padding-bottom: 100px; }
+        body { background-color: #0a0a0a; color: #fff; padding: 10px; padding-bottom: 120px; }
         .card { background: #121212; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 2px solid #00c800; background: #000; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .btn-green { background: #00c800; color: #000; }
         .tab-nav { display: flex; gap: 5px; margin-bottom: 15px; }
         .tab { flex: 1; padding: 12px; text-align: center; background: #1a1a1a; border-radius: 10px; font-size: 12px; border: 1px solid #333; }
         .tab.active { background: #00c800; color: #000; font-weight: bold; }
         input { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
+        .item-carrito { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; }
+        .total-txt { text-align: right; color: #00c800; font-size: 35px; margin-top: 10px; }
         .tabla-inv { width: 100%; border-collapse: collapse; font-size: 13px; }
         .tabla-inv td, .tabla-inv th { padding: 10px; border-bottom: 1px solid #222; text-align: left; }
         .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px; background: #0a0a0a; border-top: 1px solid #333; }
@@ -37,21 +34,22 @@
     <div id="sec-venta">
         <div class="card">
             <div id="reader"></div>
-            <p id="scanned-id" style="text-align:center; font-size:11px; margin-top:5px; color:#777;">Listo para escanear</p>
+            <p id="msg" style="text-align:center; font-size:11px; margin-top:5px; color:#777;">Listo para escanear</p>
         </div>
         <div class="card">
             <div id="carrito-lista"></div>
-            <h1 id="total-txt" style="text-align:right; color:#00c800; font-size:35px;">$ 0.00</h1>
+            <h1 id="total-txt" class="total-txt">$ 0.00</h1>
         </div>
     </div>
 
     <div id="sec-inv" style="display:none;">
         <div class="card">
+            <h2>Nuevo Producto</h2>
             <input type="text" id="in-code" placeholder="Código">
             <input type="text" id="in-nom" placeholder="Nombre">
             <input type="number" id="in-pre" placeholder="Precio">
-            <input type="number" id="in-stock" placeholder="Stock Inicial">
-            <button class="btn btn-green" onclick="guardar()">Guardar Producto</button>
+            <input type="number" id="in-stock" placeholder="Stock">
+            <button class="btn btn-green" onclick="guardar()">Guardar</button>
         </div>
         <div class="card">
             <table class="tabla-inv">
@@ -66,9 +64,23 @@
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('pos_v3')) || {};
+    let db = JSON.parse(localStorage.getItem('pos_v4')) || {};
     let carrito = [];
     let scanner = new Html5Qrcode("reader");
+
+    // Función para el sonido "Bip"
+    function sonarBip() {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(880, context.currentTime); // Tono agudo
+        gain.gain.setValueAtTime(0.1, context.currentTime);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.1); // Duración corta
+    }
 
     function ver(s) {
         document.getElementById('sec-venta').style.display = s=='venta'?'block':'none';
@@ -82,13 +94,18 @@
         scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             document.getElementById('in-code').value = text;
             if(db[text]) {
-                if(db[text].stock > 0) {
+                // VALIDACIÓN DE STOCK
+                let cantidadEnCarrito = carrito.filter(i => i.code === text).length;
+                if(db[text].stock > cantidadEnCarrito) {
+                    sonarBip();
                     carrito.push(db[text]);
-                    actualizarCapa();
+                    actualizarCarrito();
                     if(navigator.vibrate) navigator.vibrate(50);
-                } else alert("Sin stock");
+                } else {
+                    alert("¡ERROR! Stock agotado para: " + db[text].nombre);
+                }
             }
-        }).catch(e => console.log("Cámara ocupada"));
+        }).catch(e => console.log("Cámara no lista"));
     }
 
     function guardar() {
@@ -98,25 +115,26 @@
         let s = parseInt(document.getElementById('in-stock').value);
         if(!c || !n) return;
         db[c] = { code:c, nombre:n, precio:p, stock:s, vendidos: db[c]?.vendidos || 0 };
-        localStorage.setItem('pos_v3', JSON.stringify(db));
-        alert("Guardado");
+        localStorage.setItem('pos_v4', JSON.stringify(db));
+        alert("Producto Guardado");
         renderInv();
     }
 
     function renderInv() {
         let h = '';
         for(let k in db) {
-            h += `<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>${db[k].vendidos}</td></tr>`;
+            let colorStock = db[k].stock <= 0 ? 'red' : (db[k].stock < 5 ? 'orange' : 'white');
+            h += `<tr><td>${db[k].nombre}</td><td style="color:${colorStock}">${db[k].stock}</td><td>${db[k].vendidos}</td></tr>`;
         }
         document.getElementById('lista-inv').innerHTML = h;
     }
 
-    function actualizarCapa() {
+    function actualizarCarrito() {
         let t = 0;
         let h = '';
         carrito.forEach(i => {
             t += i.precio;
-            h += `<div style="display:flex; justify-content:space-between; padding:5px 0;"><span>${i.nombre}</span><b>$${i.precio}</b></div>`;
+            h += `<div class="item-carrito"><span>${i.nombre}</span><b>$${i.precio.toFixed(2)}</b></div>`;
         });
         document.getElementById('carrito-lista').innerHTML = h;
         document.getElementById('total-txt').innerText = '$ ' + t.toFixed(2);
@@ -128,10 +146,10 @@
             db[i.code].stock--;
             db[i.code].vendidos++;
         });
-        localStorage.setItem('pos_v3', JSON.stringify(db));
-        alert("Cobrado!");
+        localStorage.setItem('pos_v4', JSON.stringify(db));
+        alert("Venta Registrada con Éxito");
         carrito = [];
-        actualizarCapa();
+        actualizarCarrito();
     }
 
     window.onload = iniciar;
