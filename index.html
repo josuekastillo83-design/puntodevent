@@ -3,37 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Punto de Venta Free PRO + Fiado</title>
+    <title>Punto de Venta Free PRO</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #0a0a0a; color: #fff; padding: 10px; padding-bottom: 120px; }
-        .header { text-align: center; padding: 10px; }
-        .header img { width: 60px; border-radius: 12px; border: 1px solid #00c800; }
-        .card { background: #121212; border-radius: 15px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 2px solid #00c800; background: #000; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 5px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: #000; color: #fff; padding: 10px; padding-bottom: 120px; }
+        h1 { color: #00c800; text-align: center; font-size: 18px; margin: 10px 0; }
+        .card { background: #111; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; background: #000; min-height: 250px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-green { background: #00c800; color: #000; }
         .btn-blue { background: #007bff; color: #fff; }
         .btn-red { background: #ff4444; color: #fff; }
-        .tab-nav { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { flex: 1; padding: 10px; text-align: center; background: #1a1a1a; border-radius: 10px; font-size: 10px; color: #777; min-width: 80px; }
+        .tab-nav { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; }
+        .tab { flex: 1; padding: 12px; text-align: center; background: #222; border-radius: 8px; font-size: 11px; color: #999; min-width: 80px; }
         .tab.active { background: #00c800; color: #000; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        td, th { padding: 10px; border-bottom: 1px solid #222; text-align: left; }
+        input { width: 100%; padding: 12px; margin: 5px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        td, th { padding: 10px; border-bottom: 1px solid #333; text-align: left; }
         .total-txt { text-align: right; color: #00c800; font-size: 30px; font-weight: bold; }
-        .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px; background: #0a0a0a; border-top: 1px solid #333; z-index: 100; }
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 10px; background: #000; border-top: 1px solid #333; }
+        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; align-items:center; justify-content:center; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <img src="1000122509.png" alt="Logo">
-        <h1 style="font-size: 14px; color: #00c800;">PUNTO DE VENTA FREE</h1>
-    </div>
+    <h1>PUNTO DE VENTA FREE</h1>
 
     <div class="tab-nav">
         <div class="tab active" id="t-venta" onclick="ver('venta')">VENTA</div>
@@ -45,17 +40,17 @@
     <div id="sec-venta">
         <div class="card"><div id="reader"></div></div>
         <div class="card">
-            <div id="carrito-lista"><p style="text-align:center;color:#444;">Carrito vacío</p></div>
+            <div id="carrito-lista"></div>
             <div class="total-txt" id="total-txt">$ 0.00</div>
         </div>
     </div>
 
     <div id="sec-inv" style="display:none;">
         <div class="card">
-            <h3>Actualizar Precios (%)</h3>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-blue" onclick="ajustarPrecios(1.05)">Subir 5%</button>
-                <button class="btn btn-red" onclick="ajustarPrecios(0.95)">Bajar 5%</button>
+            <p>Ajustar todos los precios:</p>
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-blue" onclick="ajustar(1.05)">+5%</button>
+                <button class="btn btn-red" onclick="ajustar(0.95)">-5%</button>
             </div>
         </div>
         <div class="card">
@@ -63,137 +58,130 @@
             <input type="text" id="in-nom" placeholder="Nombre">
             <input type="number" id="in-pre" placeholder="Precio">
             <input type="number" id="in-stock" placeholder="Stock">
-            <button class="btn btn-green" onclick="guardarProd()">GUARDAR</button>
+            <button class="btn btn-green" onclick="guardar()">GUARDAR</button>
         </div>
-        <div class="card">
-            <table id="tabla-stock"><thead><tr><th>Producto</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="lista-inv"></tbody></table>
-        </div>
+        <div class="card"><table id="t-inv"><thead><tr><th>Prod</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="l-inv"></tbody></table></div>
     </div>
 
     <div id="sec-fiado" style="display:none;">
         <div class="card">
-            <h3>Registrar Deuda</h3>
-            <input type="text" id="f-cliente" placeholder="Nombre del Cliente">
-            <input type="number" id="f-monto" placeholder="Monto a fiar $">
-            <button class="btn btn-blue" onclick="guardarFiado()">REGISTRAR FIADO</button>
+            <input type="text" id="f-nom" placeholder="Nombre Cliente">
+            <input type="number" id="f-mon" placeholder="Monto $">
+            <button class="btn btn-blue" onclick="gFiado()">FIAR</button>
         </div>
-        <div class="card">
-            <table><thead><tr><th>Cliente</th><th>Deuda</th><th>Acción</th></tr></thead><tbody id="lista-fiado"></tbody></table>
-        </div>
+        <div class="card"><table><thead><tr><th>Cliente</th><th>Deuda</th><th></th></tr></thead><tbody id="l-fiado"></tbody></table></div>
     </div>
 
     <div id="sec-hist" style="display:none;">
         <div class="card">
-            <h2 id="total-dia" style="color:#00c800; text-align:center;">Vendido hoy: $0.00</h2>
-            <button class="btn btn-blue" onclick="exportarExcel()"><i class="fas fa-file-excel"></i> EXPORTAR EXCEL (CSV)</button>
-            <button class="btn btn-red" onclick="limpiarVentas()">BORRAR VENTAS DEL DÍA</button>
+            <h2 id="total-dia" style="color:#00c800; text-align:center;">$0.00</h2>
+            <button class="btn btn-blue" onclick="exp()">EXCEL (CSV)</button>
+            <button class="btn btn-red" onclick="limp()">LIMPIAR DÍA</button>
         </div>
     </div>
 
     <div id="modal">
-        <div class="card" style="width:100%;">
-            <h2 id="m-total" style="text-align:center; color:#00c800;"></h2>
-            <input type="number" id="m-paga" placeholder="Paga con..." style="font-size:24px; text-align:center;">
-            <h1 id="m-cambio" style="text-align:center; color:#ff4444; margin:10px 0;">Cambio: $0.00</h1>
-            <button class="btn btn-green" onclick="confirmarVenta()">COBRAR</button>
-            <button class="btn" style="background:#222; color:#fff; margin-top:10px;" onclick="cerrarM()">CANCELAR</button>
+        <div class="card" style="width:90%;">
+            <h2 id="m-tot" style="text-align:center; color:#00c800;"></h2>
+            <input type="number" id="m-paga" placeholder="Paga con..." style="font-size:20px; text-align:center;">
+            <h2 id="m-cam" style="text-align:center; color:#ff4444; margin:10px 0;"></h2>
+            <button class="btn btn-green" onclick="conf()">FINALIZAR</button>
+            <button class="btn" style="background:#333; color:#fff;" onclick="cerrar()">CERRAR</button>
         </div>
     </div>
 
-    <div class="footer"><button class="btn btn-green" onclick="abrirC()">FINALIZAR VENTA</button></div>
+    <div class="footer"><button class="btn btn-green" onclick="abrir()">COBRAR</button></div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('pos_ultra_db')) || {};
-    let ventas = JSON.parse(localStorage.getItem('pos_ultra_ventas')) || [];
-    let fiados = JSON.parse(localStorage.getItem('pos_ultra_fiados')) || {};
-    let carrito = []; let totalV = 0; let scanner = new Html5Qrcode("reader");
+    let db = JSON.parse(localStorage.getItem('pos_v6_db')) || {};
+    let vent = JSON.parse(localStorage.getItem('pos_v6_v')) || [];
+    let fia = JSON.parse(localStorage.getItem('pos_v6_f')) || {};
+    let carr = []; let tot = 0; let sc;
 
     function ver(s) {
-        ["sec-venta","sec-inv","sec-fiado","sec-hist"].forEach(id => document.getElementById(id).style.display = 'none');
-        ["t-venta","t-inv","t-fiado","t-hist"].forEach(id => document.getElementById(id).className = 'tab');
-        document.getElementById('sec-'+s).style.display = 'block';
-        document.getElementById('t-'+s).className = 'tab active';
-        if(s=='inv') renderInv(); if(s=='fiado') renderFiado(); if(s=='hist') renderCorte();
+        ["sec-venta","sec-inv","sec-fiado","sec-hist"].forEach(x=>document.getElementById(x).style.display='none');
+        ["t-venta","t-inv","t-fiado","t-hist"].forEach(x=>document.getElementById(x).className='tab');
+        document.getElementById('sec-'+s).style.display='block';
+        document.getElementById('t-'+s).className='tab active';
+        if(s=='inv') rInv(); if(s=='fiado') rFia(); if(s=='hist') rHist();
     }
 
-    function iniciarS() {
-        scanner.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
-            if(db[text]) { 
-                if(db[text].stock > 0) { carrito.push({...db[text], code: text}); renderC(); }
+    function init() {
+        sc = new Html5Qrcode("reader");
+        sc.start({facingMode:"environment"},{fps:10,qrbox:250}, (t)=>{
+            if(db[t]){
+                if(db[t].stock > 0){ carr.push({...db[t], code:t}); rCarr(); }
                 else alert("Sin stock");
-            } else { document.getElementById('in-code').value = text; }
-        }).catch(e => console.log(e));
+            } else { document.getElementById('in-code').value = t; }
+        }).catch(e=>console.log(e));
     }
 
-    function guardarProd() {
-        let c = document.getElementById('in-code').value, n = document.getElementById('in-nom').value, p = parseFloat(document.getElementById('in-pre').value), s = parseInt(document.getElementById('in-stock').value);
-        if(!c || !n) return; db[c] = { nombre: n, precio: p, stock: s };
-        localStorage.setItem('pos_ultra_db', JSON.stringify(db)); renderInv();
+    function guardar(){
+        let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
+        if(!c||!n) return; db[c]={nombre:n, precio:p, stock:s};
+        localStorage.setItem('pos_v6_db', JSON.stringify(db)); rInv(); alert("Ok");
     }
 
-    function ajustarPrecios(factor) {
-        if(confirm("¿Seguro que quieres actualizar TODOS los precios?")) {
-            for(let k in db) { db[k].precio = parseFloat((db[k].precio * factor).toFixed(2)); }
-            localStorage.setItem('pos_ultra_db', JSON.stringify(db)); renderInv();
+    function ajustar(f){
+        if(confirm("¿Ajustar precios?")){
+            for(let k in db) db[k].precio = parseFloat((db[k].precio*f).toFixed(2));
+            localStorage.setItem('pos_v6_db', JSON.stringify(db)); rInv();
         }
     }
 
-    function renderInv() {
-        let h = ''; for(let k in db) h += `<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`;
-        document.getElementById('lista-inv').innerHTML = h;
+    function rInv(){
+        let h=''; for(let k in db) h+=`<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`;
+        document.getElementById('l-inv').innerHTML = h;
     }
 
-    function renderC() {
-        let l = document.getElementById('carrito-lista'); totalV = 0; l.innerHTML = '';
-        carrito.forEach(i => { totalV += i.precio; l.innerHTML += `<div class="item-carrito"><span>${i.nombre}</span><b>$${i.precio}</b></div>`; });
-        document.getElementById('total-txt').innerText = '$ ' + totalV.toFixed(2);
+    function rCarr(){
+        let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML='';
+        carr.forEach(i=>{ tot+=i.precio; l.innerHTML+=`<div style="display:flex; justify-content:space-between; padding:5px 0;"><span>${i.nombre}</span><b>$${i.precio}</b></div>`;});
+        document.getElementById('total-txt').innerText = '$ '+tot.toFixed(2);
     }
 
-    function abrirC() { if(carrito.length==0) return; document.getElementById('modal').style.display = 'flex'; document.getElementById('m-total').innerText = "Total: $" + totalV.toFixed(2); }
+    function abrir(){ if(carr.length==0) return; document.getElementById('modal').style.display='flex'; document.getElementById('m-tot').innerText="Total: $"+tot.toFixed(2); }
 
-    document.getElementById('m-paga').addEventListener('input', (e) => {
-        let cam = (parseFloat(e.target.value) || 0) - totalV;
-        document.getElementById('m-cambio').innerText = "Cambio: $" + (cam > 0 ? cam.toFixed(2) : "0.00");
-    });
+    document.getElementById('m-paga').oninput = (e) => {
+        let c = (parseFloat(e.target.value)||0) - tot;
+        document.getElementById('m-cam').innerText = "Cambio: $"+(c>0?c.toFixed(2):"0.00");
+    };
 
-    function confirmarVenta() {
-        carrito.forEach(i => { db[i.code].stock--; });
-        ventas.push({ total: totalV, fecha: new Date().toLocaleString() });
-        localStorage.setItem('pos_ultra_db', JSON.stringify(db));
-        localStorage.setItem('pos_ultra_ventas', JSON.stringify(ventas));
-        carrito = []; renderC(); cerrarM(); alert("Vendido");
+    function conf(){
+        carr.forEach(i=>{ db[i.code].stock--; });
+        vent.push({t:tot, f:new Date().toLocaleString()});
+        localStorage.setItem('pos_v6_db', JSON.stringify(db));
+        localStorage.setItem('pos_v6_v', JSON.stringify(vent));
+        carr=[]; rCarr(); cerrar(); alert("Vendido");
     }
 
-    function guardarFiado() {
-        let n = document.getElementById('f-cliente').value, m = parseFloat(document.getElementById('f-monto').value);
-        if(!n || isNaN(m)) return; fiados[n] = (fiados[n] || 0) + m;
-        localStorage.setItem('pos_ultra_fiados', JSON.stringify(fiados)); renderFiado();
+    function gFiado(){
+        let n=document.getElementById('f-nom').value, m=parseFloat(document.getElementById('f-mon').value);
+        if(!n||isNaN(m)) return; fia[n]=(fia[n]||0)+m;
+        localStorage.setItem('pos_v6_f', JSON.stringify(fia)); rFia();
     }
 
-    function renderFiado() {
-        let h = ''; for(let n in fiados) h += `<tr><td>${n}</td><td>$${fiados[n]}</td><td><button onclick="pagarFiado('${n}')">PAGAR</button></td></tr>`;
-        document.getElementById('lista-fiado').innerHTML = h;
+    function rFia(){
+        let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n]}</td><td><button onclick="pagaF('${n}')">PAGAR</button></td></tr>`;
+        document.getElementById('l-fiado').innerHTML = h;
     }
 
-    function pagarFiado(n) { delete fiados[n]; localStorage.setItem('pos_ultra_fiados', JSON.stringify(fiados)); renderFiado(); }
+    function pagaF(n){ delete fia[n]; localStorage.setItem('pos_v6_f', JSON.stringify(fia)); rFia(); }
 
-    function exportarExcel() {
-        let csv = "Fecha,Total\n"; ventas.forEach(v => csv += `${v.fecha},${v.total}\n`);
-        let blob = new Blob([csv], {type: 'text/csv'});
-        let a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `Ventas_${new Date().toLocaleDateString()}.csv`;
-        a.click();
+    function exp(){
+        let c="Fecha,Total\n"; vent.forEach(v=>c+=`${v.f},${v.t}\n`);
+        let b=new Blob([c],{type:'text/csv'}); let a=document.createElement('a');
+        a.href=URL.createObjectURL(b); a.download=`Ventas_${new Date().toLocaleDateString()}.csv`; a.click();
     }
 
-    function renderCorte() {
-        let t = 0; ventas.forEach(v => t += v.total);
-        document.getElementById('total-dia').innerText = `Vendido hoy: $${t.toFixed(2)}`;
+    function rHist(){
+        let t=0; vent.forEach(v=>t+=v.t);
+        document.getElementById('total-dia').innerText = "Vendido hoy: $"+t.toFixed(2);
     }
 
-    function limpiarVentas() { if(confirm("¿Limpiar historial?")) { ventas = []; localStorage.setItem('pos_ultra_ventas', JSON.stringify(ventas)); renderCorte(); } }
-    function cerrarM() { document.getElementById('modal').style.display = 'none'; }
-    window.onload = () => iniciarS();
+    function limp(){ if(confirm("¿Limpiar día?")){ vent=[]; localStorage.setItem('pos_v6_v', JSON.stringify(vent)); rHist(); } }
+    function cerrar(){ document.getElementById('modal').style.display='none'; }
+    window.onload = init;
 </script>
 </body>
 </html>
