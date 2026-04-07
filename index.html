@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite POS Pro - Full Management</title>
+    <title>Elite POS Pro - Gestión Inteligente</title>
     <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -18,23 +18,33 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: var(--font-main); margin: 0; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
         .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; white-space: nowrap; z-index: 100; border-bottom: 2px solid var(--accent); }
-        .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; transition: 0.3s; }
+        .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
         .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
+        
         .main-content { flex-grow: 1; padding: 12px; overflow-y: auto; padding-bottom: 80px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* PESTAÑAS COLAPSABLES (ACORDEÓN) */
+        .accordion { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 1px solid #ddd; }
+        .accordion-header { background: #f8f9fa; padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
+        .accordion-content { display: none; padding: 10px; }
+        .accordion-content.open { display: block; }
+
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        .table-scroll { max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; }
+        .table-scroll { max-height: 300px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; background: white; z-index: 5; }
+        th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; background: white; }
         td { padding: 12px 8px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
+        
         .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 16px; }
         .total-box { background: var(--gradient); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
         .total-box h2 { font-size: 2.8em; margin: 0; }
-        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; }
-        #reader { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-bottom: 10px; }
+        
+        #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
     </style>
 </head>
 <body>
@@ -51,10 +61,10 @@
         
         <div id="pos" class="section active">
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="sku-in" class="input-style" placeholder="Escanear o SKU..." onkeypress="handleSKU(event)">
-                <button onclick="toggleCam()" style="height:52px; width:60px; border-radius:10px; border:none; background:var(--gradient); color:white; font-size:1.5em;">📷</button>
+                <input type="text" id="sku-in" class="input-style" placeholder="Escanear Venta..." onkeypress="handleSKU(event)">
+                <button onclick="toggleCam('reader-pos', 'pos')" style="height:52px; width:60px; border-radius:10px; border:none; background:var(--gradient); color:white; font-size:1.5em;">📷</button>
             </div>
-            <div id="reader"></div>
+            <div id="reader-pos"></div>
             <div class="card">
                 <div class="table-scroll">
                     <table>
@@ -68,65 +78,71 @@
         </div>
 
         <div id="stock" class="section">
-            <div class="card">
-                <h3>Agregar a Inventario</h3>
-                <input type="text" id="s-sku" class="input-style" placeholder="Código SKU / Barras">
-                <input type="text" id="s-nom" class="input-style" placeholder="Nombre del Producto">
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="s-pre" class="input-style" placeholder="Precio $">
-                    <input type="number" id="s-sto" class="input-style" placeholder="Stock Inicial">
+            <button class="btn-main" onclick="toggleCam('reader-stock', 'stock_add')" style="background:var(--success)">➕ ESCANEAR PARA SURTIR / RELLENAR</button>
+            <div id="reader-stock"></div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">NUEVO PRODUCTO <span>▼</span></div>
+                <div class="accordion-content">
+                    <input type="text" id="s-sku" class="input-style" placeholder="SKU">
+                    <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="s-pre" class="input-style" placeholder="Precio">
+                        <input type="number" id="s-sto" class="input-style" placeholder="Stock">
+                    </div>
+                    <button class="btn-main" onclick="addInv()">Registrar Nuevo</button>
                 </div>
-                <button class="btn-main" onclick="addInv()">Registrar Producto</button>
             </div>
-            <div class="card">
-                <h3>Productos en Existencia</h3>
-                <div class="table-scroll">
-                    <table>
-                        <thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Queda</th><th>Acción</th></tr></thead>
-                        <tbody id="inv-list"></tbody>
-                    </table>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">PRODUCTOS EN EXISTENCIA <span>▼</span></div>
+                <div class="accordion-content open">
+                    <div class="table-scroll">
+                        <table>
+                            <thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Queda</th><th>Acción</th></tr></thead>
+                            <tbody id="inv-list"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="fiados" class="section">
-            <div class="card">
-                <h3>Registrar Deuda</h3>
-                <input type="text" id="f-cliente" class="input-style" placeholder="Nombre del Cliente">
-                <input type="number" id="f-monto" class="input-style" placeholder="Monto a fiar $">
-                <button class="btn-main" onclick="addFiado()">Guardar en Lista</button>
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">REGISTRAR DEUDA <span>▼</span></div>
+                <div class="accordion-content">
+                    <input type="text" id="f-cliente" class="input-style" placeholder="Cliente">
+                    <input type="number" id="f-monto" class="input-style" placeholder="Monto">
+                    <button class="btn-main" onclick="addFiado()">Guardar</button>
+                </div>
             </div>
             <div class="card">
-                <div class="table-wrapper">
-                    <table><thead><tr><th>Cliente</th><th>Monto</th><th>Acción</th></tr></thead><tbody id="fiados-list"></tbody></table>
-                </div>
+                <table><thead><tr><th>Cliente</th><th>Monto</th><th></th></tr></thead><tbody id="fiados-list"></tbody></table>
             </div>
         </div>
 
         <div id="gastos" class="section">
-            <div class="card">
-                <h3>Registrar Salida de Dinero</h3>
-                <input type="text" id="g-desc" class="input-style" placeholder="Motivo del Gasto">
-                <input type="number" id="g-monto" class="input-style" placeholder="Monto $">
-                <button class="btn-main" style="background:var(--danger)" onclick="addGasto()">Guardar Gasto</button>
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">REGISTRAR GASTO <span>▼</span></div>
+                <div class="accordion-content">
+                    <input type="text" id="g-desc" class="input-style" placeholder="Motivo">
+                    <input type="number" id="g-monto" class="input-style" placeholder="Monto">
+                    <button class="btn-main" style="background:var(--danger)" onclick="addGasto()">Guardar Gasto</button>
+                </div>
             </div>
             <div class="card">
                 <div class="table-scroll">
-                    <table><thead><tr><th>Descripción</th><th>Monto</th><th>Acción</th></tr></thead><tbody id="gastos-list"></tbody></table>
+                    <table><thead><tr><th>Descripción</th><th>Monto</th><th></th></tr></thead><tbody id="gastos-list"></tbody></table>
                 </div>
             </div>
         </div>
 
         <div id="corte" class="section">
             <div class="card" style="text-align: center;">
-                <h3>Balance General de Hoy</h3>
-                <h1 id="c-total" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
-                <div style="display: flex; justify-content: space-around; margin-bottom: 20px;">
-                    <div><small>Ventas (+)</small><br><b id="c-ventas" style="color:var(--success)">$0.00</b></div>
-                    <div><small>Gastos (-)</small><br><b id="c-gastos" style="color:var(--danger)">$0.00</b></div>
-                </div>
-                <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR CORTE PDF</button>
-                <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA DIARIA</button>
+                <h3>Balance de Hoy</h3>
+                <h1 id="c-total" style="color:var(--success); font-size:3.5em;">$0.00</h1>
+                <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR PDF</button>
+                <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
             </div>
         </div>
 
@@ -137,8 +153,7 @@
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
         fiados: JSON.parse(localStorage.getItem('e_fia')) || [],
         gastos: JSON.parse(localStorage.getItem('e_gas')) || [],
-        ventasHoy: parseFloat(localStorage.getItem('e_vhoy')) || 0,
-        historialVentas: JSON.parse(localStorage.getItem('e_hven')) || []
+        ventasHoy: parseFloat(localStorage.getItem('e_vhoy')) || 0
     };
     let cart = [];
     let scanner;
@@ -148,7 +163,12 @@
         localStorage.setItem('e_fia', JSON.stringify(db.fiados));
         localStorage.setItem('e_gas', JSON.stringify(db.gastos));
         localStorage.setItem('e_vhoy', db.ventasHoy);
-        localStorage.setItem('e_hven', JSON.stringify(db.historialVentas));
+    }
+
+    function toggleAccordion(header) {
+        const content = header.nextElementSibling;
+        content.classList.toggle('open');
+        header.querySelector('span').innerText = content.classList.contains('open') ? '▲' : '▼';
     }
 
     function showSec(id, btn) {
@@ -160,118 +180,97 @@
         if(id === 'fiados') renderFiados();
         if(id === 'gastos') renderGastos();
         if(id === 'corte') renderCorte();
+        if(scanner) { scanner.stop(); document.getElementById('reader-pos').style.display = 'none'; document.getElementById('reader-stock').style.display = 'none'; }
     }
 
-    // --- CAJA ---
-    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    function process(code) {
+    function process(code, mode = 'sale') {
         const p = db.inv.find(x => x.sku === code);
         if(p) {
-            if(p.stock <= 0) return alert("¡Sin existencias!");
-            const i = cart.find(x => x.sku === code);
-            if(i) i.q++; else cart.push({...p, q: 1});
-            renderCart();
+            if(mode === 'sale') {
+                if(p.stock <= 0) return alert("Sin stock");
+                const i = cart.find(x => x.sku === code);
+                if(i) i.q++; else cart.push({...p, q: 1});
+                renderCart();
+            } else {
+                // MODO SURTIR STOCK
+                const add = parseInt(prompt(`SURTIR: ${p.name}\nExistencia actual: ${p.stock}\n¿Cuántos llegaron?`));
+                if(!isNaN(add)) { p.stock += add; save(); renderInv(); alert("Stock actualizado"); }
+            }
         } else {
-            const n = prompt("Producto nuevo encontrado. Ingrese el nombre:");
+            const n = prompt("NUEVO PRODUCTO\nNombre:");
             if(n) {
-                const pr = parseFloat(prompt("Precio de venta:"));
-                const st = parseInt(prompt("Cantidad inicial en stock:"));
-                const np = { sku: code, name: n, price: pr, stock: st };
-                db.inv.push(np); save(); process(code);
+                const pr = parseFloat(prompt("Precio:"));
+                const st = parseInt(prompt("Stock inicial:"));
+                db.inv.push({ sku: code, name: n, price: pr, stock: st });
+                save(); renderInv();
             }
         }
     }
+
+    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
+
     function renderCart() {
-        let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
+        let t = 0;
+        document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += i.price * i.q;
             return `<tr><td>${i.name}</td><td>$${i.price}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
+
     function sell() {
         if(!cart.length) return;
         let tTotal = 0;
-        cart.forEach(c => {
-            tTotal += c.price * c.q;
-            const p = db.inv.find(x => x.sku === c.sku);
-            if(p) p.stock -= c.q;
-        });
-        db.ventasHoy += tTotal;
-        db.historialVentas.push({ fecha: new Date().toLocaleTimeString(), total: tTotal });
-        save(); cart = []; renderCart(); alert("¡Venta procesada!");
+        cart.forEach(c => { tTotal += c.price * c.q; const p = db.inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
+        db.ventasHoy += tTotal; save(); cart = []; renderCart(); alert("Venta Exitosa");
     }
 
-    // --- STOCK (CON VALIDACIÓN DE DUPLICADOS) ---
     function addInv() {
-        const sku = document.getElementById('s-sku').value.trim();
-        const nom = document.getElementById('s-nom').value.trim();
+        const sku = document.getElementById('s-sku').value;
+        const nom = document.getElementById('s-nom').value;
         const pre = parseFloat(document.getElementById('s-pre').value);
         const sto = parseInt(document.getElementById('s-sto').value);
-
-        if(!sku || !nom || isNaN(pre)) return alert("Complete los datos");
-
-        const exists = db.inv.find(x => x.sku === sku);
-        if(exists) return alert("Este código ya existe. Si desea agregar más stock, elimine el anterior o edítelo.");
-
-        db.inv.push({sku, name: nom, price: pre, stock: sto});
-        save(); renderInv();
-        document.querySelectorAll('#stock input').forEach(i => i.value = '');
+        if(db.inv.find(x => x.sku === sku)) return alert("El SKU ya existe");
+        db.inv.push({sku, name: nom, price: pre, stock: sto}); save(); renderInv();
     }
+
     function renderInv() {
-        const list = document.getElementById('inv-list');
-        list.innerHTML = db.inv.map(p => `
-            <tr>
-                <td>${p.sku}</td>
-                <td>${p.name}</td>
-                <td>$${p.price.toFixed(2)}</td>
-                <td style="font-weight:bold; color:${p.stock < 5 ? 'red' : 'green'}">${p.stock}</td>
-                <td onclick="db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()">🗑️</td>
-            </tr>
-        `).join('');
+        document.getElementById('inv-list').innerHTML = db.inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td style="font-weight:bold; color:${p.stock < 5 ? 'red' : 'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')) {db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
     }
 
-    // --- GASTOS ---
     function addGasto() {
         const d = document.getElementById('g-desc').value;
         const m = parseFloat(document.getElementById('g-monto').value);
-        if(d && m) { db.gastos.unshift({d, m}); save(); renderGastos(); document.getElementById('g-desc').value = ''; document.getElementById('g-monto').value = ''; }
+        if(d && m) { db.gastos.unshift({d, m}); save(); renderGastos(); }
     }
+
     function renderGastos() {
-        document.getElementById('gastos-list').innerHTML = db.gastos.map((g, i) => `<tr><td>${g.d}</td><td>$${g.m}</td><td onclick="db.gastos.splice(${i},1);save();renderGastos()">🗑️</td></tr>`).join('');
+        document.getElementById('gastos-list').innerHTML = db.gastos.map((g, i) => `<tr><td>${g.d}</td><td>$${g.m}</td><td onclick="db.gastos.splice(i,1);save();renderGastos()">🗑️</td></tr>`).join('');
     }
 
-    // --- CORTE Y PDF ---
     function renderCorte() {
-        let gTotal = 0; db.gastos.forEach(g => gTotal += g.m);
-        document.getElementById('c-ventas').innerText = `$${db.ventasHoy.toFixed(2)}`;
-        document.getElementById('c-gastos').innerText = `$${gTotal.toFixed(2)}`;
-        document.getElementById('c-total').innerText = `$${(db.ventasHoy - gTotal).toFixed(2)}`;
+        let g = 0; db.gastos.forEach(x => g += x.m);
+        document.getElementById('c-total').innerText = `$${(db.ventasHoy - g).toFixed(2)}`;
     }
+
+    function resetCorte() { if(confirm("¿Cerrar caja?")) { db.ventasHoy = 0; db.gastos = []; save(); renderCorte(); } }
+
     function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        let gTotal = 0; db.gastos.forEach(g => gTotal += g.m);
-
-        doc.setFontSize(20); doc.text("CORTE DE CAJA DIARIO", 10, 20);
-        doc.setFontSize(12); doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 10, 30);
-        doc.text("--------------------------------------------------", 10, 35);
-        doc.text(`VENTAS TOTALES: $${db.ventasHoy.toFixed(2)}`, 10, 45);
-        doc.text(`GASTOS TOTALES: $${gTotal.toFixed(2)}`, 10, 55);
-        doc.setFontSize(16); doc.text(`GANANCIA FINAL: $${(db.ventasHoy - gTotal).toFixed(2)}`, 10, 70);
-        
-        doc.setFontSize(10); doc.text("Elite POS Pro - Sistema de Gestión", 10, 280);
-        doc.save(`corte_${new Date().toLocaleDateString()}.pdf`);
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.text("CORTE DE CAJA", 10, 10);
+        doc.text(`Total del día: ${document.getElementById('c-total').innerText}`, 10, 20);
+        doc.save("corte.pdf");
     }
 
-    function resetCorte() { if(confirm("¿Cerrar caja? Esto limpiará ventas y gastos de hoy.")) { db.ventasHoy = 0; db.gastos = []; save(); renderCorte(); } }
-
-    function toggleCam() {
-        const r = document.getElementById('reader');
+    function toggleCam(id, mode) {
+        const r = document.getElementById(id);
         if(r.style.display === 'block') { scanner.stop(); r.style.display = 'none'; }
-        else { r.style.display = 'block'; scanner = new Html5Qrcode("reader"); scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { process(t); }); }
+        else {
+            r.style.display = 'block'; scanner = new Html5Qrcode(id);
+            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { process(t, mode === 'stock_add' ? 'add' : 'sale'); });
+        }
     }
-    
-    // Iniciar con stock renderizado
+
     renderInv();
 </script>
 </body>
