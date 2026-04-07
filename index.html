@@ -2,247 +2,265 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite POS + Cámara Scanner</title>
-    <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Venta Elite - Gestión Total</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --font-main: 'Poppins', sans-serif;
-            --accent: #00f2fe;
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --bg: #f4f7f6;
         }
 
-        body { 
-            font-family: var(--font-main); margin: 0; background: #f8f9fa; 
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; }
+        
+        /* Sidebar Navigation */
+        .sidebar { width: 250px; background: var(--primary); color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { text-align: center; padding: 20px; border-bottom: 1px solid #34495e; }
+        .nav-btn { padding: 15px 20px; border: none; background: none; color: white; text-align: left; cursor: pointer; font-size: 16px; border-bottom: 1px solid #34495e; }
+        .nav-btn:hover { background: #34495e; }
 
-        /* Navegación */
-        .sidebar { background: #111; color: white; display: flex; justify-content: space-around; z-index: 100; }
-        .nav-btn { 
-            padding: 15px; border: none; background: transparent; color: #888; 
-            cursor: pointer; font-weight: 600; font-size: 12px; text-transform: uppercase;
-            border-bottom: 3px solid transparent; flex: 1;
-        }
-        .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
-
-        .main-content { flex-grow: 1; padding: 10px; overflow-y: auto; box-sizing: border-box; }
+        /* Main Content Area */
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; }
         .section { display: none; }
         .section.active { display: block; }
 
-        /* Componentes de Caja */
-        .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        /* POS Layout */
+        .pos-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
-        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
-        #sku-input { 
-            flex-grow: 1; padding: 15px; font-size: 1.1em; border-radius: 10px; 
-            border: 2px solid #eee; outline: none; font-family: sans-serif !important;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
         
-        .btn-cam { 
-            background: var(--gradient); border: none; border-radius: 10px; 
-            width: 55px; color: white; font-size: 1.5em; cursor: pointer;
-        }
-
-        /* Lector de Cámara */
-        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 10px; display: none; }
-
-        .total-box { 
-            background: var(--gradient); color: white; padding: 20px; border-radius: 15px; 
-            text-align: center; margin-bottom: 10px;
-        }
-        .total-box h2 { font-size: 2.5em; margin: 0; }
-
-        .btn-pay { 
-            width: 100%; padding: 18px; font-size: 1.3em; border-radius: 12px; 
-            border: none; background: var(--gradient); color: white; font-weight: bold;
-        }
-
-        /* Tabla */
-        .table-wrapper { max-height: 200px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th { 
-            text-align: left; color: #666; padding: 8px; font-size: 11px; 
-            font-family: 'Poppins', sans-serif !important; border-bottom: 1px solid #eee;
-        }
-        td { padding: 10px 8px; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        .del-btn { color: #ff4757; font-weight: bold; }
+        .total-box { font-size: 2em; font-weight: bold; color: var(--primary); margin-top: 20px; text-align: right; }
+        
+        input[type="text"], input[type="number"] { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--accent); }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <button class="nav-btn active" onclick="showSec('pos', this)">🛒 CAJA</button>
-    <button class="nav-btn" onclick="showSec('inv', this)">📦 STOCK</button>
-    <button class="nav-btn" onclick="showSec('set', this)">⚙️ DISEÑO</button>
+    <h2 id="store-name-display">Mi Tienda Elite</h2>
+    <button class="nav-btn" onclick="showSection('pos')">🛒 Ventas</button>
+    <button class="nav-btn" onclick="showSection('inventory')">📦 Inventario</button>
+    <button class="nav-btn" onclick="showSection('expenses')">💸 Gastos/Fiados</button>
+    <button class="nav-btn" onclick="showSection('settings')">⚙️ Configuración</button>
 </div>
 
 <div class="main-content">
+    
     <div id="pos" class="section active">
-        <div class="input-group">
-            <input type="text" id="sku-input" placeholder="Escribe o escanea..." onkeypress="handleManual(event)">
-            <button class="btn-cam" onclick="toggleCamera()">📷</button>
-        </div>
-
-        <div id="reader"></div>
-
-        <div class="card" style="padding: 5px;">
-            <div class="table-wrapper">
-                <table>
+        <div class="pos-grid">
+            <div class="card">
+                <h3>Escanear Producto (SKU)</h3>
+                <input type="text" id="sku-input" placeholder="Escanea o escribe el código y presiona Enter..." onkeypress="handleScan(event)">
+                <table id="cart-table">
                     <thead>
-                        <tr><th>PRODUCTO</th><th>PRECIO</th><th>CANT.</th><th>SUB</th><th></th></tr>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cant.</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
                     </thead>
-                    <tbody id="cart-list"></tbody>
+                    <tbody id="cart-body"></tbody>
                 </table>
             </div>
+            <div class="card">
+                <h3>Resumen de Venta</h3>
+                <div class="total-box">$<span id="total-amount">0.00</span></div>
+                <hr>
+                <button class="btn btn-success" style="width: 100%; padding: 20px; font-size: 1.2em;" onclick="processSale()">FINALIZAR VENTA (F12)</button>
+                <button class="btn btn-danger" style="width: 100%; margin-top: 10px;" onclick="clearCart()">CANCELAR</button>
+            </div>
         </div>
-
-        <div class="total-box">
-            <p>TOTAL</p>
-            <h2 id="total-val">$0.00</h2>
-        </div>
-        <button class="btn-pay" onclick="finishSale()">FINALIZAR VENTA</button>
     </div>
 
-    <div id="inv" class="section">
+    <div id="inventory" class="section">
         <div class="card">
-            <h3>Registrar Producto</h3>
-            <input type="text" id="i-sku" placeholder="SKU" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #ccc;">
-            <input type="text" id="i-nom" placeholder="Nombre" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #ccc;">
-            <div style="display: flex; gap: 5px;">
-                <input type="number" id="i-pre" placeholder="Precio" style="width:50%; padding:12px; border-radius:8px; border:1px solid #ccc;">
-                <input type="number" id="i-sto" placeholder="Stock" style="width:50%; padding:12px; border-radius:8px; border:1px solid #ccc;">
+            <h3>Gestión de Stock</h3>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="inv-sku" placeholder="SKU/Código">
+                <input type="text" id="inv-name" placeholder="Nombre del Producto">
+                <input type="number" id="inv-price" placeholder="Precio Venta">
+                <input type="number" id="inv-stock" placeholder="Cantidad Inicial">
             </div>
-            <button class="btn-pay" style="margin-top:10px; font-size:1em;" onclick="addProd()">GUARDAR</button>
-        </div>
-        <div class="card">
-            <table id="inv-table">
-                <thead><tr><th>SKU</th><th>PRODUCTO</th><th>STOCK</th><th></th></tr></thead>
-                <tbody id="inv-list"></tbody>
+            <button class="btn btn-success" onclick="saveProduct()">Guardar Producto</button>
+            
+            <table style="margin-top: 30px;">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-list"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="set" class="section">
+    <div id="settings" class="section">
         <div class="card">
-            <h3>Personalización</h3>
-            <p>Tipografía:</p>
-            <select id="s-font" onchange="updateFont(this.value)" style="width:100%; padding:12px; border-radius:8px;">
-                <option value="'Poppins', sans-serif">Poppins</option>
-                <option value="'Grand Hotel', cursive">Grand Hotel</option>
-                <option value="'Berkshire Swash', cursive">Berkshire Swash</option>
-                <option value="'Lora', serif">Lora</option>
-            </select>
+            <h3>Personalización del Negocio</h3>
+            <label>Nombre de la Tienda</label>
+            <input type="text" id="config-name" placeholder="Ej. Mi Tienda">
+            <br><br>
+            <button class="btn btn-success" onclick="saveSettings()">Guardar Cambios</button>
         </div>
     </div>
+
 </div>
 
 <script>
-    let inv = JSON.parse(localStorage.getItem('e_inv')) || [];
+    // --- DATOS Y PERSISTENCIA ---
+    let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
     let cart = [];
-    let cfg = JSON.parse(localStorage.getItem('e_cfg')) || { font: "'Poppins', sans-serif", theme: 'linear-gradient(135deg, #667eea, #764ba2)' };
-    let html5QrCode;
+    let settings = JSON.parse(localStorage.getItem('settings')) || { name: 'Mi Tienda Elite' };
 
-    function applyStyles() {
-        document.body.style.fontFamily = cfg.font;
-        document.documentElement.style.setProperty('--gradient', cfg.theme);
-        document.querySelectorAll('input, button, td, h2, select').forEach(el => el.style.fontFamily = cfg.font);
-    }
+    // Inicializar UI
+    document.getElementById('store-name-display').innerText = settings.name;
 
-    function updateFont(v) { cfg.font = v; applyStyles(); localStorage.setItem('e_cfg', JSON.stringify(cfg)); }
-
-    function showSec(id, btn) {
+    function showSection(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
-        if(id !== 'pos' && html5QrCode) stopCamera();
+        if(id === 'inventory') renderInventory();
     }
 
-    // --- LÓGICA DE ESCANEO ---
-    function processCode(sku) {
-        const p = inv.find(x => x.sku === sku);
-        if(p) {
-            const item = cart.find(x => x.sku === sku);
-            if(item) item.q++; else cart.push({...p, q: 1});
-            renderCart();
-            // Pitido de éxito
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            osc.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    // --- LÓGICA DE INVENTARIO ---
+    function saveProduct() {
+        const sku = document.getElementById('inv-sku').value;
+        const name = document.getElementById('inv-name').value;
+        const price = parseFloat(document.getElementById('inv-price').value);
+        const stock = parseInt(document.getElementById('inv-stock').value);
+
+        if(!sku || !name || isNaN(price)) return alert("Completa los datos");
+
+        const existingIdx = inventory.findIndex(p => p.sku === sku);
+        if(existingIdx >= 0) {
+            inventory[existingIdx] = { sku, name, price, stock };
         } else {
-            stopCamera();
-            const n = prompt("PRODUCTO NUEVO\nSKU: " + sku + "\nNombre:");
-            if(n) {
-                const pr = parseFloat(prompt("Precio:"));
-                const np = { sku, name: n, price: pr, stock: 100 };
-                inv.push(np); saveInv();
-                cart.push({...np, q: 1}); renderCart();
+            inventory.push({ sku, name, price, stock });
+        }
+
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        renderInventory();
+        alert("Producto registrado");
+    }
+
+    function renderInventory() {
+        const list = document.getElementById('inventory-list');
+        list.innerHTML = inventory.map(p => `
+            <tr>
+                <td>${p.sku}</td>
+                <td>${p.name}</td>
+                <td>$${p.price.toFixed(2)}</td>
+                <td style="color: ${p.stock < 5 ? 'red' : 'black'}"><strong>${p.stock}</strong></td>
+                <td><button class="btn btn-danger" onclick="deleteProduct('${p.sku}')">Eliminar</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function deleteProduct(sku) {
+        inventory = inventory.filter(p => p.sku !== sku);
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        renderInventory();
+    }
+
+    // --- LÓGICA DE VENTAS (POS) ---
+    function handleScan(e) {
+        if(e.key === 'Enter') {
+            const sku = e.target.value;
+            const product = inventory.find(p => p.sku === sku);
+            
+            if(product) {
+                if(product.stock <= 0) {
+                    speak("Sin existencias");
+                    return alert("Producto agotado");
+                }
+                addToCart(product);
+                playBeep();
+                speak(product.name);
+            } else {
+                alert("Producto no encontrado");
             }
+            e.target.value = '';
         }
     }
 
-    function handleManual(e) {
-        if(e.key === 'Enter') { processCode(e.target.value.trim()); e.target.value = ''; }
-    }
-
-    // --- CÁMARA ---
-    function toggleCamera() {
-        const readerDiv = document.getElementById('reader');
-        if (readerDiv.style.display === 'block') {
-            stopCamera();
+    function addToCart(product) {
+        const item = cart.find(i => i.sku === product.sku);
+        if(item) {
+            item.qty++;
         } else {
-            readerDiv.style.display = 'block';
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 150 } },
-                (decodedText) => { processCode(decodedText); },
-                (errorMessage) => { /* errores silenciosos de enfoque */ }
-            ).catch(err => alert("Error de cámara: " + err));
+            cart.push({ ...product, qty: 1 });
         }
+        renderCart();
     }
 
-    function stopCamera() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                document.getElementById('reader').style.display = 'none';
-            });
-        }
-    }
-
-    // --- RESTO DE FUNCIONES ---
     function renderCart() {
-        let t = 0;
-        document.getElementById('cart-list').innerHTML = cart.map((i, idx) => {
-            t += i.price * i.q;
-            return `<tr><td>${i.name}</td><td>$${i.price}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td class="del-btn" onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
+        const body = document.getElementById('cart-body');
+        let total = 0;
+        body.innerHTML = cart.map((item, idx) => {
+            const subtotal = item.price * item.qty;
+            total += subtotal;
+            return `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>${item.qty}</td>
+                    <td>$${subtotal.toFixed(2)}</td>
+                    <td><button onclick="removeItem(${idx})">❌</button></td>
+                </tr>
+            `;
         }).join('');
-        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
+        document.getElementById('total-amount').innerText = total.toFixed(2);
     }
 
-    function saveInv() { localStorage.setItem('e_inv', JSON.stringify(inv)); }
-    function addProd() {
-        const sku = document.getElementById('i-sku').value;
-        const name = document.getElementById('i-nom').value;
-        const price = parseFloat(document.getElementById('i-pre').value);
-        const stock = parseInt(document.getElementById('i-sto').value);
-        if(sku && name) { inv.push({sku, name, price, stock}); saveInv(); renderInv(); alert("Guardado"); }
-    }
-
-    function renderInv() {
-        document.getElementById('inv-list').innerHTML = inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>${p.stock}</td><td onclick="inv=inv.filter(x=>x.sku!='${p.sku}');saveInv();renderInv()">🗑️</td></tr>`).join('');
-    }
-
-    function finishSale() {
+    function processSale() {
         if(cart.length === 0) return;
-        cart.forEach(c => { const p = inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
-        saveInv(); alert("Venta Realizada"); cart = []; renderCart();
+        
+        // Descontar del stock real
+        cart.forEach(item => {
+            const invProd = inventory.find(p => p.sku === item.sku);
+            if(invProd) invProd.stock -= item.qty;
+        });
+
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        alert("Venta procesada con éxito");
+        clearCart();
     }
 
-    applyStyles();
+    function clearCart() {
+        cart = [];
+        renderCart();
+    }
+
+    // --- EFECTOS ---
+    function playBeep() {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = context.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, context.currentTime);
+        osc.connect(context.destination);
+        osc.start();
+        osc.stop(context.currentTime + 0.1);
+    }
+
+    function speak(text) {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'es-MX';
+        window.speechSynthesis.speak(msg);
+    }
 </script>
+
 </body>
 </html>
