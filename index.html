@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Control Total Pro</title>
+    <title>POS Control Total Pro - Manual & Scan</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
@@ -33,16 +33,19 @@
         .btn-celeste { background: var(--celeste); color: #fff; }
         .btn-verde { background: var(--verde); color: #fff; }
         .btn-rojo { background: var(--rojo); color: #fff; }
+        .btn-azul { background: #2980b9; color: #fff; }
 
-        input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
         
         table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
         td, th { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
         
         .total-txt { text-align: right; color: var(--celeste); font-size: 30px; font-weight: bold; padding: 10px 0; }
 
-        /* Modales */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
+        
+        .sugerencias { background: #fff; border: 1px solid #ddd; max-height: 150px; overflow-y: auto; border-radius: 8px; }
+        .sugerencia-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -59,7 +62,10 @@
 
     <div class="container">
         <div id="sec-venta">
-            <div class="card"><div id="reader"></div></div>
+            <div class="card">
+                <div id="reader"></div>
+                <button class="btn btn-azul" onclick="abrirBusquedaManual()">⌨️ BUSCAR POR NOMBRE / TECLADO</button>
+            </div>
             <div class="card">
                 <div id="carrito-lista"></div>
                 <div class="total-txt" id="total-txt">$ 0.00</div>
@@ -106,17 +112,25 @@
                 <h2 id="c-ventas" style="color:var(--verde);">Ventas: $0.00</h2>
                 <h2 id="c-gastos" style="color:var(--rojo);">Gastos: -$0.00</h2>
                 <h1 id="c-total" style="color:var(--celeste);">Utilidad: $0.00</h1>
-                <button class="btn btn-celeste" onclick="exp()" style="margin-top:20px;">EXCEL (CSV)</button>
+                <button class="btn btn-celeste" onclick="exp()">EXCEL (CSV)</button>
                 <button class="btn btn-rojo" onclick="limp()">CERRAR DÍA</button>
             </div>
         </div>
     </div>
 
+    <div id="modal-busqueda" class="modal-overlay">
+        <div class="card" style="width:100%;">
+            <h3>Venta por Teclado</h3>
+            <input type="text" id="input-busqueda" placeholder="Escribe nombre o código..." oninput="filtrarProductos()">
+            <div id="sugerencias-lista" class="sugerencias"></div>
+            <button class="btn" style="background:#ddd;" onclick="cerrarModalBusqueda()">CANCELAR</button>
+        </div>
+    </div>
+
     <div id="modal-cantidad" class="modal-overlay">
         <div class="card" style="width:100%; border-top:5px solid var(--celeste);">
-            <h2 id="cant-nombre-prod" style="text-align:center; color:var(--gris-oscuro);">Producto</h2>
-            <p style="text-align:center; margin-bottom:10px;">Ingresa la cantidad:</p>
-            <input type="number" id="input-cantidad" value="1" style="font-size:30px; text-align:center; border:2px solid var(--celeste);">
+            <h2 id="cant-nombre-prod" style="text-align:center;">Producto</h2>
+            <input type="number" id="input-cantidad" value="1" style="font-size:30px; text-align:center;">
             <button class="btn btn-verde" onclick="agregarConCantidad()">AGREGAR AL CARRITO</button>
             <button class="btn" style="background:#ddd;" onclick="cerrarModalCant()">CANCELAR</button>
         </div>
@@ -126,7 +140,7 @@
         <div class="card" style="width:100%; border-top:5px solid var(--verde);">
             <h2 id="m-tot" style="text-align:center; color:var(--verde);"></h2>
             <input type="number" id="m-paga" placeholder="¿Con cuánto pagan?">
-            <h2 id="m-cam" style="text-align:center; color:var(--rojo); margin:10px 0;"></h2>
+            <h2 id="m-cam" style="text-align:center; color:var(--rojo);"></h2>
             <button class="btn btn-verde" onclick="confirmarVenta()">FINALIZAR VENTA</button>
             <button class="btn btn-celeste" style="background:#25D366;" onclick="enviarWS()">WHATSAPP</button>
             <button class="btn" style="background:#ddd;" onclick="cerrarModalCobro()">VOLVER</button>
@@ -134,14 +148,14 @@
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('p_v10_db')) || {};
-    let vent = JSON.parse(localStorage.getItem('p_v10_v')) || [];
-    let fia = JSON.parse(localStorage.getItem('p_v10_f')) || {};
-    let gst = JSON.parse(localStorage.getItem('p_v10_g')) || [];
-    let nTienda = localStorage.getItem('p_v10_nom') || "MI TIENDA";
+    let db = JSON.parse(localStorage.getItem('p_v11_db')) || {};
+    let vent = JSON.parse(localStorage.getItem('p_v11_v')) || [];
+    let fia = JSON.parse(localStorage.getItem('p_v11_f')) || {};
+    let gst = JSON.parse(localStorage.getItem('p_v11_g')) || [];
+    let nTienda = localStorage.getItem('p_v11_nom') || "MI TIENDA";
     
     let carr = []; let tot = 0; let sc; let esc = false;
-    let tempProd = null; // Para guardar el producto escaneado temporalmente
+    let tempProd = null;
 
     function hablar(t) { let m = new SpeechSynthesisUtterance(t); m.lang='es-MX'; window.speechSynthesis.speak(m); }
 
@@ -160,57 +174,63 @@
         }).catch(e=>console.log(e));
     }
 
-    // NUEVA FUNCIÓN: Abrir modal de cantidad
+    // BUSQUEDA MANUAL
+    function abrirBusquedaManual() {
+        document.getElementById('modal-busqueda').style.display = 'flex';
+        document.getElementById('input-busqueda').focus();
+        filtrarProductos();
+    }
+
+    function filtrarProductos() {
+        let txt = document.getElementById('input-busqueda').value.toLowerCase();
+        let lista = document.getElementById('sugerencias-lista');
+        lista.innerHTML = '';
+        for(let k in db) {
+            if(db[k].nombre.toLowerCase().includes(txt) || k.includes(txt)) {
+                let div = document.createElement('div');
+                div.className = 'sugerencia-item';
+                div.innerHTML = `<b>${db[k].nombre}</b> - $${db[k].precio} (Stock: ${db[k].stock})`;
+                div.onclick = () => { cerrarModalBusqueda(); abrirModalCant(k); };
+                lista.appendChild(div);
+            }
+        }
+    }
+
+    function cerrarModalBusqueda() { document.getElementById('modal-busqueda').style.display = 'none'; }
+
+    // CANTIDAD
     function abrirModalCant(t) {
         if(db[t]) {
             tempProd = {...db[t], code: t};
             document.getElementById('cant-nombre-prod').innerText = tempProd.nombre;
             document.getElementById('input-cantidad').value = 1;
             document.getElementById('modal-cantidad').style.display = 'flex';
-            hablar(tempProd.nombre + ". ¿Cuántos?");
-            document.getElementById('input-cantidad').focus();
-        } else {
-            document.getElementById('in-code').value = t;
-            hablar("Producto no registrado");
-        }
+            hablar(tempProd.nombre);
+        } else { alert("No registrado"); }
     }
 
-    // NUEVA FUNCIÓN: Agregar cantidad al carrito
     function agregarConCantidad() {
         let cant = parseInt(document.getElementById('input-cantidad').value);
-        if(isNaN(cant) || cant <= 0) return;
-
-        let yaEnCarrito = carr.filter(x => x.code === tempProd.code).length;
-        
-        if(tempProd.stock >= (yaEnCarrito + cant)) {
-            for(let i=0; i < cant; i++) {
-                carr.push({...tempProd});
-            }
-            rCarr();
-            cerrarModalCant();
-            hablar("Agregado");
-        } else {
-            alert("No hay suficiente stock. Disponible: " + tempProd.stock);
-            hablar("No hay suficiente stock");
-        }
+        let yaEn = carr.filter(x => x.code === tempProd.code).length;
+        if(tempProd.stock >= (yaEn + cant)) {
+            for(let i=0; i < cant; i++) carr.push({...tempProd});
+            rCarr(); cerrarModalCant();
+        } else { alert("Sin stock suficiente"); }
     }
 
-    function cerrarModalCant() { 
-        document.getElementById('modal-cantidad').style.display = 'none';
-        tempProd = null;
-    }
+    function cerrarModalCant() { document.getElementById('modal-cantidad').style.display = 'none'; tempProd = null; }
 
-    // --- FUNCIONES DE BASE ---
+    // --- RESTO DE FUNCIONES ---
     function guardarProd() {
         let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
         if(!c||!n) return; db[c]={nombre:n, precio:p, stock:s};
-        localStorage.setItem('p_v10_db', JSON.stringify(db)); rInv(); alert("Guardado");
+        localStorage.setItem('p_v11_db', JSON.stringify(db)); rInv(); alert("OK");
     }
 
     function guardarGasto() {
         let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value);
         if(!d||isNaN(m)) return; gst.push({desc:d, monto:m});
-        localStorage.setItem('p_v10_g', JSON.stringify(gst)); rGst();
+        localStorage.setItem('p_v11_g', JSON.stringify(gst)); rGst();
     }
 
     function rInv() {
@@ -225,15 +245,14 @@
 
     function rCarr() {
         let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML='';
-        let agrupado = {};
+        let agr = {};
         carr.forEach(i => {
-            if(!agrupado[i.code]) agrupado[i.code] = {n: i.nombre, p: i.precio, q: 0};
-            agrupado[i.code].q++;
-            tot += i.precio;
+            if(!agr[i.code]) agr[i.code] = {n: i.nombre, p: i.precio, q: 0};
+            agr[i.code].q++; tot += i.precio;
         });
-        for(let k in agrupado) {
+        for(let k in agr) {
             l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;">
-                <span>${agrupado[k].q}x ${agrupado[k].n}</span><b>$${(agrupado[k].p * agrupado[k].q).toFixed(2)}</b>
+                <span>${agr[k].q}x ${agr[k].n}</span><b>$${(agr[k].p * agr[k].q).toFixed(2)}</b>
             </div>`;
         }
         document.getElementById('total-txt').innerText = '$ '+tot.toFixed(2);
@@ -249,25 +268,22 @@
     function confirmarVenta() {
         carr.forEach(i=>{ db[i.code].stock--; });
         vent.push({t:tot, f:new Date().toLocaleString()});
-        localStorage.setItem('p_v10_db', JSON.stringify(db));
-        localStorage.setItem('p_v10_v', JSON.stringify(vent));
+        localStorage.setItem('p_v11_db', JSON.stringify(db));
+        localStorage.setItem('p_v11_v', JSON.stringify(vent));
         carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
     }
 
     function enviarWS() {
         let ticket = `*${nTienda}*\n--- TICKET ---\n`;
-        let agrupado = {};
-        carr.forEach(i => {
-            if(!agrupado[i.code]) agrupado[i.code] = {n: i.nombre, p: i.precio, q: 0};
-            agrupado[i.code].q++;
-        });
-        for(let k in agrupado) { ticket += `${agrupado[k].q} ${agrupado[k].n}: $${(agrupado[k].p * agrupado[k].q).toFixed(2)}\n`; }
+        let agr = {};
+        carr.forEach(i => { if(!agr[i.code]) agr[i.code] = {n: i.nombre, p: i.precio, q: 0}; agr[i.code].q++; });
+        for(let k in agr) { ticket += `${agr[k].q} ${agr[k].n}: $${(agr[k].p * agr[k].q).toFixed(2)}\n`; }
         ticket+=`*TOTAL: $${tot.toFixed(2)}*`;
         window.open(`https://wa.me/?text=${encodeURIComponent(ticket)}`);
     }
 
     function rCorte() {
-        let vT=0; let gT=0;
+        let vT=0, gT=0;
         vent.forEach(v=>vT+=v.t); gst.forEach(g=>gT+=g.monto);
         document.getElementById('c-ventas').innerText = "Ventas: $"+vT.toFixed(2);
         document.getElementById('c-gastos').innerText = "Gastos: -$"+gT.toFixed(2);
@@ -277,7 +293,7 @@
     function gFiado(){
         let n=document.getElementById('f-nom').value, m=parseFloat(document.getElementById('f-mon').value);
         if(!n||isNaN(m)) return; fia[n]=(fia[n]||0)+m;
-        localStorage.setItem('p_v10_f', JSON.stringify(fia)); rFia();
+        localStorage.setItem('p_v11_f', JSON.stringify(fia)); rFia();
     }
 
     function rFia(){
@@ -285,7 +301,7 @@
         document.getElementById('l-fiado').innerHTML = h;
     }
 
-    function pagaF(n){ delete fia[n]; localStorage.setItem('p_v10_f', JSON.stringify(fia)); rFia(); }
+    function pagaF(n){ delete fia[n]; localStorage.setItem('p_v11_f', JSON.stringify(fia)); rFia(); }
 
     function exp(){
         let c="Fecha,Monto\n"; vent.forEach(v=>c+=`${v.f},${v.t}\n`);
@@ -293,9 +309,9 @@
         a.href=URL.createObjectURL(b); a.download=`Corte.csv`; a.click();
     }
 
-    function limp(){ if(confirm("¿Limpiar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v10_v', JSON.stringify(vent)); localStorage.setItem('p_v10_g', JSON.stringify(gst)); rCorte(); } }
+    function limp(){ if(confirm("¿Limpiar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v11_v', JSON.stringify(vent)); localStorage.setItem('p_v11_g', JSON.stringify(gst)); rCorte(); } }
     function cerrarModalCobro(){ document.getElementById('modal-cobro').style.display='none'; }
-    function guardarNombre() { let n=document.getElementById('config-nombre').value; localStorage.setItem('p_v10_nom', n); document.getElementById('display-nombre').innerText=n; alert("Actualizado"); }
+    function guardarNombre() { let n=document.getElementById('config-nombre').value; localStorage.setItem('p_v11_nom', n); document.getElementById('display-nombre').innerText=n; alert("Actualizado"); }
     
     window.onload = () => { document.getElementById('display-nombre').innerText=nTienda; init(); };
 </script>
