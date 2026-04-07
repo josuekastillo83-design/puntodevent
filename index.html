@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Pro - Corte & PDF</title>
+    <title>POS Pro - Escáner & Stock</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --gris: #2c3e50; --celeste: #3498db; --verde: #27ae60; --rojo: #e74c3c; --naranja: #e67e22; --fondo: #f4f7f6; }
+        :root { --gris: #2c3e50; --celeste: #3498db; --verde: #27ae60; --rojo: #e74c3c; --fondo: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--fondo); color: var(--gris); padding-bottom: 80px; }
         header { background: var(--gris); color: var(--celeste); padding: 15px; text-align: center; font-weight: bold; }
@@ -25,6 +25,7 @@
         .total-txt { text-align: right; color: var(--celeste); font-size: 32px; font-weight: bold; padding: 10px 0; }
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
         .corte-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
+        #scan-status { text-align: center; color: var(--verde); font-weight: bold; font-size: 14px; margin-top: 5px; height: 20px; }
     </style>
 </head>
 <body>
@@ -33,15 +34,17 @@
 
     <div class="tab-nav">
         <div class="tab active" onclick="ver('venta', this)">VENTA</div>
-        <div class="tab" onclick="ver('buscar', this)">BUSCAR</div>
-        <div class="tab" onclick="ver('inv', this)">STOCK</div>
+        <div class="tab" onclick="ver('inv', this)">STOCK / NUEVOS</div>
         <div class="tab" onclick="ver('gastos', this)">GASTOS</div>
         <div class="tab" onclick="ver('corte', this)">CORTE</div>
     </div>
 
     <div class="container">
         <div id="sec-venta">
-            <div class="card"><div id="reader"></div></div>
+            <div class="card">
+                <div id="reader"></div>
+                <div id="scan-status"></div>
+            </div>
             <div class="card">
                 <div id="carrito-lista"></div>
                 <div class="total-txt" id="total-txt">$ 0.00</div>
@@ -49,22 +52,23 @@
             </div>
         </div>
 
-        <div id="sec-buscar" style="display:none;">
-            <div class="card">
-                <input type="text" id="in-bus" placeholder="Buscar producto..." oninput="buscarProd()">
-                <div id="res-bus" style="max-height:200px; overflow-y:auto; margin-top:10px;"></div>
-            </div>
-        </div>
-
         <div id="sec-inv" style="display:none;">
             <div class="card">
-                <input type="text" id="in-code" placeholder="Código">
-                <input type="text" id="in-nom" placeholder="Nombre">
-                <input type="number" id="in-pre" placeholder="Precio $">
-                <input type="number" id="in-stock" placeholder="Stock">
-                <button class="btn btn-celeste" onclick="guardarProd()">GUARDAR</button>
+                <h3>Registrar Producto Nuevo</h3>
+                <p style="font-size: 11px; color: #666; margin-bottom: 5px;">*Escanea el código para llenarlo automáticamente</p>
+                <input type="text" id="in-code" placeholder="Código de barras">
+                <input type="text" id="in-nom" placeholder="Nombre del producto">
+                <input type="number" id="in-pre" placeholder="Precio de venta $">
+                <input type="number" id="in-stock" placeholder="Cantidad que llegó">
+                <button class="btn btn-celeste" onclick="guardarProd()">💾 GUARDAR EN INVENTARIO</button>
             </div>
-            <div class="card"><table><thead><tr><th>Prod</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="l-inv"></tbody></table></div>
+            <div class="card">
+                <h3>Lista de Stock</h3>
+                <table style="width:100%; font-size:12px;">
+                    <thead><tr style="text-align:left;"><th>Prod</th><th>Stock</th><th>Precio</th></tr></thead>
+                    <tbody id="l-inv"></tbody>
+                </table>
+            </div>
         </div>
 
         <div id="sec-gastos" style="display:none;">
@@ -80,7 +84,6 @@
                 <h3 style="text-align:center; margin-bottom:10px;">RESUMEN DEL DÍA</h3>
                 <div class="corte-item"><span>Efectivo:</span><b id="c-efe">$0.00</b></div>
                 <div class="corte-item"><span>Tarjeta:</span><b id="c-tar">$0.00</b></div>
-                <div class="corte-item"><span>Fiado:</span><b id="c-fia">$0.00</b></div>
                 <div class="corte-item" style="color:var(--rojo);"><span>Gastos:</span><b id="c-gas">-$0.00</b></div>
                 <hr style="margin:10px 0;">
                 <div class="corte-item" style="font-size:20px; color:var(--celeste);"><span>Utilidad Neta:</span><b id="c-util">$0.00</b></div>
@@ -94,7 +97,7 @@
         <div class="card" style="width:100%;">
             <h2 id="n-prod" style="text-align:center;"></h2>
             <input type="number" id="i-cant" value="1" style="font-size:30px; text-align:center;">
-            <button class="btn btn-verde" onclick="sumarCarr()">AGREGAR</button>
+            <button class="btn btn-verde" onclick="sumarCarr()">AGREGAR AL CARRITO</button>
             <button class="btn" onclick="cerrarModalCant()">CANCELAR</button>
         </div>
     </div>
@@ -102,40 +105,34 @@
     <div id="modal-cobro" class="modal-overlay">
         <div class="card" style="width:100%;">
             <h2 id="m-tot" style="text-align:center;"></h2>
-            <select id="m-metodo" onchange="togglePaga()">
-                <option value="efectivo">Efectivo</option>
-                <option value="tarjeta">Tarjeta</option>
-                <option value="fiado">Fiado</option>
-            </select>
-            <div id="d-paga"><input type="number" id="m-paga" placeholder="Paga con..."></div>
+            <select id="m-metodo"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option></select>
+            <input type="number" id="m-paga" placeholder="¿Con cuánto pagan?">
             <button class="btn btn-verde" onclick="finalizar()">FINALIZAR VENTA</button>
             <button class="btn" onclick="cerrarModalCobro()">VOLVER</button>
         </div>
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('p_final_db')) || {};
-    let ventas = JSON.parse(localStorage.getItem('p_final_v')) || [];
-    let gastos = JSON.parse(localStorage.getItem('p_final_g')) || [];
-    let carr = []; let tot = 0; let sc; let temp;
+    let db = JSON.parse(localStorage.getItem('pos_v15_db')) || {};
+    let ventas = JSON.parse(localStorage.getItem('pos_v15_v')) || [];
+    let gastos = JSON.parse(localStorage.getItem('pos_v15_g')) || [];
+    let carr = []; let tot = 0; let sc; let temp; let modo = 'venta';
 
-    // EL SONIDO QUE BUSCAS
-    function sonarPitido() {
+    function sonarBip() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = "sine";
-        osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // 1000Hz es el pitido estándar
+        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
         osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         if(navigator.vibrate) navigator.vibrate(100);
     }
 
-    function hablar(t) { let m = new SpeechSynthesisUtterance(t); m.lang='es-MX'; window.speechSynthesis.speak(m); }
-
     function ver(s, btn) {
-        ["sec-venta","sec-inv","sec-gastos","sec-corte","sec-buscar"].forEach(x=>document.getElementById(x).style.display='none');
+        modo = s;
+        ["sec-venta","sec-inv","sec-gastos","sec-corte"].forEach(x=>document.getElementById(x).style.display='none');
         document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
         document.getElementById('sec-'+s).style.display='block';
         btn.classList.add('active');
@@ -144,8 +141,18 @@
 
     function init() {
         sc = new Html5Qrcode("reader");
-        sc.start({facingMode:"environment"},{fps:15,qrbox:250}, (t)=>{
-            if(db[t]) { sonarPitido(); abrirModalCant(t); }
+        sc.start({facingMode:"environment"},{fps:20,qrbox:250}, (t)=>{
+            sonarBip();
+            if(modo === 'venta') {
+                if(db[t]) abrirModalCant(t);
+                else document.getElementById('scan-status').innerText = "Prod. no registrado";
+            } else if(modo === 'inv') {
+                document.getElementById('in-code').value = t;
+                if(db[t]) {
+                    document.getElementById('in-nom').value = db[t].nombre;
+                    document.getElementById('in-pre').value = db[t].precio;
+                }
+            }
         }).catch(e=>console.log(e));
     }
 
@@ -154,7 +161,7 @@
         document.getElementById('n-prod').innerText = temp.nombre;
         document.getElementById('i-cant').value = 1;
         document.getElementById('modal-cant').style.display = 'flex';
-        hablar(temp.nombre);
+        document.getElementById('scan-status').innerText = "";
     }
 
     function sumarCarr() {
@@ -162,7 +169,7 @@
         if(temp.stock >= c) {
             for(let i=0; i<c; i++) carr.push({...temp});
             rCarr(); cerrarModalCant();
-        } else { alert("Sin stock suficiente"); }
+        } else { alert("Stock insuficiente"); }
     }
 
     function rCarr() {
@@ -179,36 +186,21 @@
         document.getElementById('total-txt').innerText = '$ '+tot.toFixed(2);
     }
 
-    function buscarProd() {
-        let t = document.getElementById('in-bus').value.toLowerCase();
-        let r = document.getElementById('res-bus'); r.innerHTML='';
-        for(let k in db) {
-            if(db[k].nombre.toLowerCase().includes(t)) {
-                let d = document.createElement('div');
-                d.style = "padding:10px; border-bottom:1px solid #eee;";
-                d.innerHTML = `${db[k].nombre} - $${db[k].precio}`;
-                d.onclick = () => { abrirModalCant(k); };
-                r.appendChild(d);
-            }
-        }
-    }
-
     function finalizar() {
         let m = document.getElementById('m-metodo').value;
         carr.forEach(i => db[i.code].stock--);
         ventas.push({t: tot, m: m, f: new Date().toLocaleString()});
-        localStorage.setItem('p_final_db', JSON.stringify(db));
-        localStorage.setItem('p_final_v', JSON.stringify(ventas));
-        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta OK");
+        localStorage.setItem('pos_v15_db', JSON.stringify(db));
+        localStorage.setItem('pos_v15_v', JSON.stringify(ventas));
+        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
     }
 
     function rCorte() {
-        let e=0, t=0, f=0, g=0;
-        ventas.forEach(v => { if(v.m==='efectivo') e+=v.t; else if(v.m==='tarjeta') t+=v.t; else f+=v.t; });
+        let e=0, t=0, g=0;
+        ventas.forEach(v => { if(v.m==='efectivo') e+=v.t; else t+=v.t; });
         gastos.forEach(gs => g+=gs.monto);
         document.getElementById('c-efe').innerText = "$"+e.toFixed(2);
         document.getElementById('c-tar').innerText = "$"+t.toFixed(2);
-        document.getElementById('c-fia').innerText = "$"+f.toFixed(2);
         document.getElementById('c-gas').innerText = "-$"+g.toFixed(2);
         document.getElementById('c-util').innerText = "$"+(e+t-g).toFixed(2);
     }
@@ -216,23 +208,24 @@
     function exportarPDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.text("CORTE DE CAJA", 10, 20);
-        doc.text("Efectivo: " + document.getElementById('c-efe').innerText, 10, 40);
-        doc.text("Tarjeta: " + document.getElementById('c-tar').innerText, 10, 50);
-        doc.text("Utilidad Neta: " + document.getElementById('c-util').innerText, 10, 70);
+        doc.text("Utilidad: " + document.getElementById('c-util').innerText, 10, 40);
         doc.save("Corte.pdf");
     }
 
     function guardarProd() {
         let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
-        if(c&&n) { db[c]={nombre:n, precio:p, stock:s}; localStorage.setItem('p_final_db', JSON.stringify(db)); rInv(); alert("Guardado"); }
+        if(c&&n) { 
+            db[c]={nombre:n, precio:p, stock:(db[c]?.stock || 0) + s}; 
+            localStorage.setItem('pos_v15_db', JSON.stringify(db)); 
+            rInv(); alert("Stock Actualizado"); 
+        }
     }
     function rInv() { let h=''; for(let k in db) h+=`<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`; document.getElementById('l-inv').innerHTML=h; }
-    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gastos.push({desc:d, monto:m}); localStorage.setItem('p_final_g', JSON.stringify(gastos)); alert("Gasto OK"); }}
-    function togglePaga() { document.getElementById('d-paga').style.display = (document.getElementById('m-metodo').value==='efectivo')?'block':'none'; }
+    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gastos.push({desc:d, monto:m}); localStorage.setItem('pos_v15_g', JSON.stringify(gastos)); alert("Gasto OK"); }}
     function abrirCobro() { if(carr.length==0)return; document.getElementById('modal-cobro').style.display='flex'; document.getElementById('m-tot').innerText="Total: $"+tot.toFixed(2); }
-    function cerrarModalCant() { document.getElementById('modal-cant').style.display='none'; }
+    function cerrarModalCant() { document.getElementById('modal-cantidad').style.display='none'; }
     function cerrarModalCobro() { document.getElementById('modal-cobro').style.display='none'; }
-    function limp() { if(confirm("¿Borrar día?")){ ventas=[]; gastos=[]; localStorage.setItem('p_final_v', JSON.stringify(ventas)); localStorage.setItem('p_final_g', JSON.stringify(gastos)); rCorte(); } }
+    function limp() { if(confirm("¿Limpiar día?")){ ventas=[]; gastos=[]; localStorage.setItem('pos_v15_v', JSON.stringify(ventas)); localStorage.setItem('pos_v15_g', JSON.stringify(gastos)); rCorte(); } }
     window.onload = init;
 </script>
 </body>
