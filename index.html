@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Elite POS Pro - Josué Castillo Rubio</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         :root {
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -15,11 +17,13 @@
             --bg-dark: #111;
             --danger: #ff4757;
             --success: #2ed573;
+            --info: #3498db;
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: var(--font-main); margin: 0; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* PANTALLA DE BIENVENIDA (PRESENTACIÓN) */
+        /* PANTALLA DE BIENVENIDA */
         #welcome-screen {
             position: fixed; top:0; left:0; width:100%; height:100%;
             background: var(--bg-dark); display: flex; flex-direction: column;
@@ -29,34 +33,49 @@
         .welcome-logo {
             font-family: 'Grand Hotel', cursive; font-size: 5em;
             background: var(--gradient); -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; margin-bottom: 0;
+            -webkit-text-fill-color: transparent; margin: 0;
         }
-        .welcome-tag { font-size: 1.2em; letter-spacing: 2px; color: var(--accent); margin-bottom: 30px; }
-        .welcome-dev { font-size: 0.9em; opacity: 0.7; margin-bottom: 40px; }
-        
-        /* SISTEMA (OCULTO AL INICIO) */
+        .welcome-dev { margin: 30px 0; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+
+        /* APP PRINCIPAL */
         #main-app { display: none; flex-direction: column; height: 100vh; width: 100%; }
 
-        /* RESTO DEL DISEÑO ANTERIOR */
         .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; white-space: nowrap; z-index: 100; border-bottom: 2px solid var(--accent); }
         .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
         .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
+
         .main-content { flex-grow: 1; padding: 12px; overflow-y: auto; padding-bottom: 80px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
-        .section.active { display: block; }
-        .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        .section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ACORDEONES Y TABLAS */
         .accordion { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 1px solid #ddd; }
-        .accordion-header { background: #f8f9fa; padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
+        .accordion-header { background: #f8f9fa; padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
         .accordion-content { display: none; padding: 10px; }
         .accordion-content.open { display: block; }
+
+        .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        .table-scroll { max-height: 350px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; background: white; font-family: 'Poppins', sans-serif !important; }
+        td { padding: 12px 8px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
+
+        /* CONTROLES CAJA */
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-btn { background: #eee; border: none; width: 28px; height: 28px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 16px; }
         .total-box { background: var(--gradient); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
         .total-box h2 { font-size: 2.8em; margin: 0; }
         .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-bottom: 10px; }
+
+        /* MODAL PAGO */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
         .modal-content { background: white; width: 95%; max-width: 420px; padding: 20px; border-radius: 20px; text-align: center; }
-        .qty-controls { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 5px; font-weight: bold; }
-        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 16px; }
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .method-btn { padding: 10px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; font-size: 0.8em; font-weight: bold; background: #f9f9f9; }
+        .method-btn.selected { border-color: var(--info); background: #e3f2fd; color: var(--info); }
+
         #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
     </style>
 </head>
@@ -64,14 +83,12 @@
 
     <div id="welcome-screen">
         <h1 class="welcome-logo">Elite POS</h1>
-        <p class="welcome-tag">SISTEMA PROFESIONAL DE VENTAS</p>
+        <p style="letter-spacing: 3px; color: var(--accent);">SISTEMA DE GESTIÓN PRO</p>
         <div class="welcome-dev">
             <p>Desarrollado por:</p>
-            <h3 style="margin-top: 5px;">Josué Castillo Rubio</h3>
-            <p>📧 jcastillo.dev@gmail.com</p>
+            <h2 style="margin: 5px 0;">Josué Castillo Rubio</h2>
         </div>
-        <button class="btn-main" style="width: 250px;" onclick="startApp()">COMENZAR</button>
-        <p style="font-size: 0.7em; margin-top: 20px; opacity: 0.5;">Versión 1.0.0 Pro - Sin conexión requerida</p>
+        <button class="btn-main" style="width: 260px;" onclick="startApp()">COMENZAR SESIÓN</button>
     </div>
 
     <div id="main-app">
@@ -98,7 +115,7 @@
                         </table>
                     </div>
                 </div>
-                <div class="total-box"><small>TOTAL</small><h2 id="total-val">$0.00</h2></div>
+                <div class="total-box"><small>TOTAL VENTA</small><h2 id="total-val">$0.00</h2></div>
                 <button class="btn-main" onclick="openPaymentModal()">COBRAR (F12)</button>
             </div>
 
@@ -126,22 +143,34 @@
 
             <div id="fiados" class="section">
                 <div class="card">
-                    <h3>Deudas Pendientes</h3>
-                    <div class="table-scroll"><table id="f-table"><thead><tr><th>Cliente</th><th>Monto</th><th></th></tr></thead><tbody id="fiados-list"></tbody></table></div>
+                    <h3>Deudas Pendientes (Largo Plazo)</h3>
+                    <div class="table-scroll"><table><thead><tr><th>Cliente</th><th>Monto</th><th>Acción</th></tr></thead><tbody id="fiados-list"></tbody></table></div>
                 </div>
             </div>
 
             <div id="gastos" class="section">
-                <div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)">NUEVO GASTO <span>▼</span></div><div class="accordion-content"><input type="text" id="g-desc" class="input-style" placeholder="Motivo"><input type="number" id="g-monto" class="input-style" placeholder="Monto"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">Registrar</button></div></div>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">NUEVO GASTO <span>▼</span></div>
+                    <div class="accordion-content">
+                        <input type="text" id="g-desc" class="input-style" placeholder="Motivo">
+                        <input type="number" id="g-monto" class="input-style" placeholder="Monto">
+                        <button class="btn-main" style="background:var(--danger)" onclick="addGasto()">Registrar Gasto</button>
+                    </div>
+                </div>
                 <div class="card"><table><thead><tr><th>Motivo</th><th>Monto</th><th></th></tr></thead><tbody id="gastos-list"></tbody></table></div>
             </div>
 
             <div id="corte" class="section">
                 <div class="card" style="text-align:center;">
-                    <h3>Balance de Hoy</h3>
-                    <h1 id="c-total" style="color:var(--success); font-size:3.5em;">$0.00</h1>
+                    <h3>Balance del Día</h3>
+                    <h1 id="c-total" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.8em; margin-bottom: 15px;">
+                        <div style="background:#eee; padding:10px; border-radius:10px;">Efectivo:<br><b id="c-cash">$0.00</b></div>
+                        <div style="background:#eee; padding:10px; border-radius:10px;">Tarjeta:<br><b id="c-card">$0.00</b></div>
+                        <div style="background:#eee; padding:10px; border-radius:10px;">Fiado:<br><b id="c-debt">$0.00</b></div>
+                    </div>
                     <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR PDF</button>
-                    <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
+                    <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA DIARIA</button>
                 </div>
             </div>
         </div>
@@ -149,12 +178,21 @@
 
     <div id="payment-modal" class="modal">
         <div class="modal-content">
-            <h2 id="m-total-text">Total: $0.00</h2>
-            <p>Efectivo Recibido:</p>
-            <input type="number" id="cash-received" class="input-style" oninput="calcChange()">
-            <h2 id="change-text" style="color:var(--success);">$0.00</h2>
-            <button class="btn-main" onclick="confirmPayment()">FINALIZAR</button>
-            <button class="btn-main" style="background:#ccc;" onclick="closeModal()">VOLVER</button>
+            <h2 id="m-total-text" style="margin-top:0;">Total: $0.00</h2>
+            <div class="payment-methods">
+                <div class="method-btn selected" id="btn-cash" onclick="selectMethod('efectivo')">💵<br>Efectivo</div>
+                <div class="method-btn" id="btn-card" onclick="selectMethod('tarjeta')">💳<br>Tarjeta</div>
+                <div class="method-btn" id="btn-debt" onclick="selectMethod('fiado')">📝<br>Fiado</div>
+            </div>
+            <div id="cash-section">
+                <input type="number" id="cash-received" class="input-style" placeholder="Efectivo Recibido" oninput="calcChange()">
+                <h2 id="change-text" style="color:var(--success);">$0.00</h2>
+            </div>
+            <div id="debt-section" style="display:none;">
+                <input type="text" id="debt-customer" class="input-style" placeholder="Nombre del Cliente">
+            </div>
+            <button class="btn-main" onclick="confirmPayment()">FINALIZAR VENTA</button>
+            <button class="btn-main" style="background:#ccc;" onclick="closeModal()">CANCELAR</button>
         </div>
     </div>
 
@@ -163,12 +201,15 @@
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
         fiados: JSON.parse(localStorage.getItem('e_fia_perma')) || [],
         gastos: JSON.parse(localStorage.getItem('e_gas')) || [],
-        ventasHoy: parseFloat(localStorage.getItem('e_vhoy')) || 0,
-        recibidoHoy: parseFloat(localStorage.getItem('e_v_rec')) || 0,
-        cambioHoy: parseFloat(localStorage.getItem('e_v_cam')) || 0
+        ventasEfectivo: parseFloat(localStorage.getItem('e_v_efectivo')) || 0,
+        ventasTarjeta: parseFloat(localStorage.getItem('e_v_tarjeta')) || 0,
+        ventasFiado: parseFloat(localStorage.getItem('e_v_fiado')) || 0,
+        cambioHoy: parseFloat(localStorage.getItem('e_cambio')) || 0
     };
     let cart = [];
     let scanner;
+    let currentTotal = 0;
+    let selectedMethod = 'efectivo';
 
     function startApp() {
         document.getElementById('welcome-screen').style.display = 'none';
@@ -179,105 +220,126 @@
         localStorage.setItem('e_inv', JSON.stringify(db.inv));
         localStorage.setItem('e_fia_perma', JSON.stringify(db.fiados));
         localStorage.setItem('e_gas', JSON.stringify(db.gastos));
-        localStorage.setItem('e_vhoy', db.ventasHoy);
-        localStorage.setItem('e_v_rec', db.recibidoHoy);
-        localStorage.setItem('e_v_cam', db.cambioHoy);
+        localStorage.setItem('e_v_efectivo', db.ventasEfectivo);
+        localStorage.setItem('e_v_tarjeta', db.ventasTarjeta);
+        localStorage.setItem('e_v_fiado', db.ventasFiado);
+        localStorage.setItem('e_cambio', db.cambioHoy);
     }
 
-    // --- REUTILIZACIÓN DE TODAS LAS FUNCIONES ANTERIORES (Simplificadas para espacio) ---
-    function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
+    // --- NAVEGACIÓN ---
     function showSec(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active'); btn.classList.add('active');
         if(id==='stock') renderInv(); if(id==='fiados') renderFiados(); if(id==='gastos') renderGastos(); if(id==='corte') renderCorte();
     }
+    function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
 
+    // --- CAJA ---
+    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
     function process(code, mode = 'sale') {
         const p = db.inv.find(x => x.sku === code);
         if(p) {
             if(mode === 'sale') {
+                if(p.stock <= 0) return alert("Sin existencias");
                 const i = cart.find(x => x.sku === code);
                 if(i) i.q++; else cart.push({...p, q: 1}); renderCart();
             } else {
-                const add = parseInt(prompt(`SURTIR: ${p.name}\nSumar:`));
+                const add = parseInt(prompt(`RESURTIR: ${p.name}\nSumar:`));
                 if(!isNaN(add)) { p.stock += add; save(); renderInv(); }
             }
         } else {
-            const n = prompt("NUEVO PRODUCTO\nNombre:");
-            if(n) {
-                const pr = parseFloat(prompt("Precio:"));
-                db.inv.push({sku: code, name: n, price: pr, stock: 100}); save(); renderInv();
-            }
+            const n = prompt("PRODUCTO NUEVO\nNombre:");
+            if(n) { const pr = parseFloat(prompt("Precio:")); const st = parseInt(prompt("Stock:"));
+                db.inv.push({sku: code, name: n, price: pr, stock: st}); save(); renderInv(); }
         }
     }
-
-    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    
+    function updateCartQty(idx, d) {
+        const item = cart[idx]; const p = db.inv.find(x => x.sku === item.sku);
+        if (item.q + d > p.stock) return alert("Sin stock");
+        if (item.q + d <= 0) cart.splice(idx, 1); else item.q += d; renderCart();
+    }
     function renderCart() {
-        let t = 0;
-        document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
+        let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += i.price * i.q;
-            return `<tr><td>${i.name}</td><td>$${i.price}</td><td><div class="qty-controls"><button class="qty-btn" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="qty-btn" onclick="updateQty(${idx},1)">+</button></div></td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
+            return `<tr><td>${i.name}</td><td>$${i.price}</td><td><div class="qty-controls"><button class="qty-btn" onclick="updateCartQty(${idx},-1)">-</button><span>${i.q}</span><button class="qty-btn" onclick="updateCartQty(${idx},1)">+</button></div></td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
-    function updateQty(idx, d) { if(cart[idx].q + d <= 0) cart.splice(idx,1); else cart[idx].q += d; renderCart(); }
-
+    // --- PAGO ---
+    function selectMethod(m) {
+        selectedMethod = m;
+        document.getElementById('btn-cash').classList.toggle('selected', m === 'efectivo');
+        document.getElementById('btn-card').classList.toggle('selected', m === 'tarjeta');
+        document.getElementById('btn-debt').classList.toggle('selected', m === 'fiado');
+        document.getElementById('cash-section').style.display = m === 'efectivo' ? 'block' : 'none';
+        document.getElementById('debt-section').style.display = m === 'fiado' ? 'block' : 'none';
+    }
     function openPaymentModal() {
-        let t = cart.reduce((a, b) => a + (b.price * b.q), 0);
-        document.getElementById('m-total-text').innerText = `Total: $${t.toFixed(2)}`;
+        if (!cart.length) return;
+        currentTotal = cart.reduce((acc, i) => acc + (i.price * i.q), 0);
+        document.getElementById('m-total-text').innerText = `Total: $${currentTotal.toFixed(2)}`;
         document.getElementById('payment-modal').style.display = 'flex';
+        selectMethod('efectivo'); document.getElementById('cash-received').value = '';
     }
-
+    function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
     function calcChange() {
-        let t = cart.reduce((a, b) => a + (b.price * b.q), 0);
-        let r = parseFloat(document.getElementById('cash-received').value) || 0;
-        document.getElementById('change-text').innerText = `$${(r - t).toFixed(2)}`;
+        const rec = parseFloat(document.getElementById('cash-received').value) || 0;
+        document.getElementById('change-text').innerText = (rec - currentTotal >= 0) ? `$${(rec - currentTotal).toFixed(2)}` : "...";
     }
-
     function confirmPayment() {
-        let t = cart.reduce((a, b) => a + (b.price * b.q), 0);
-        let r = parseFloat(document.getElementById('cash-received').value) || 0;
-        if(r < t) return alert("Dinero insuficiente");
-        db.ventasHoy += t; db.recibidoHoy += r; db.cambioHoy += (r - t);
-        cart.forEach(c => { const p = db.inv.find(x=>x.sku===c.sku); if(p) p.stock -= c.q; });
-        save(); cart = []; renderCart(); document.getElementById('payment-modal').style.display = 'none'; alert("¡Venta Lista!");
+        if(selectedMethod === 'efectivo') {
+            const rec = parseFloat(document.getElementById('cash-received').value) || 0;
+            if(rec < currentTotal) return alert("Falta dinero");
+            db.ventasEfectivo += currentTotal; db.cambioHoy += (rec - currentTotal);
+        } else if(selectedMethod === 'tarjeta') { db.ventasTarjeta += currentTotal;
+        } else {
+            const client = document.getElementById('debt-customer').value.trim(); if(!client) return alert("Nombre del cliente?");
+            db.ventasFiado += currentTotal;
+            const ex = db.fiados.find(f => f.n.toLowerCase() === client.toLowerCase());
+            if(ex) ex.m += currentTotal; else db.fiados.unshift({n: client, m: currentTotal});
+        }
+        cart.forEach(c => { const p = db.inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
+        save(); cart = []; renderCart(); closeModal(); alert("¡Venta Exitosa!");
     }
 
+    // --- STOCK ---
+    function addInv() {
+        const sku = document.getElementById('s-sku').value.trim(); const nom = document.getElementById('s-nom').value.trim();
+        const pre = parseFloat(document.getElementById('s-pre').value); const sto = parseInt(document.getElementById('s-sto').value) || 0;
+        if(!sku) return; const ex = db.inv.find(x => x.sku === sku);
+        if(ex) { ex.stock += sto; if(nom) ex.name = nom; if(!isNaN(pre)) ex.price = pre; }
+        else { db.inv.push({sku, name: nom, price: pre, stock: sto}); } save(); renderInv();
+    }
     function renderInv() {
-        document.getElementById('inv-list').innerHTML = db.inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td style="font-weight:bold; color:${p.stock < 5 ? 'red':'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
+        document.getElementById('inv-list').innerHTML = db.inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td style="font-weight:bold; color:${p.stock < 5 ? 'red' : 'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
     }
 
-    function renderFiados() {
-        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<tr><td>${f.n}</td><td>$${f.m.toFixed(2)}</td><td onclick="if(confirm('¿Pagó?')){db.fiados.splice(${i},1);save();renderFiados()}">✅</td></tr>`).join('');
-    }
-
+    // --- FIADOS, GASTOS, CORTE ---
+    function renderFiados() { document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<tr><td>${f.n}</td><td>$${f.m.toFixed(2)}</td><td onclick="if(confirm('¿Pagó todo?')){db.fiados.splice(${i},1);save();renderFiados()}">✅ Pagó</td></tr>`).join(''); }
     function addGasto() {
         const d = document.getElementById('g-desc').value; const m = parseFloat(document.getElementById('g-monto').value);
         if(d && m) { db.gastos.unshift({d, m}); save(); renderGastos(); }
     }
-
-    function renderGastos() {
-        document.getElementById('gastos-list').innerHTML = db.gastos.map((g, i) => `<tr><td>${g.d}</td><td>$${g.m}</td><td onclick="db.gastos.splice(${i},1);save();renderGastos()">🗑️</td></tr>`).join('');
-    }
-
+    function renderGastos() { document.getElementById('gastos-list').innerHTML = db.gastos.map((g, i) => `<tr><td>${g.d}</td><td>$${g.m}</td><td onclick="db.gastos.splice(${i},1);save();renderGastos()">🗑️</td></tr>`).join(''); }
     function renderCorte() {
         let g = db.gastos.reduce((a, b) => a + b.m, 0);
-        document.getElementById('c-total').innerText = `$${(db.ventasHoy - g).toFixed(2)}`;
+        let n = (db.ventasEfectivo + db.ventasTarjeta + db.ventasFiado) - g;
+        document.getElementById('c-total').innerText = `$${n.toFixed(2)}`;
+        document.getElementById('c-cash').innerText = `$${db.ventasEfectivo.toFixed(2)}`;
+        document.getElementById('c-card').innerText = `$${db.ventasTarjeta.toFixed(2)}`;
+        document.getElementById('c-debt').innerText = `$${db.ventasFiado.toFixed(2)}`;
     }
-
+    function resetCorte() { if(confirm("¿Cerrar caja diaria? (Fiados permanentes)")) { db.ventasEfectivo = 0; db.ventasTarjeta = 0; db.ventasFiado = 0; db.cambioHoy = 0; db.gastos = []; save(); renderCorte(); } }
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.text("CORTE DE CAJA ELITE", 10, 20);
-        doc.text(`Balance: ${document.getElementById('c-total').innerText}`, 10, 30);
-        doc.save("corte.pdf");
+        doc.text("CORTE DE CAJA DETALLADO", 10, 20); doc.text(`Total: ${document.getElementById('c-total').innerText}`, 10, 40); doc.save("corte.pdf");
     }
 
     function toggleCam(id, mode) {
         const r = document.getElementById(id);
-        if(r.style.display === 'block') { scanner.stop(); r.style.display = 'none'; }
+        if(r.style.display === 'block') { if(scanner) scanner.stop(); r.style.display = 'none'; }
         else { r.style.display = 'block'; scanner = new Html5Qrcode(id); scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { process(t, mode); }); }
     }
 
