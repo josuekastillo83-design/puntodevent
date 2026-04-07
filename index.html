@@ -1,41 +1,67 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Pro - Sonido & Stock</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Punto de Venta Free</title>
+    
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: #0a0a0a; color: #fff; padding: 10px; padding-bottom: 120px; }
+        
+        .header-logo { text-align: center; margin-bottom: 10px; }
+        .header-logo img { width: 60px; border-radius: 10px; }
+        .header-logo h1 { font-size: 16px; color: #00c800; }
+
         .card { background: #121212; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 2px solid #00c800; background: #000; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        
+        .btn { padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; width: 100%; transition: 0.2s; }
         .btn-green { background: #00c800; color: #000; }
-        .tab-nav { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: #1a1a1a; border-radius: 10px; font-size: 12px; border: 1px solid #333; }
+        .btn-blue { background: #007bff; color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid #ff4444; color: #ff4444; margin-top: 10px; }
+
+        .tab-nav { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .tab { flex: none; padding: 10px 20px; text-align: center; background: #1a1a1a; border-radius: 10px; font-size: 11px; border: 1px solid #333; }
         .tab.active { background: #00c800; color: #000; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
-        .item-carrito { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; }
-        .total-txt { text-align: right; color: #00c800; font-size: 35px; margin-top: 10px; }
-        .tabla-inv { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .tabla-inv td, .tabla-inv th { padding: 10px; border-bottom: 1px solid #222; text-align: left; }
-        .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px; background: #0a0a0a; border-top: 1px solid #333; }
+
+        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
+        
+        .item-carrito { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        .total-txt { text-align: right; color: #00c800; font-size: 35px; margin: 10px 0; }
+
+        .tabla { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .tabla td, .tabla th { padding: 10px; border-bottom: 1px solid #222; text-align: left; }
+        
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px; background: #0a0a0a; border-top: 1px solid #333; display: flex; gap: 10px; }
+        
+        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .bg-red { background: #ff4444; }
     </style>
 </head>
 <body>
 
+    <div class="header-logo">
+        <img src="https://raw.githubusercontent.com/josuekastillo83-diseño/puntodevent/main/1000122509.png" alt="Logo">
+        <h1>PUNTO DE VENTA FREE</h1>
+    </div>
+
     <div class="tab-nav">
         <div class="tab active" id="t-venta" onclick="ver('venta')">VENTA</div>
-        <div class="tab" id="t-inv" onclick="ver('inv')">INVENTARIO</div>
+        <div class="tab" id="t-inv" onclick="ver('inv')">STOCK</div>
+        <div class="tab" id="t-hist" onclick="ver('hist')">HISTORIAL</div>
+        <div class="tab" id="t-corte" onclick="ver('corte')">CORTE</div>
     </div>
 
     <div id="sec-venta">
-        <div class="card">
-            <div id="reader"></div>
-            <p id="msg" style="text-align:center; font-size:11px; margin-top:5px; color:#777;">Listo para escanear</p>
-        </div>
+        <div class="card"><div id="reader"></div></div>
         <div class="card">
             <div id="carrito-lista"></div>
             <h1 id="total-txt" class="total-txt">$ 0.00</h1>
@@ -44,115 +70,46 @@
 
     <div id="sec-inv" style="display:none;">
         <div class="card">
-            <h2>Nuevo Producto</h2>
             <input type="text" id="in-code" placeholder="Código">
-            <input type="text" id="in-nom" placeholder="Nombre">
-            <input type="number" id="in-pre" placeholder="Precio">
-            <input type="number" id="in-stock" placeholder="Stock">
-            <button class="btn btn-green" onclick="guardar()">Guardar</button>
+            <input type="text" id="in-nom" placeholder="Producto">
+            <select id="in-cat">
+                <option value="General">General</option>
+                <option value="Bebidas">Bebidas</option>
+                <option value="Abarrotes">Abarrotes</option>
+                <option value="Limpieza">Limpieza</option>
+            </select>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="in-pre" placeholder="Precio $">
+                <input type="number" id="in-stock" placeholder="Stock">
+            </div>
+            <button class="btn btn-green" onclick="guardarProd()">REGISTRAR</button>
         </div>
         <div class="card">
-            <table class="tabla-inv">
-                <thead><tr><th>Producto</th><th>Stock</th><th>Ventas</th></tr></thead>
+            <button class="btn btn-blue" onclick="exportarExcel()" style="margin-bottom:10px;"><i class="fas fa-file-excel"></i> DESCARGAR INVENTARIO</button>
+            <table class="tabla">
+                <thead><tr><th>Prod.</th><th>Cat.</th><th>Stock</th></tr></thead>
                 <tbody id="lista-inv"></tbody>
             </table>
         </div>
     </div>
 
-    <div class="footer">
-        <button class="btn btn-green" onclick="cobrar()">FINALIZAR VENTA</button>
+    <div id="sec-hist" style="display:none;">
+        <div class="card">
+            <table class="tabla">
+                <thead><tr><th>Hora</th><th>Total</th><th>Acción</th></tr></thead>
+                <tbody id="lista-historial"></tbody>
+            </table>
+        </div>
     </div>
 
-<script>
-    let db = JSON.parse(localStorage.getItem('pos_v4')) || {};
-    let carrito = [];
-    let scanner = new Html5Qrcode("reader");
+    <div id="sec-corte" style="display:none;">
+        <div class="card" style="text-align:center;">
+            <h2 style="color:#00c800">Corte del Día</h2>
+            <h1 id="corte-total" style="font-size:45px; margin:20px 0;">$ 0.00</h1>
+            <p id="corte-ventas">Ventas realizadas: 0</p>
+            <button class="btn btn-outline" onclick="reiniciarCaja()">REINICIAR CAJA</button>
+        </div>
+    </div>
 
-    // Función para el sonido "Bip"
-    function sonarBip() {
-        const context = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(880, context.currentTime); // Tono agudo
-        gain.gain.setValueAtTime(0.1, context.currentTime);
-        oscillator.connect(gain);
-        gain.connect(context.destination);
-        oscillator.start();
-        oscillator.stop(context.currentTime + 0.1); // Duración corta
-    }
-
-    function ver(s) {
-        document.getElementById('sec-venta').style.display = s=='venta'?'block':'none';
-        document.getElementById('sec-inv').style.display = s=='inv'?'block':'none';
-        document.getElementById('t-venta').className = s=='venta'?'tab active':'tab';
-        document.getElementById('t-inv').className = s=='inv'?'tab active':'tab';
-        if(s=='inv') renderInv();
-    }
-
-    function iniciar() {
-        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            document.getElementById('in-code').value = text;
-            if(db[text]) {
-                // VALIDACIÓN DE STOCK
-                let cantidadEnCarrito = carrito.filter(i => i.code === text).length;
-                if(db[text].stock > cantidadEnCarrito) {
-                    sonarBip();
-                    carrito.push(db[text]);
-                    actualizarCarrito();
-                    if(navigator.vibrate) navigator.vibrate(50);
-                } else {
-                    alert("¡ERROR! Stock agotado para: " + db[text].nombre);
-                }
-            }
-        }).catch(e => console.log("Cámara no lista"));
-    }
-
-    function guardar() {
-        let c = document.getElementById('in-code').value;
-        let n = document.getElementById('in-nom').value;
-        let p = parseFloat(document.getElementById('in-pre').value);
-        let s = parseInt(document.getElementById('in-stock').value);
-        if(!c || !n) return;
-        db[c] = { code:c, nombre:n, precio:p, stock:s, vendidos: db[c]?.vendidos || 0 };
-        localStorage.setItem('pos_v4', JSON.stringify(db));
-        alert("Producto Guardado");
-        renderInv();
-    }
-
-    function renderInv() {
-        let h = '';
-        for(let k in db) {
-            let colorStock = db[k].stock <= 0 ? 'red' : (db[k].stock < 5 ? 'orange' : 'white');
-            h += `<tr><td>${db[k].nombre}</td><td style="color:${colorStock}">${db[k].stock}</td><td>${db[k].vendidos}</td></tr>`;
-        }
-        document.getElementById('lista-inv').innerHTML = h;
-    }
-
-    function actualizarCarrito() {
-        let t = 0;
-        let h = '';
-        carrito.forEach(i => {
-            t += i.precio;
-            h += `<div class="item-carrito"><span>${i.nombre}</span><b>$${i.precio.toFixed(2)}</b></div>`;
-        });
-        document.getElementById('carrito-lista').innerHTML = h;
-        document.getElementById('total-txt').innerText = '$ ' + t.toFixed(2);
-    }
-
-    function cobrar() {
-        if(carrito.length == 0) return;
-        carrito.forEach(i => {
-            db[i.code].stock--;
-            db[i.code].vendidos++;
-        });
-        localStorage.setItem('pos_v4', JSON.stringify(db));
-        alert("Venta Registrada con Éxito");
-        carrito = [];
-        actualizarCarrito();
-    }
-
-    window.onload = iniciar;
-</script>
-</body>
-</html>
+    <div id="modal">
+        <div class="card" style="
