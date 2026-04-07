@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite POS Pro - Métodos de Pago</title>
+    <title>Elite POS Pro - Fiados Permanentes</title>
     <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -47,9 +47,8 @@
         .total-box h2 { font-size: 2.8em; margin: 0; }
         .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-bottom: 10px; }
         
-        /* Modal Pago */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 95%; max-width: 420px; padding: 20px; border-radius: 20px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; width: 95%; max-width: 420px; padding: 20px; border-radius: 20px; text-align: center; }
         
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 15px 0; }
         .method-btn { padding: 10px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; font-size: 0.8em; font-weight: bold; background: #f9f9f9; }
@@ -63,30 +62,21 @@
     <div id="payment-modal" class="modal">
         <div class="modal-content">
             <h2 id="m-total-text" style="margin-top:0;">Total: $0.00</h2>
-            
-            <p style="margin-bottom:5px;">Método de Pago:</p>
+            <p>Método de Pago:</p>
             <div class="payment-methods">
                 <div class="method-btn selected" id="btn-cash" onclick="selectMethod('efectivo')">💵<br>Efectivo</div>
                 <div class="method-btn" id="btn-card" onclick="selectMethod('tarjeta')">💳<br>Tarjeta</div>
                 <div class="method-btn" id="btn-debt" onclick="selectMethod('fiado')">📝<br>Fiado</div>
             </div>
-
             <div id="cash-section">
-                <p>Efectivo Recibido:</p>
-                <input type="number" id="cash-received" class="input-style" placeholder="$0.00" oninput="calcChange()">
-                <div style="background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
-                    <small>Cambio:</small>
-                    <h2 id="change-text" style="margin: 0; color: var(--success);">$0.00</h2>
-                </div>
+                <input type="number" id="cash-received" class="input-style" placeholder="Efectivo Recibido" oninput="calcChange()">
+                <h2 id="change-text" style="color:var(--success);">$0.00</h2>
             </div>
-
             <div id="debt-section" style="display:none;">
-                <p>Nombre del Cliente (Para Fiado):</p>
-                <input type="text" id="debt-customer" class="input-style" placeholder="Nombre completo">
+                <input type="text" id="debt-customer" class="input-style" placeholder="Nombre del Cliente">
             </div>
-
             <button class="btn-main" onclick="confirmPayment()">FINALIZAR VENTA</button>
-            <button class="btn-main" style="background: #ccc;" onclick="closeModal()">CANCELAR</button>
+            <button class="btn-main" style="background:#ccc;" onclick="closeModal()">CANCELAR</button>
         </div>
     </div>
 
@@ -121,7 +111,7 @@
             <button class="btn-main" onclick="toggleCam('reader-stock', 'add')" style="background:var(--success)">➕ ESCANEAR PARA RESURTIR</button>
             <div id="reader-stock"></div>
             <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">REGISTRAR O RESURTIR MANUAL <span>▼</span></div>
+                <div class="accordion-header" onclick="toggleAccordion(this)">RESURTIR MANUAL <span>▼</span></div>
                 <div class="accordion-content">
                     <input type="text" id="s-sku" class="input-style" placeholder="Código SKU">
                     <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
@@ -136,10 +126,7 @@
                 <div class="accordion-header" onclick="toggleAccordion(this)">PRODUCTOS EN EXISTENCIA <span>▼</span></div>
                 <div class="accordion-content open">
                     <div class="table-scroll">
-                        <table>
-                            <thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Queda</th><th></th></tr></thead>
-                            <tbody id="inv-list"></tbody>
-                        </table>
+                        <table><thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Queda</th><th></th></tr></thead><tbody id="inv-list"></tbody></table>
                     </div>
                 </div>
             </div>
@@ -147,10 +134,13 @@
 
         <div id="fiados" class="section">
             <div class="card">
-                <h3>Lista de Clientes Deudores</h3>
-                <p><small>Aquí se guardan las ventas marcadas como "Fiado".</small></p>
+                <h3>Clientes con Deuda Pendiente</h3>
+                <p><small>Estas deudas NO se borran al cerrar caja diaria.</small></p>
                 <div class="table-scroll">
-                    <table><thead><tr><th>Cliente</th><th>Monto Deuda</th><th>Acción</th></tr></thead><tbody id="fiados-list"></tbody></table>
+                    <table>
+                        <thead><tr><th>Cliente</th><th>Monto Acumulado</th><th>Acción</th></tr></thead>
+                        <tbody id="fiados-list"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -169,22 +159,15 @@
 
         <div id="corte" class="section">
             <div class="card" style="text-align: center;">
-                <h3>Ventas del Día</h3>
+                <h3>Ventas de Hoy</h3>
                 <h1 id="c-total" style="color:var(--success); font-size:3em; margin:10px 0;">$0.00</h1>
-                
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.8em; margin-bottom: 15px;">
-                    <div style="background:#f1f1f1; padding:10px; border-radius:10px;">Efectivo:<br><b id="c-cash">$0.00</b></div>
-                    <div style="background:#f1f1f1; padding:10px; border-radius:10px;">Tarjeta:<br><b id="c-card">$0.00</b></div>
-                    <div style="background:#f1f1f1; padding:10px; border-radius:10px;">Fiado:<br><b id="c-debt">$0.00</b></div>
+                    <div style="background:#eee; padding:10px; border-radius:10px;">Efectivo:<br><b id="c-cash">$0.00</b></div>
+                    <div style="background:#eee; padding:10px; border-radius:10px;">Tarjeta:<br><b id="c-card">$0.00</b></div>
+                    <div style="background:#eee; padding:10px; border-radius:10px;">Fiado:<br><b id="c-debt">$0.00</b></div>
                 </div>
-
-                <div style="display: flex; justify-content: space-around; font-size: 0.8em; margin-bottom: 20px;">
-                    <div>Cambios:<br><b id="c-cambios" style="color:var(--danger)">$0.00</b></div>
-                    <div>Gastos:<br><b id="c-gastos" style="color:var(--danger)">$0.00</b></div>
-                </div>
-
-                <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR PDF DETALLADO</button>
-                <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
+                <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR PDF</button>
+                <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA DIARIA</button>
             </div>
         </div>
     </div>
@@ -192,7 +175,7 @@
 <script>
     let db = {
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
-        fiados: JSON.parse(localStorage.getItem('e_fia')) || [],
+        fiados: JSON.parse(localStorage.getItem('e_fia_perma')) || [], // Memoria permanente
         gastos: JSON.parse(localStorage.getItem('e_gas')) || [],
         ventasEfectivo: parseFloat(localStorage.getItem('e_v_efectivo')) || 0,
         ventasTarjeta: parseFloat(localStorage.getItem('e_v_tarjeta')) || 0,
@@ -206,7 +189,7 @@
 
     function save() {
         localStorage.setItem('e_inv', JSON.stringify(db.inv));
-        localStorage.setItem('e_fia', JSON.stringify(db.fiados));
+        localStorage.setItem('e_fia_perma', JSON.stringify(db.fiados));
         localStorage.setItem('e_gas', JSON.stringify(db.gastos));
         localStorage.setItem('e_v_efectivo', db.ventasEfectivo);
         localStorage.setItem('e_v_tarjeta', db.ventasTarjeta);
@@ -214,23 +197,15 @@
         localStorage.setItem('e_cambio', db.cambioHoy);
     }
 
-    // --- MÉTODOS DE PAGO ---
+    // --- MÉTODOS PAGO ---
     function selectMethod(m) {
         selectedMethod = m;
         document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-        if(m === 'efectivo') {
-            document.getElementById('btn-cash').classList.add('selected');
-            document.getElementById('cash-section').style.display = 'block';
-            document.getElementById('debt-section').style.display = 'none';
-        } else if(m === 'tarjeta') {
-            document.getElementById('btn-card').classList.add('selected');
-            document.getElementById('cash-section').style.display = 'none';
-            document.getElementById('debt-section').style.display = 'none';
-        } else {
-            document.getElementById('btn-debt').classList.add('selected');
-            document.getElementById('cash-section').style.display = 'none';
-            document.getElementById('debt-section').style.display = 'block';
-        }
+        document.getElementById('btn-cash').classList.toggle('selected', m === 'efectivo');
+        document.getElementById('btn-card').classList.toggle('selected', m === 'tarjeta');
+        document.getElementById('btn-debt').classList.toggle('selected', m === 'fiado');
+        document.getElementById('cash-section').style.display = m === 'efectivo' ? 'block' : 'none';
+        document.getElementById('debt-section').style.display = m === 'fiado' ? 'block' : 'none';
     }
 
     function openPaymentModal() {
@@ -245,38 +220,35 @@
     function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
 
     function confirmPayment() {
-        let change = 0;
         if(selectedMethod === 'efectivo') {
             const rec = parseFloat(document.getElementById('cash-received').value) || 0;
             if(rec < currentTotal) return alert("Falta dinero");
-            change = rec - currentTotal;
+            const change = rec - currentTotal;
             db.ventasEfectivo += currentTotal;
             db.cambioHoy += change;
         } else if(selectedMethod === 'tarjeta') {
             db.ventasTarjeta += currentTotal;
         } else {
             const client = document.getElementById('debt-customer').value.trim();
-            if(!client) return alert("Ingrese el nombre del cliente para el fiado");
+            if(!client) return alert("Nombre del cliente?");
             db.ventasFiado += currentTotal;
-            db.fiados.unshift({n: client, m: currentTotal});
+            // Buscar si ya existe el cliente para acumular deuda
+            const existing = db.fiados.find(f => f.n.toLowerCase() === client.toLowerCase());
+            if(existing) existing.m += currentTotal;
+            else db.fiados.unshift({n: client, m: currentTotal});
         }
 
-        // Descontar Stock
-        cart.forEach(c => {
-            const p = db.inv.find(x => x.sku === c.sku);
-            if(p) p.stock -= c.q;
-        });
-
+        cart.forEach(c => { const p = db.inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
         save(); cart = []; renderCart(); closeModal();
-        alert("Venta procesada con éxito.");
+        alert("¡Venta Exitosa!");
     }
 
     function calcChange() {
         const rec = parseFloat(document.getElementById('cash-received').value) || 0;
-        document.getElementById('change-text').innerText = (rec - currentTotal >= 0) ? `$${(rec - currentTotal).toFixed(2)}` : "Falta...";
+        document.getElementById('change-text').innerText = (rec - currentTotal >= 0) ? `$${(rec - currentTotal).toFixed(2)}` : "...";
     }
 
-    // --- FUNCIONES CORE ---
+    // --- NAVEGACIÓN ---
     function toggleAccordion(header) {
         const content = header.nextElementSibling;
         content.classList.toggle('open');
@@ -294,16 +266,17 @@
         if(id === 'corte') renderCorte();
     }
 
+    // --- LOGICA STOCK ---
     function process(code, mode = 'sale') {
         const p = db.inv.find(x => x.sku === code);
         if(p) {
             if(mode === 'sale') {
-                if(p.stock <= 0) return alert("Sin existencias");
+                if(p.stock <= 0) return alert("Sin stock");
                 const i = cart.find(x => x.sku === code);
                 if(i) i.q++; else cart.push({...p, q: 1});
                 renderCart();
             } else {
-                const add = parseInt(prompt(`RESURTIR: ${p.name}\nActual: ${p.stock}\nSumar:`));
+                const add = parseInt(prompt(`RESURTIR: ${p.name}\nSumar:`));
                 if(!isNaN(add)) { p.stock += add; save(); renderInv(); }
             }
         } else {
@@ -341,8 +314,26 @@
         document.getElementById('inv-list').innerHTML = db.inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td style="font-weight:bold; color:${p.stock < 5 ? 'red' : 'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
     }
 
+    function addInv() {
+        const sku = document.getElementById('s-sku').value.trim();
+        const nom = document.getElementById('s-nom').value.trim();
+        const pre = parseFloat(document.getElementById('s-pre').value);
+        const sto = parseInt(document.getElementById('s-sto').value) || 0;
+        if(!sku) return;
+        const existing = db.inv.find(x => x.sku === sku);
+        if(existing) {
+            existing.stock += sto;
+            if(nom) existing.name = nom;
+            if(!isNaN(pre)) existing.price = pre;
+        } else {
+            db.inv.push({sku, name: nom, price: pre, stock: sto});
+        }
+        save(); renderInv();
+    }
+
+    // --- FIADOS PERMANENTES ---
     function renderFiados() {
-        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<tr><td>${f.n}</td><td>$${f.m}</td><td onclick="db.fiados.splice(${i},1);save();renderFiados()">✅ Pagó</td></tr>`).join('');
+        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<tr><td>${f.n}</td><td>$${f.m.toFixed(2)}</td><td onclick="if(confirm('¿El cliente pagó todo?')){db.fiados.splice(${i},1);save();renderFiados()}">✅ Pagó</td></tr>`).join('');
     }
 
     function addGasto() {
@@ -361,12 +352,10 @@
         document.getElementById('c-cash').innerText = `$${db.ventasEfectivo.toFixed(2)}`;
         document.getElementById('c-card').innerText = `$${db.ventasTarjeta.toFixed(2)}`;
         document.getElementById('c-debt').innerText = `$${db.ventasFiado.toFixed(2)}`;
-        document.getElementById('c-cambios').innerText = `$${db.cambioHoy.toFixed(2)}`;
-        document.getElementById('c-gastos').innerText = `$${gSum.toFixed(2)}`;
     }
 
     function resetCorte() {
-        if(confirm("¿Cerrar caja diaria?")) {
+        if(confirm("¿Cerrar caja diaria? (Los FIADOS no se borrarán)")) {
             db.ventasEfectivo = 0; db.ventasTarjeta = 0; db.ventasFiado = 0;
             db.cambioHoy = 0; db.gastos = []; save(); renderCorte();
         }
@@ -374,16 +363,9 @@
 
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        let gSum = db.gastos.reduce((a, b) => a + b.m, 0);
-        doc.setFontSize(20); doc.text("REPORTE DE VENTAS DETALLADO", 10, 20);
-        doc.setFontSize(12); doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 10, 30);
-        doc.text(`EFECTIVO EN CAJA: $${db.ventasEfectivo.toFixed(2)}`, 10, 50);
-        doc.text(`VENTAS TARJETA: $${db.ventasTarjeta.toFixed(2)}`, 10, 60);
-        doc.text(`VENTAS FIADO: $${db.ventasFiado.toFixed(2)}`, 10, 70);
-        doc.text(`CAMBIOS ENTREGADOS: $${db.cambioHoy.toFixed(2)}`, 10, 80);
-        doc.text(`GASTOS DEL DÍA: $${gSum.toFixed(2)}`, 10, 90);
-        doc.setFontSize(16); doc.text(`TOTAL NETO: $${((db.ventasEfectivo + db.ventasTarjeta + db.ventasFiado) - gSum).toFixed(2)}`, 10, 110);
-        doc.save("corte_detallado.pdf");
+        doc.text("CORTE DE CAJA DETALLADO", 10, 20);
+        doc.text(`Balance Neto: ${document.getElementById('c-total').innerText}`, 10, 40);
+        doc.save("corte.pdf");
     }
 
     function toggleCam(id, mode) {
