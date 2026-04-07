@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite POS Pro - Gestión Inteligente</title>
+    <title>Elite POS Pro - Edición de Cantidades</title>
     <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -19,7 +19,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: var(--font-main); margin: 0; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Navbar con scroll para móvil */
         .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; white-space: nowrap; z-index: 100; border-bottom: 2px solid var(--accent); }
         .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
         .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
@@ -28,9 +27,6 @@
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; animation: fadeIn 0.3s; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Acordeones y Cards */
         .accordion { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 1px solid #ddd; }
         .accordion-header { background: #f8f9fa; padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
         .accordion-content { display: none; padding: 10px; }
@@ -39,9 +35,14 @@
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
         .table-scroll { max-height: 350px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; background: white; font-family: 'Poppins', sans-serif !important; }
+        th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; background: white; }
         td { padding: 12px 8px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
         
+        /* Controles de Cantidad */
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .qty-btn:active { background: #ccc; }
+
         .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 16px; }
         .total-box { background: var(--gradient); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
         .total-box h2 { font-size: 2.8em; margin: 0; }
@@ -61,7 +62,6 @@
     </div>
 
     <div class="main-content">
-        
         <div id="pos" class="section active">
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="sku-in" class="input-style" placeholder="Escanear Venta..." onkeypress="handleSKU(event)">
@@ -83,7 +83,6 @@
         <div id="stock" class="section">
             <button class="btn-main" onclick="toggleCam('reader-stock', 'add')" style="background:var(--success)">➕ ESCANEAR PARA RESURTIR</button>
             <div id="reader-stock"></div>
-
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">REGISTRAR O RESURTIR MANUAL <span>▼</span></div>
                 <div class="accordion-content">
@@ -96,7 +95,6 @@
                     <button class="btn-main" onclick="addInv()">Guardar / Actualizar</button>
                 </div>
             </div>
-
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">PRODUCTOS EN EXISTENCIA <span>▼</span></div>
                 <div class="accordion-content open">
@@ -119,9 +117,7 @@
                     <button class="btn-main" onclick="addFiado()">Guardar</button>
                 </div>
             </div>
-            <div class="card">
-                <table><thead><tr><th>Cliente</th><th>Deuda</th><th></th></tr></thead><tbody id="fiados-list"></tbody></table>
-            </div>
+            <div class="card"><table><thead><tr><th>Cliente</th><th>Deuda</th><th></th></tr></thead><tbody id="fiados-list"></tbody></table></div>
         </div>
 
         <div id="gastos" class="section">
@@ -133,9 +129,7 @@
                     <button class="btn-main" style="background:var(--danger)" onclick="addGasto()">Registrar</button>
                 </div>
             </div>
-            <div class="card">
-                <table><thead><tr><th>Motivo</th><th>Monto</th><th></th></tr></thead><tbody id="gastos-list"></tbody></table>
-            </div>
+            <div class="card"><table><thead><tr><th>Motivo</th><th>Monto</th><th></th></tr></thead><tbody id="gastos-list"></tbody></table></div>
         </div>
 
         <div id="corte" class="section">
@@ -183,7 +177,6 @@
         if(scanner) { scanner.stop(); document.querySelectorAll("[id^='reader']").forEach(r => r.style.display='none'); }
     }
 
-    // --- LOGICA DE PROCESAMIENTO ---
     function process(code, mode = 'sale') {
         const p = db.inv.find(x => x.sku === code);
         if(p) {
@@ -193,7 +186,6 @@
                 if(i) i.q++; else cart.push({...p, q: 1});
                 renderCart();
             } else {
-                // MODO RESURTIR (Cámara)
                 const add = parseInt(prompt(`RESURTIR: ${p.name}\nActual: ${p.stock}\n¿Cuántos sumamos?`));
                 if(!isNaN(add)) { p.stock += add; save(); renderInv(); alert("Stock actualizado"); }
             }
@@ -210,11 +202,37 @@
 
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
 
+    // --- FUNCIÓN PARA MODIFICAR CANTIDAD ---
+    function updateCartQty(idx, delta) {
+        const item = cart[idx];
+        const p = db.inv.find(x => x.sku === item.sku);
+        
+        if (item.q + delta > p.stock) return alert("No hay suficiente stock");
+        if (item.q + delta <= 0) {
+            cart.splice(idx, 1);
+        } else {
+            item.q += delta;
+        }
+        renderCart();
+    }
+
     function renderCart() {
         let t = 0;
         document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += i.price * i.q;
-            return `<tr><td>${i.name}</td><td>$${i.price}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
+            return `<tr>
+                <td>${i.name}</td>
+                <td>$${i.price}</td>
+                <td>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateCartQty(${idx}, -1)">-</button>
+                        <span>${i.q}</span>
+                        <button class="qty-btn" onclick="updateCartQty(${idx}, 1)">+</button>
+                    </div>
+                </td>
+                <td>$${(i.price*i.q).toFixed(2)}</td>
+                <td onclick="cart.splice(${idx},1);renderCart()">❌</td>
+            </tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
@@ -226,27 +244,22 @@
         db.ventasHoy += tTotal; save(); cart = []; renderCart(); alert("¡Venta Exitosa!");
     }
 
-    // --- CORRECCIÓN EN STOCK: SUMAR EN LUGAR DE BLOQUEAR ---
     function addInv() {
         const sku = document.getElementById('s-sku').value.trim();
         const nom = document.getElementById('s-nom').value.trim();
         const pre = parseFloat(document.getElementById('s-pre').value);
         const sto = parseInt(document.getElementById('s-sto').value) || 0;
-
         if(!sku) return alert("Ingrese un código");
-
         const existing = db.inv.find(x => x.sku === sku);
         if(existing) {
-            // Si ya existe, sumamos la cantidad y actualizamos precio/nombre si cambiaron
             existing.stock += sto;
             if(nom) existing.name = nom;
             if(!isNaN(pre)) existing.price = pre;
             alert(`Actualizado: ${existing.name}. Nuevo stock: ${existing.stock}`);
         } else {
-            // Si es nuevo, lo creamos
-            if(!nom || isNaN(pre)) return alert("Complete nombre y precio para producto nuevo");
+            if(!nom || isNaN(pre)) return alert("Complete nombre y precio");
             db.inv.push({sku, name: nom, price: pre, stock: sto});
-            alert("Producto nuevo registrado");
+            alert("Producto registrado");
         }
         save(); renderInv();
         document.querySelectorAll('#stock input').forEach(i => i.value = '');
