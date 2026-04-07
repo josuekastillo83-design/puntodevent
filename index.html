@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,86 +7,75 @@
     <title>Punto de Venta Free</title>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: #0a0a0a; color: #fff; padding: 10px; padding-bottom: 120px; }
         
-        .header-logo { text-align: center; margin-bottom: 10px; }
-        .header-logo img { width: 60px; border-radius: 10px; }
-        .header-logo h1 { font-size: 16px; color: #00c800; }
+        .header-logo { text-align: center; margin-bottom: 10px; padding: 10px; }
+        .header-logo img { width: 70px; border-radius: 12px; border: 1px solid #00c800; }
+        .header-logo h1 { font-size: 16px; color: #00c800; letter-spacing: 1px; }
 
-        .card { background: #121212; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 2px solid #00c800; background: #000; }
+        .card { background: #121212; border-radius: 15px; padding: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 2px solid #00c800; background: #000; min-height: 200px; }
         
-        .btn { padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; width: 100%; transition: 0.2s; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; }
         .btn-green { background: #00c800; color: #000; }
-        .btn-blue { background: #007bff; color: #fff; }
-        .btn-outline { background: transparent; border: 1px solid #ff4444; color: #ff4444; margin-top: 10px; }
+        .btn-red { background: #ff4444; color: #fff; margin-top: 10px; }
 
-        .tab-nav { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { flex: none; padding: 10px 20px; text-align: center; background: #1a1a1a; border-radius: 10px; font-size: 11px; border: 1px solid #333; }
-        .tab.active { background: #00c800; color: #000; font-weight: bold; }
+        .tab-nav { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; }
+        .tab { flex: 1; padding: 10px; text-align: center; background: #1a1a1a; border-radius: 10px; font-size: 10px; border: 1px solid #333; white-space: nowrap; color: #aaa; }
+        .tab.active { background: #00c800; color: #000; font-weight: bold; border-color: #00c800; }
 
-        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
+        input { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
         
         .item-carrito { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; font-size: 14px; }
-        .total-txt { text-align: right; color: #00c800; font-size: 35px; margin: 10px 0; }
+        .total-txt { text-align: right; color: #00c800; font-size: 32px; font-weight: bold; }
 
-        .tabla { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .tabla td, .tabla th { padding: 10px; border-bottom: 1px solid #222; text-align: left; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        td, th { padding: 10px; border-bottom: 1px solid #222; text-align: left; }
         
-        .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px; background: #0a0a0a; border-top: 1px solid #333; display: flex; gap: 10px; }
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px; background: #0a0a0a; border-top: 1px solid #333; z-index: 100; }
         
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
-        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-        .bg-red { background: #ff4444; }
+        #modal-cambio { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
     </style>
 </head>
 <body>
 
     <div class="header-logo">
-        <img src="https://raw.githubusercontent.com/josuekastillo83-diseño/puntodevent/main/1000122509.png" alt="Logo">
+        <img src="1000122509.png" alt="Logo" onerror="this.style.display='none'">
         <h1>PUNTO DE VENTA FREE</h1>
     </div>
 
     <div class="tab-nav">
-        <div class="tab active" id="t-venta" onclick="ver('venta')">VENTA</div>
-        <div class="tab" id="t-inv" onclick="ver('inv')">STOCK</div>
-        <div class="tab" id="t-hist" onclick="ver('hist')">HISTORIAL</div>
-        <div class="tab" id="t-corte" onclick="ver('corte')">CORTE</div>
+        <div class="tab active" id="t-venta" onclick="ver('venta')"><i class="fas fa-barcode"></i> VENTA</div>
+        <div class="tab" id="t-inv" onclick="ver('inv')"><i class="fas fa-box"></i> STOCK</div>
+        <div class="tab" id="t-hist" onclick="ver('hist')"><i class="fas fa-history"></i> HISTORIAL</div>
     </div>
 
     <div id="sec-venta">
-        <div class="card"><div id="reader"></div></div>
         <div class="card">
-            <div id="carrito-lista"></div>
-            <h1 id="total-txt" class="total-txt">$ 0.00</h1>
+            <div id="reader"></div>
+            <p id="msg-scan" style="text-align:center; font-size:10px; color:#555; margin-top:5px;">Apunta al código de barras</p>
+        </div>
+        <div class="card">
+            <div id="carrito-lista"><p style="color:#444; text-align:center;">Carrito vacío</p></div>
+            <div class="total-txt" id="total-txt">$ 0.00</div>
         </div>
     </div>
 
     <div id="sec-inv" style="display:none;">
         <div class="card">
-            <input type="text" id="in-code" placeholder="Código">
-            <input type="text" id="in-nom" placeholder="Producto">
-            <select id="in-cat">
-                <option value="General">General</option>
-                <option value="Bebidas">Bebidas</option>
-                <option value="Abarrotes">Abarrotes</option>
-                <option value="Limpieza">Limpieza</option>
-            </select>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="in-pre" placeholder="Precio $">
-                <input type="number" id="in-stock" placeholder="Stock">
-            </div>
-            <button class="btn btn-green" onclick="guardarProd()">REGISTRAR</button>
+            <input type="text" id="in-code" placeholder="Código de Barras">
+            <input type="text" id="in-nom" placeholder="Nombre del Producto">
+            <input type="number" id="in-pre" placeholder="Precio de Venta">
+            <input type="number" id="in-stock" placeholder="Cantidad en Existencia">
+            <button class="btn btn-green" onclick="guardarProd()">REGISTRAR PRODUCTO</button>
         </div>
         <div class="card">
-            <button class="btn btn-blue" onclick="exportarExcel()" style="margin-bottom:10px;"><i class="fas fa-file-excel"></i> DESCARGAR INVENTARIO</button>
-            <table class="tabla">
-                <thead><tr><th>Prod.</th><th>Cat.</th><th>Stock</th></tr></thead>
+            <table>
+                <thead><tr><th>Producto</th><th>Stock</th><th>Precio</th></tr></thead>
                 <tbody id="lista-inv"></tbody>
             </table>
         </div>
@@ -95,21 +83,150 @@
 
     <div id="sec-hist" style="display:none;">
         <div class="card">
-            <table class="tabla">
-                <thead><tr><th>Hora</th><th>Total</th><th>Acción</th></tr></thead>
+            <h3 id="corte-hoy" style="color:#00c800; text-align:center; margin-bottom:10px;">Ventas de hoy: $0.00</h3>
+            <table>
+                <thead><tr><th>Hora</th><th>Total</th></tr></thead>
                 <tbody id="lista-historial"></tbody>
             </table>
+            <button class="btn btn-red" onclick="borrarHistorial()">CERRAR DÍA / LIMPIAR</button>
         </div>
     </div>
 
-    <div id="sec-corte" style="display:none;">
-        <div class="card" style="text-align:center;">
-            <h2 style="color:#00c800">Corte del Día</h2>
-            <h1 id="corte-total" style="font-size:45px; margin:20px 0;">$ 0.00</h1>
-            <p id="corte-ventas">Ventas realizadas: 0</p>
-            <button class="btn btn-outline" onclick="reiniciarCaja()">REINICIAR CAJA</button>
+    <div id="modal-cambio">
+        <div class="card" style="width:100%; max-width:400px;">
+            <h2 style="color:#00c800; text-align:center;">Total: <span id="m-total"></span></h2>
+            <input type="number" id="m-paga" placeholder="¿Con cuánto pagan?" style="font-size:24px; text-align:center; padding:15px; margin:15px 0;">
+            <h1 id="m-cambio" style="text-align:center; color:#ff4444; margin-bottom:20px;">Cambio: $0.00</h1>
+            <button class="btn btn-green" onclick="confirmarVenta()">FINALIZAR VENTA</button>
+            <button class="btn" style="background:#222; color:#fff; margin-top:10px;" onclick="cerrarModal()">CANCELAR</button>
         </div>
     </div>
 
-    <div id="modal">
-        <div class="card" style="
+    <div class="footer">
+        <button class="btn btn-green" id="btn-cobrar-main" onclick="abrirCobro()">COBRAR AHORA</button>
+    </div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('pos_vFinal_db')) || {};
+    let historial = JSON.parse(localStorage.getItem('pos_vFinal_hist')) || [];
+    let carrito = [];
+    let totalVenta = 0;
+    let html5QrCode;
+
+    // Sonido Bip
+    function sonar() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.frequency.value = 800; g.gain.value = 0.1;
+            osc.start(); osc.stop(ctx.currentTime + 0.1);
+        } catch(e) {}
+    }
+
+    function ver(s) {
+        document.getElementById('sec-venta').style.display = s=='venta'?'block':'none';
+        document.getElementById('sec-inv').style.display = s=='inv'?'block':'none';
+        document.getElementById('sec-hist').style.display = s=='hist'?'block':'none';
+        document.getElementById('t-venta').className = s=='venta'?'tab active':'tab';
+        document.getElementById('t-inv').className = s=='inv'?'tab active':'tab';
+        document.getElementById('t-hist').className = s=='hist'?'tab active':'tab';
+        if(s=='inv') renderInv();
+        if(s=='hist') renderHist();
+    }
+
+    function iniciarCamara() {
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, 
+        (text) => {
+            if(db[text]) {
+                let count = carrito.filter(x => x.code === text).length;
+                if(db[text].stock > count) {
+                    sonar();
+                    carrito.push({...db[text], code: text});
+                    renderCarrito();
+                    if(navigator.vibrate) navigator.vibrate(60);
+                } else alert("Sin stock de " + db[text].nombre);
+            } else {
+                document.getElementById('in-code').value = text;
+                document.getElementById('msg-scan').innerHTML = "<b style='color:#00c800'>Código detectado: "+text+"</b>";
+            }
+        }).catch(err => console.log("Error cámara"));
+    }
+
+    function guardarProd() {
+        let c = document.getElementById('in-code').value;
+        let n = document.getElementById('in-nom').value;
+        let p = parseFloat(document.getElementById('in-pre').value);
+        let s = parseInt(document.getElementById('in-stock').value);
+        if(!c || !n || isNaN(p)) return alert("Faltan datos");
+        db[c] = { nombre: n, precio: p, stock: s };
+        localStorage.setItem('pos_vFinal_db', JSON.stringify(db));
+        alert("Producto Guardado");
+        renderInv();
+    }
+
+    function renderInv() {
+        let h = '';
+        for(let k in db) h += `<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`;
+        document.getElementById('lista-inv').innerHTML = h || '<tr><td colspan="3">No hay productos</td></tr>';
+    }
+
+    function renderCarrito() {
+        let list = document.getElementById('carrito-lista');
+        totalVenta = 0; list.innerHTML = '';
+        carrito.forEach(i => {
+            totalVenta += i.precio;
+            list.innerHTML += `<div class="item-carrito"><span>${i.nombre}</span><b>$${i.precio.toFixed(2)}</b></div>`;
+        });
+        document.getElementById('total-txt').innerText = '$ ' + totalVenta.toFixed(2);
+    }
+
+    function abrirCobro() {
+        if(carrito.length === 0) return;
+        document.getElementById('modal-cambio').style.display = 'flex';
+        document.getElementById('m-total').innerText = "$" + totalVenta.toFixed(2);
+        document.getElementById('m-paga').value = '';
+        document.getElementById('m-cambio').innerText = "Cambio: $0.00";
+    }
+
+    document.getElementById('m-paga').addEventListener('input', (e) => {
+        let paga = parseFloat(e.target.value) || 0;
+        let cam = paga - totalVenta;
+        document.getElementById('m-cambio').innerText = "Cambio: $" + (cam > 0 ? cam.toFixed(2) : "0.00");
+    });
+
+    function confirmarVenta() {
+        carrito.forEach(i => { if(db[i.code]) db[i.code].stock--; });
+        let h = new Date();
+        historial.unshift({ hora: h.getHours()+":"+(h.getMinutes()<10?'0':'')+h.getMinutes(), total: totalVenta });
+        localStorage.setItem('pos_vFinal_db', JSON.stringify(db));
+        localStorage.setItem('pos_vFinal_hist', JSON.stringify(historial));
+        alert("¡Venta Exitosa!");
+        carrito = []; renderCarrito(); cerrarModal();
+    }
+
+    function renderHist() {
+        let h = ''; let hoy = 0;
+        historial.forEach(v => {
+            hoy += v.total;
+            h += `<tr><td>${v.hora}</td><td><b>$${v.total.toFixed(2)}</b></td></tr>`;
+        });
+        document.getElementById('lista-historial').innerHTML = h;
+        document.getElementById('corte-hoy').innerText = "Ventas de hoy: $" + hoy.toFixed(2);
+    }
+
+    function borrarHistorial() {
+        if(confirm("¿Seguro que quieres limpiar las ventas de hoy?")) {
+            historial = []; localStorage.setItem('pos_vFinal_hist', JSON.stringify(historial));
+            renderHist();
+        }
+    }
+
+    function cerrarModal() { document.getElementById('modal-cambio').style.display = 'none'; }
+
+    window.onload = iniciarCamara;
+</script>
+</body>
+</html>
