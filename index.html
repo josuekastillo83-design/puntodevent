@@ -3,40 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Pro - Marcado Rápido</title>
+    <title>POS Elite - Control Total</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --gris: #2c3e50; --celeste: #3498db; --verde: #27ae60; --rojo: #e74c3c; --fondo: #f4f7f6; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--fondo); color: var(--gris); padding-bottom: 80px; }
-        header { background: var(--gris); color: var(--celeste); padding: 15px; text-align: center; font-weight: bold; border-bottom: 3px solid var(--celeste); }
-        .tab-nav { display: flex; overflow-x: auto; background: #fff; padding: 10px; gap: 8px; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
-        .tab { flex: 0 0 auto; padding: 10px 18px; background: #eee; border-radius: 20px; font-size: 11px; font-weight: bold; color: #777; }
-        .tab.active { background: var(--celeste); color: #fff; }
-        .container { padding: 15px; }
-        .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid var(--celeste); }
-        #reader { width: 100%; border-radius: 10px; overflow: hidden; background: #000; min-height: 250px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-verde { background: var(--verde); color: #fff; }
-        .btn-celeste { background: var(--celeste); color: #fff; }
-        .btn-rojo { background: var(--rojo); color: #fff; }
-        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .total-txt { text-align: right; color: var(--celeste); font-size: 32px; font-weight: bold; }
-        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
-        .stock-off { color: var(--rojo); font-weight: bold; }
-        table { width: 100%; font-size: 12px; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+        :root {
+            --primary: #2563eb; /* Azul Cobalto */
+            --secondary: #64748b; /* Gris Azulado */
+            --dark: #0f172a; /* Gris Espacial Profundo */
+            --success: #059669; /* Verde Esmeralda */
+            --danger: #dc2626; /* Rojo */
+            --bg: #f8fafc; /* Blanco Nieve */
+            --card-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+        
+        body { background-color: var(--bg); color: var(--dark); line-height: 1.5; padding-bottom: 20px; }
+
+        header { 
+            background: var(--dark); 
+            color: #fff; 
+            padding: 20px; 
+            text-align: center; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); }
+
+        /* Navegación Elegante */
+        .tab-nav { 
+            display: flex; 
+            overflow-x: auto; 
+            background: #fff; 
+            padding: 12px; 
+            gap: 10px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab { 
+            flex: 0 0 auto; 
+            padding: 10px 20px; 
+            background: var(--bg); 
+            border-radius: 12px; 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: var(--secondary);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); }
+
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border: 1px solid #f1f5f9;
+        }
+
+        h3 { font-size: 0.9rem; margin-bottom: 15px; color: var(--secondary); text-transform: uppercase; letter-spacing: 1px; }
+
+        #reader { width: 100%; border-radius: 14px; overflow: hidden; background: #000; border: 4px solid var(--dark); }
+
+        /* Inputs y Botones */
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 10px; 
+            font-size: 1rem; 
+            background: #fcfcfc;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
+
+        .btn { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-dark { background: var(--dark); color: #fff; }
+
+        /* Carrito y Listas */
+        .total-txt { 
+            text-align: right; 
+            color: var(--primary); 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            margin: 15px 0;
+        }
+
+        .item-lista { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 0; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-weight: 500;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th { text-align: left; padding: 12px 8px; color: var(--secondary); border-bottom: 2px solid #f1f5f9; }
+        td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; }
+
+        /* Modales */
+        .modal-overlay { 
+            display:none; 
+            position:fixed; 
+            top:0; left:0; 
+            width:100%; height:100%; 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(4px);
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+        }
+
+        .flex-row { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <header><h1 id="display-nombre">MI TIENDA</h1></header>
+    <header><h1 id="display-nombre">POS ELITE</h1></header>
 
     <div class="tab-nav">
         <div class="tab active" onclick="ver('venta', this)">🛒 VENTA</div>
         <div class="tab" onclick="ver('inv', this)">📦 STOCK</div>
-        <div class="tab" onclick="ver('fiado', this)">📝 FIADO</div>
+        <div class="tab" onclick="ver('fiado', this)">📝 FIADOS</div>
         <div class="tab" onclick="ver('gastos', this)">📉 GASTOS</div>
         <div class="tab" onclick="ver('corte', this)">📊 CORTE</div>
     </div>
@@ -47,82 +164,87 @@
         </div>
 
         <div id="sec-venta">
-            <div class="card" style="border-top-color: var(--verde);">
-                <h3>🔢 Marcado Rápido (Clave 1 dígito)</h3>
-                <input type="number" id="input-clave-rapida" placeholder="Escribe la clave (1, 2, 3...)" oninput="marcadoRapido(this.value)">
+            <div class="card">
+                <h3>🔢 Marcado por Clave / SKU</h3>
+                <div class="flex-row">
+                    <input type="text" id="input-clave-sku" placeholder="Ingrese Clave..." style="margin: 0;">
+                    <button class="btn btn-primary" style="width: auto; padding: 0 25px;" onclick="procesarClaveManual()">OK</button>
+                </div>
             </div>
 
             <div class="card">
+                <h3>Detalle de Venta</h3>
                 <div id="carrito-lista"></div>
                 <div class="total-txt" id="total-txt">$ 0.00</div>
-                <button class="btn btn-verde" onclick="abrirCobro()">💰 COBRAR</button>
-                <button class="btn btn-rojo" style="font-size: 10px; padding: 5px;" onclick="vaciarCarrito()">VACIAR CARRITO</button>
+                <button class="btn btn-success" onclick="abrirCobro()">💳 FINALIZAR COBRO</button>
+                <button class="btn btn-danger" style="margin-top:15px; background: none; color: var(--danger); border: 1px solid var(--danger); padding: 8px;" onclick="vaciarCarrito()">Limpiar Carrito</button>
             </div>
         </div>
 
         <div id="sec-inv" style="display:none;">
             <div class="card">
-                <h3>Registrar Producto (Asigna Clave Corta)</h3>
-                <input type="text" id="in-code" placeholder="Clave de 1 dígito o Código">
-                <input type="text" id="in-nom" placeholder="Nombre completo">
+                <h3>Gestionar Inventario</h3>
+                <input type="text" id="in-code" placeholder="Código o SKU">
+                <input type="text" id="in-nom" placeholder="Nombre del Producto">
                 <input type="number" id="in-pre" placeholder="Precio $">
-                <input type="number" id="in-stock" placeholder="Stock que llegó">
-                <button class="btn btn-celeste" onclick="guardarProd()">💾 GUARDAR EN STOCK</button>
+                <input type="number" id="in-stock" placeholder="Cantidad a sumar">
+                <button class="btn btn-primary" onclick="guardarProd()">💾 GUARDAR CAMBIOS</button>
             </div>
             <div class="card">
-                <h3>Lista de Precios y Stock</h3>
-                <table><thead><tr><th>Clave</th><th>Nombre</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="l-inv"></tbody></table>
+                <h3>Lista de Existencias</h3>
+                <table><thead><tr><th>SKU</th><th>Nombre</th><th>Stock</th><th>$</th></tr></thead><tbody id="l-inv"></tbody></table>
             </div>
         </div>
 
-        <div id="sec-fiado" style="display:none;"><div class="card"><h3>Fiados</h3><table><tbody id="l-fiados"></tbody></table></div></div>
-        
-        <div id="sec-gastos" style="display:none;"><div class="card"><input type="text" id="g-desc" placeholder="Gasto"><input type="number" id="g-monto" placeholder="$"><button class="btn btn-rojo" onclick="guardarGasto()">REGISTRAR</button></div></div>
-        
-        <div id="sec-corte" style="display:none;"><div class="card"><div id="corte-info"></div><button class="btn btn-verde" onclick="exportarPDF()">📄 PDF</button><button class="btn btn-rojo" onclick="limp()">CERRAR DÍA</button></div></div>
+        <div id="sec-fiado" style="display:none;"><div class="card"><h3>Cuentas por Cobrar</h3><table><tbody id="l-fiados"></tbody></table></div></div>
+        <div id="sec-gastos" style="display:none;"><div class="card"><h3>Registrar Salida</h3><input type="text" id="g-desc" placeholder="Motivo"><input type="number" id="g-monto" placeholder="Monto $"><button class="btn btn-danger" onclick="guardarGasto()">REGISTRAR</button></div></div>
+        <div id="sec-corte" style="display:none;"><div class="card"><h3>Reporte de Hoy</h3><div id="corte-info"></div><button class="btn btn-success" onclick="exportarPDF()" style="margin-top:10px;">📄 EXPORTAR PDF</button><button class="btn btn-dark" style="margin-top:10px;" onclick="limp()">CERRAR CAJA</button></div></div>
     </div>
 
     <div id="modal-cant" class="modal-overlay">
-        <div class="card" style="width:100%;">
-            <h2 id="n-prod" style="text-align:center;"></h2>
-            <p id="stock-aviso" style="text-align:center; color:red;"></p>
-            <input type="number" id="i-cant" value="1" style="font-size:30px; text-align:center;">
-            <button class="btn btn-verde" onclick="sumarCarr()">AÑADIR AL CARRITO</button>
-            <button class="btn" onclick="cerrarModalCant()">CANCELAR</button>
+        <div class="card" style="width:100%; border-top: 5px solid var(--primary);">
+            <h2 id="n-prod" style="text-align:center; margin-bottom:10px;"></h2>
+            <p id="stock-aviso" style="text-align:center; color:var(--danger); margin-bottom:15px; font-weight:600;"></p>
+            <input type="number" id="i-cant" value="1" style="font-size:2.5rem; text-align:center; border: 2px solid var(--primary);">
+            <button class="btn btn-success" style="margin-top:20px;" onclick="sumarCarr()">AÑADIR A LA VENTA</button>
+            <button class="btn" style="background:none; color:var(--secondary); margin-top:10px;" onclick="cerrarModalCant()">Cancelar</button>
         </div>
     </div>
 
     <div id="modal-cobro" class="modal-overlay">
-        <div class="card" style="width:100%;"><h2 id="m-tot"></h2><select id="m-metodo" onchange="toggleCliente()"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="fiado">Fiado</option></select><input type="text" id="m-cliente" placeholder="Nombre cliente" style="display:none;"><input type="number" id="m-paga" placeholder="Paga con..."><button class="btn btn-verde" onclick="finalizarVenta()">TERMINAR VENTA</button><button class="btn" onclick="cerrarModalCobro()">CANCELAR</button></div>
+        <div class="card" style="width:100%; border-top: 5px solid var(--success);">
+            <h2 id="m-tot" style="text-align:center; color:var(--success); margin-bottom:20px;"></h2>
+            <select id="m-metodo" onchange="toggleCliente()">
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="tarjeta">💳 Tarjeta / Terminal</option>
+                <option value="fiado">📝 Fiado</option>
+            </select>
+            <input type="text" id="m-cliente" placeholder="Nombre del cliente..." style="display:none;">
+            <input type="number" id="m-paga" placeholder="¿Con cuánto paga?">
+            <button class="btn btn-success" style="margin-top:20px;" onclick="finalizarVenta()">COMPLETAR TRANSACCIÓN</button>
+            <button class="btn" style="background:none; color:var(--secondary); margin-top:10px;" onclick="cerrarModalCobro()">Volver</button>
+        </div>
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('p_v21_db')) || {};
-    let vent = JSON.parse(localStorage.getItem('p_v21_v')) || [];
-    let gst = JSON.parse(localStorage.getItem('p_v21_g')) || [];
-    let fia = JSON.parse(localStorage.getItem('p_v21_f')) || {};
-    let nTienda = localStorage.getItem('p_v21_nom') || "MI TIENDA";
+    let db = JSON.parse(localStorage.getItem('p_v23_db')) || {};
+    let vent = JSON.parse(localStorage.getItem('p_v23_v')) || [];
+    let gst = JSON.parse(localStorage.getItem('p_v23_g')) || [];
+    let fia = JSON.parse(localStorage.getItem('p_v23_f')) || {};
+    let nTienda = localStorage.getItem('p_v23_nom') || "POS ELITE";
     let carr = []; let tot = 0; let sc; let temp; let modo = 'venta'; let esc = false;
 
     function sonarBip() { let audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let o = audioCtx.createOscillator(); let g = audioCtx.createGain(); o.type = "sine"; o.frequency.setValueAtTime(1000, audioCtx.currentTime); g.gain.setValueAtTime(0.2, audioCtx.currentTime); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.1); }
     function hablar(t) { let m = new SpeechSynthesisUtterance(t); m.lang='es-MX'; window.speechSynthesis.speak(m); }
 
-    // --- FUNCIÓN DE MARCADO RÁPIDO ---
-    function marcadoRapido(valor) {
-        if(valor.length === 0) return;
-        // Si la clave existe en el stock
-        if(db[valor]) {
-            if(db[valor].stock <= 0) {
-                hablar("Stock agotado");
-                alert("No hay existencias de " + db[valor].nombre);
-                document.getElementById('input-clave-rapida').value = '';
-            } else {
-                sonarBip();
-                hablar(db[valor].nombre);
-                abrirModalCant(valor);
-                document.getElementById('input-clave-rapida').value = ''; // Limpiar para el siguiente
-            }
-        }
+    function procesarClaveManual() {
+        let clave = document.getElementById('input-clave-sku').value;
+        if(!clave) return;
+        if(db[clave]) {
+            if(db[clave].stock <= 0) { hablar("Agotado"); alert("Sin existencias"); }
+            else { sonarBip(); hablar(db[clave].nombre); abrirModalCant(clave); }
+            document.getElementById('input-clave-sku').value = "";
+        } else { hablar("Error"); alert("Clave inexistente"); document.getElementById('input-clave-sku').value = ""; }
     }
 
     function ver(s, btn) {
@@ -140,7 +262,7 @@
         sc.start({facingMode:"environment"},{fps:20,qrbox:250}, (t)=>{
             if(esc) return; esc = true;
             if(db[t]) {
-                if(db[t].stock <= 0) { hablar("Stock agotado"); }
+                if(db[t].stock <= 0) { hablar("Agotado"); }
                 else { sonarBip(); hablar(db[t].nombre); abrirModalCant(t); }
             }
             setTimeout(()=>esc=false, 2500);
@@ -150,10 +272,9 @@
     function abrirModalCant(t) {
         temp = {...db[t], code: t};
         document.getElementById('n-prod').innerText = temp.nombre;
-        document.getElementById('stock-aviso').innerText = "Disponible: " + temp.stock;
+        document.getElementById('stock-aviso').innerText = "Stock: " + temp.stock;
         document.getElementById('i-cant').value = 1;
         document.getElementById('modal-cant').style.display = 'flex';
-        document.getElementById('i-cant').focus();
     }
 
     function sumarCarr() {
@@ -162,43 +283,41 @@
         if(temp.stock >= (yaEn + cant)) {
             for(let i=0; i<cant; i++) carr.push({...temp});
             rCarr(); cerrarModalCant();
-        } else { alert("Stock insuficiente"); }
+        } else { alert("Excede el stock"); }
     }
 
-    function rInv() { 
-        let h=''; 
-        for(let k in db) {
-            let cl = db[k].stock <= 0 ? 'class="stock-off"' : '';
-            h+=`<tr><td>${k}</td><td>${db[k].nombre}</td><td ${cl}>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`;
-        }
-        document.getElementById('l-inv').innerHTML=h; 
+    function rCarr() {
+        let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML='';
+        let agr={};
+        carr.forEach(i=>{ if(!agr[i.code])agr[i.code]={n:i.nombre,p:i.precio,q:0}; agr[i.code].q++; tot+=i.precio; });
+        for(let k in agr){ l.innerHTML+=`<div class="item-lista"><span>${agr[k].q}x ${agr[k].n}</span><b>$${(agr[k].p*agr[k].q).toFixed(2)}</b></div>`; }
+        document.getElementById('total-txt').innerText='$ '+tot.toFixed(2);
     }
 
-    // Funciones base de Venta, Corte, Gastos y Fiado...
-    function rCarr() { let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML=''; let agr={}; carr.forEach(i=>{ if(!agr[i.code])agr[key=i.code]={n:i.nombre,p:i.precio,q:0}; agr[key].q++; tot+=i.precio; }); for(let k in agr){ l.innerHTML+=`<div class="item-lista"><span>${agr[k].q}x ${agr[k].n}</span><b>$${(agr[k].p*agr[k].q).toFixed(2)}</b></div>`; } document.getElementById('total-txt').innerText='$ '+tot.toFixed(2); }
-    function vaciarCarrito() { carr=[]; rCarr(); }
-    function abrirCobro() { if(carr.length>0){ document.getElementById('modal-cobro').style.display='flex'; document.getElementById('m-tot').innerText="Total: $"+tot.toFixed(2); } }
-    function toggleCliente() { document.getElementById('m-cliente').style.display = (document.getElementById('m-metodo').value==='fiado')?'block':'none'; }
-    function cerrarModalCant() { document.getElementById('modal-cant').style.display='none'; }
-    function cerrarModalCobro() { document.getElementById('modal-cobro').style.display='none'; }
     function finalizarVenta() {
         let m = document.getElementById('m-metodo').value;
         let cName = document.getElementById('m-cliente').value;
+        if(m==='fiado' && !cName) return alert("Falta nombre del cliente");
         carr.forEach(i => { db[i.code].stock--; });
-        if(m==='fiado') { fia[cName] = (fia[cName] || 0) + tot; localStorage.setItem('p_v21_f', JSON.stringify(fia)); }
+        if(m==='fiado') { fia[cName] = (fia[cName] || 0) + tot; localStorage.setItem('p_v23_f', JSON.stringify(fia)); }
         vent.push({t: tot, m: m, f: new Date().toLocaleString()});
-        localStorage.setItem('p_v21_db', JSON.stringify(db)); localStorage.setItem('p_v21_v', JSON.stringify(vent));
-        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
+        localStorage.setItem('p_v23_db', JSON.stringify(db)); localStorage.setItem('p_v23_v', JSON.stringify(vent));
+        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Registrada");
     }
-    function guardarProd() {
-        let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
-        if(c&&n){ db[c]={nombre:n, precio:p, stock:(db[c]?.stock||0)+s}; localStorage.setItem('p_v21_db', JSON.stringify(db)); rInv(); alert("Stock Guardado"); document.getElementById('in-code').value=''; document.getElementById('in-nom').value=''; document.getElementById('in-pre').value=''; document.getElementById('in-stock').value=''; }
-    }
-    function rFia() { let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n].toFixed(2)}</td><td><button onclick="delete fia['${n}']; localStorage.setItem('p_v21_f', JSON.stringify(fia)); rFia();" class="btn btn-verde" style="padding:5px; margin:0;">Pagar</button></td></tr>`; document.getElementById('l-fiados').innerHTML=h; }
-    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gst.push({desc:d, monto:m}); localStorage.setItem('p_v21_g', JSON.stringify(gst)); alert("Gasto OK"); } }
-    function rCorte() { let e=0,t=0,f=0,g=0; vent.forEach(v=>{if(v.m==='efectivo')e+=v.t;else if(v.m==='tarjeta')t+=v.t;else f+=v.t;}); gst.forEach(gs=>g+=gs.monto); document.getElementById('corte-info').innerHTML=`<p>Efectivo: $${e.toFixed(2)}</p><p>Tarjeta: $${t.toFixed(2)}</p><p>Fiado: $${f.toFixed(2)}</p><p style="color:red">Gastos: -$${g.toFixed(2)}</p><hr><h2>Total: $${(e+t-g).toFixed(2)}</h2>`; }
-    function exportarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(nTienda + " - CORTE", 10, 20); doc.text(document.getElementById('corte-info').innerText, 10, 40); doc.save("Corte.pdf"); }
-    function limp() { if(confirm("¿Limpiar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v21_v', JSON.stringify(vent)); localStorage.setItem('p_v21_g', JSON.stringify(gst)); rCorte(); } }
+
+    // Funciones complementarias (estabilidad garantizada)
+    function rInv() { let h=''; for(let k in db) { let cl = db[k].stock <= 0 ? 'style="color:red; font-weight:bold;"' : ''; h+=`<tr><td>${k}</td><td>${db[k].nombre}</td><td ${cl}>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`; } document.getElementById('l-inv').innerHTML=h; }
+    function guardarProd() { let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value); if(c&&n){ db[c]={nombre:n, precio:p, stock:(db[c]?.stock||0)+s}; localStorage.setItem('p_v23_db', JSON.stringify(db)); rInv(); alert("Stock Guardado"); } }
+    function rFia() { let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n].toFixed(2)}</td><td><button onclick="delete fia['${n}']; localStorage.setItem('p_v23_f', JSON.stringify(fia)); rFia();" class="btn btn-success" style="padding:5px; font-size:10px;">Cobrado</button></td></tr>`; document.getElementById('l-fiados').innerHTML=h; }
+    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gst.push({desc:d, monto:m}); localStorage.setItem('p_v23_g', JSON.stringify(gst)); alert("Gasto Guardado"); } }
+    function rCorte() { let e=0,t=0,f=0,g=0; vent.forEach(v=>{if(v.m==='efectivo')e+=v.t;else if(v.m==='tarjeta')t+=v.t;else f+=v.t;}); gst.forEach(gs=>g+=gs.monto); document.getElementById('corte-info').innerHTML=`<div class="item-lista"><span>Efectivo</span><b>$${e.toFixed(2)}</b></div><div class="item-lista"><span>Tarjeta</span><b>$${t.toFixed(2)}</b></div><div class="item-lista"><span>Fiados</span><b>$${f.toFixed(2)}</b></div><div class="item-lista" style="color:red"><span>Gastos</span><b>-$${g.toFixed(2)}</b></div><hr><div class="total-txt" style="font-size:1.5rem">$${(e+t-g).toFixed(2)}</div>`; }
+    function vaciarCarrito() { carr=[]; rCarr(); }
+    function toggleCliente() { document.getElementById('m-cliente').style.display = (document.getElementById('m-metodo').value==='fiado')?'block':'none'; }
+    function abrirCobro() { if(carr.length>0){ document.getElementById('modal-cobro').style.display='flex'; document.getElementById('m-tot').innerText="Total: $"+tot.toFixed(2); } }
+    function cerrarModalCant() { document.getElementById('modal-cant').style.display='none'; }
+    function cerrarModalCobro() { document.getElementById('modal-cobro').style.display='none'; }
+    function exportarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(nTienda + " - REPORTE", 10, 20); doc.text(new Date().toLocaleString(), 10, 30); doc.text("Utilidad: " + document.getElementById('c-util')?.innerText || "$"+tot, 10, 50); doc.save("Corte_Caja.pdf"); }
+    function limp() { if(confirm("¿Limpiar historial del día?")){ vent=[]; gst=[]; localStorage.setItem('p_v23_v', JSON.stringify(vent)); localStorage.setItem('p_v23_g', JSON.stringify(gst)); rCorte(); } }
 
     window.onload = () => { document.getElementById('display-nombre').innerText = nTienda; init(); };
 </script>
