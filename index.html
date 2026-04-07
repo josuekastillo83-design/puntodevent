@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Pro - Corte Inteligente</title>
+    <title>POS Pro - Alerta de Stock</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --gris: #2c3e50; --celeste: #3498db; --verde: #27ae60; --rojo: #e74c3c; --fondo: #f4f7f6; }
+        :root { --gris: #2c3e50; --celeste: #3498db; --verde: #27ae60; --rojo: #e74c3c; --naranja: #e67e22; --fondo: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--fondo); color: var(--gris); padding-bottom: 80px; }
         header { background: var(--gris); color: var(--celeste); padding: 15px; text-align: center; font-weight: bold; }
-        .tab-nav { display: flex; overflow-x: auto; background: #fff; padding: 10px; gap: 8px; border-bottom: 1px solid #ddd; }
+        .tab-nav { display: flex; overflow-x: auto; background: #fff; padding: 10px; gap: 8px; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
         .tab { flex: 0 0 auto; padding: 8px 15px; background: #eee; border-radius: 20px; font-size: 11px; font-weight: bold; color: #777; }
         .tab.active { background: var(--celeste); color: #fff; }
         .container { padding: 15px; }
@@ -22,8 +22,16 @@
         .btn-verde { background: var(--verde); color: #fff; }
         .btn-rojo { background: var(--rojo); color: #fff; }
         input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        
+        /* Estilos de Tabla e Inventario */
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+        td, th { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .stock-bajo { background-color: #fff3e0; color: var(--naranja); font-weight: bold; }
+        .stock-agotado { background-color: #ffebee; color: var(--rojo); font-weight: bold; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; color: white; margin-left: 5px; }
+        .bg-naranja { background: var(--naranja); }
+        .bg-rojo { background: var(--rojo); }
+
         .total-txt { text-align: right; color: var(--celeste); font-size: 30px; font-weight: bold; }
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
         .corte-linea { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #ccc; }
@@ -31,11 +39,11 @@
 </head>
 <body>
 
-    <header><h1 id="display-nombre">POS INTELIGENTE</h1></header>
+    <header><h1 id="display-nombre">MI TIENDA</h1></header>
 
     <div class="tab-nav">
         <div class="tab active" onclick="ver('venta', this)">VENTA</div>
-        <div class="tab" onclick="ver('inv', this)">STOCK</div>
+        <div class="tab" onclick="ver('inv', this)">STOCK / BUSCAR</div>
         <div class="tab" onclick="ver('gastos', this)">GASTOS</div>
         <div class="tab" onclick="ver('fiado', this)">FIADO</div>
         <div class="tab" onclick="ver('hist', this)">CORTE</div>
@@ -53,18 +61,28 @@
 
         <div id="sec-inv" style="display:none;">
             <div class="card">
-                <input type="text" id="config-nombre" placeholder="Nombre de la Tienda">
-                <button class="btn btn-celeste" onclick="guardarNombre()">GUARDAR NOMBRE</button>
+                <h3>Buscador Rápido</h3>
+                <input type="text" id="bus-inv" placeholder="🔍 Buscar por nombre o código..." oninput="rInv()">
             </div>
             <div class="card">
                 <h3>Nuevo Producto</h3>
                 <input type="text" id="in-code" placeholder="Código">
                 <input type="text" id="in-nom" placeholder="Nombre">
                 <input type="number" id="in-pre" placeholder="Precio $">
-                <input type="number" id="in-stock" placeholder="Stock">
-                <button class="btn btn-celeste" onclick="guardarProd()">REGISTRAR</button>
+                <input type="number" id="in-stock" placeholder="Cantidad Inicial">
+                <button class="btn btn-celeste" onclick="guardarProd()">REGISTRAR EN STOCK</button>
             </div>
-            <div class="card"><table><thead><tr><th>Prod</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="l-inv"></tbody></table></div>
+            <div class="card">
+                <h3 id="cont-prod">Productos: 0</h3>
+                <table>
+                    <thead><tr><th>Producto</th><th>Stock</th><th>Precio</th></tr></thead>
+                    <tbody id="l-inv"></tbody>
+                </table>
+            </div>
+            <div class="card">
+                <input type="text" id="config-nombre" placeholder="Cambiar nombre de tienda">
+                <button class="btn btn-verde" onclick="guardarNombre()">ACTUALIZAR NOMBRE</button>
+            </div>
         </div>
 
         <div id="sec-gastos" style="display:none;">
@@ -73,7 +91,7 @@
                 <input type="number" id="g-monto" placeholder="Monto $">
                 <button class="btn btn-rojo" onclick="guardarGasto()">REGISTRAR GASTO</button>
             </div>
-            <div class="card"><table><thead><tr><th>Motivo</th><th>Monto</th></tr></thead><tbody id="l-gastos"></tbody></table></div>
+            <div class="card"><table><tbody id="l-gastos"></tbody></table></div>
         </div>
 
         <div id="sec-fiado" style="display:none;">
@@ -82,21 +100,20 @@
                 <input type="number" id="f-mon" placeholder="Monto $">
                 <button class="btn btn-celeste" onclick="gFiado()">ANOTAR DEUDA</button>
             </div>
-            <div class="card"><table><thead><tr><th>Cliente</th><th>Deuda</th><th>Acción</th></tr></thead><tbody id="l-fiado"></tbody></table></div>
+            <div class="card"><table><tbody id="l-fiado"></tbody></table></div>
         </div>
 
         <div id="sec-hist" style="display:none;">
             <div class="card">
-                <h3 style="text-align:center; margin-bottom:10px;">RESUMEN DE CAJA</h3>
+                <h3 style="text-align:center;">RESUMEN CAJA</h3>
                 <div class="corte-linea"><span>Efectivo:</span><b id="c-efectivo">$0.00</b></div>
                 <div class="corte-linea"><span>Tarjeta:</span><b id="c-tarjeta">$0.00</b></div>
-                <div class="corte-linea"><span>Fiado (Ventas):</span><b id="c-fiado-v">$0.00</b></div>
+                <div class="corte-linea"><span>Fiado:</span><b id="c-fiado-v">$0.00</b></div>
                 <div class="corte-linea" style="color:var(--rojo);"><span>Gastos:</span><b id="c-gastos-v">-$0.00</b></div>
                 <hr style="margin:10px 0;">
-                <div class="corte-linea" style="font-size:20px; color:var(--celeste);"><span>Utilidad Neta:</span><b id="c-utilidad">$0.00</b></div>
-                
+                <div class="corte-linea" style="font-size:20px; color:var(--celeste);"><span>Utilidad:</span><b id="c-utilidad">$0.00</b></div>
                 <button class="btn btn-verde" onclick="exportarPDF()">DESCARGAR PDF</button>
-                <button class="btn btn-rojo" onclick="limp()">CERRAR DÍA / BORRAR</button>
+                <button class="btn btn-rojo" onclick="limp()">CERRAR DÍA</button>
             </div>
         </div>
     </div>
@@ -112,28 +129,24 @@
 
     <div id="modal-cobro" class="modal-overlay">
         <div class="card" style="width:100%;">
-            <h2 id="m-tot" style="text-align:center; color:var(--verde);"></h2>
-            <label>Método de Pago:</label>
+            <h2 id="m-tot" style="text-align:center;"></h2>
             <select id="m-metodo" onchange="togglePagaCon()">
                 <option value="efectivo">Efectivo</option>
                 <option value="tarjeta">Tarjeta</option>
-                <option value="fiado">Fiado (Crédito)</option>
+                <option value="fiado">Fiado</option>
             </select>
-            <div id="div-paga">
-                <input type="number" id="m-paga" placeholder="¿Con cuánto pagan?">
-                <h2 id="m-cam" style="text-align:center; color:var(--rojo); margin:10px 0;">Cambio: $0.00</h2>
-            </div>
+            <div id="div-paga"><input type="number" id="m-paga" placeholder="¿Con cuánto pagan?"><h2 id="m-cam" style="text-align:center; color:var(--rojo);">Cambio: $0.00</h2></div>
             <button class="btn btn-verde" onclick="confirmarVenta()">FINALIZAR VENTA</button>
-            <button class="btn" style="background:#ddd;" onclick="cerrarModalCobro()">VOLVER</button>
+            <button class="btn" onclick="cerrarModalCobro()">VOLVER</button>
         </div>
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('p_v12_db')) || {};
-    let vent = JSON.parse(localStorage.getItem('p_v12_v')) || [];
-    let fia = JSON.parse(localStorage.getItem('p_v12_f')) || {};
-    let gst = JSON.parse(localStorage.getItem('p_v12_g')) || [];
-    let nTienda = localStorage.getItem('p_v12_nom') || "MI TIENDA";
+    let db = JSON.parse(localStorage.getItem('p_v13_db')) || {};
+    let vent = JSON.parse(localStorage.getItem('p_v13_v')) || [];
+    let fia = JSON.parse(localStorage.getItem('p_v13_f')) || {};
+    let gst = JSON.parse(localStorage.getItem('p_v13_g')) || [];
+    let nTienda = localStorage.getItem('p_v13_nom') || "MI TIENDA";
     
     let carr = []; let tot = 0; let sc; let esc = false; let tempProd = null;
 
@@ -154,6 +167,38 @@
         }).catch(e=>console.log(e));
     }
 
+    // --- LOGICA DE INVENTARIO CON ALERTAS ---
+    function rInv() {
+        let h=''; 
+        let filtro = document.getElementById('bus-inv').value.toLowerCase();
+        let contador = 0;
+        
+        for(let k in db) {
+            if(db[k].nombre.toLowerCase().includes(filtro) || k.includes(filtro)) {
+                contador++;
+                let clase = '';
+                let badge = '';
+                
+                if(db[k].stock <= 0) { 
+                    clase = 'stock-agotado'; 
+                    badge = '<span class="badge bg-rojo">AGOTADO</span>';
+                } else if(db[k].stock <= 5) { 
+                    clase = 'stock-bajo'; 
+                    badge = '<span class="badge bg-naranja">BAJO</span>';
+                }
+
+                h += `<tr class="${clase}">
+                        <td>${db[k].nombre} ${badge}</td>
+                        <td>${db[k].stock}</td>
+                        <td>$${db[k].precio}</td>
+                      </tr>`;
+            }
+        }
+        document.getElementById('l-inv').innerHTML = h;
+        document.getElementById('cont-prod').innerText = "Productos: " + contador;
+    }
+
+    // --- RESTO DE FUNCIONES (VENTA, COBRO, ETC) ---
     function abrirModalCant(t) {
         if(db[t]) {
             tempProd = {...db[t], code: t};
@@ -172,8 +217,6 @@
         } else { alert("Stock insuficiente"); }
     }
 
-    function cerrarModalCant() { document.getElementById('modal-cantidad').style.display = 'none'; }
-
     function rCarr() {
         let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML='';
         let agr = {};
@@ -189,92 +232,51 @@
         document.getElementById('total-txt').innerText = '$ '+tot.toFixed(2);
     }
 
-    function abrirCobro() { 
-        if(carr.length==0) return; 
-        document.getElementById('modal-cobro').style.display='flex'; 
-        document.getElementById('m-tot').innerText="Pagar: $"+tot.toFixed(2);
-    }
-
-    function togglePagaCon() {
-        let met = document.getElementById('m-metodo').value;
-        document.getElementById('div-paga').style.display = (met === 'efectivo') ? 'block' : 'none';
-    }
-
-    document.getElementById('m-paga').oninput = (e) => {
-        let c = (parseFloat(e.target.value)||0) - tot;
-        document.getElementById('m-cam').innerText = "Cambio: $"+(c>0?c.toFixed(2):"0.00");
-    };
+    function abrirCobro() { if(carr.length==0) return; document.getElementById('modal-cobro').style.display='flex'; document.getElementById('m-tot').innerText="Total: $"+tot.toFixed(2); }
+    function togglePagaCon() { document.getElementById('div-paga').style.display = (document.getElementById('m-metodo').value === 'efectivo') ? 'block' : 'none'; }
+    document.getElementById('m-paga').oninput = (e) => { let c = (parseFloat(e.target.value)||0) - tot; document.getElementById('m-cam').innerText = "Cambio: $"+(c>0?c.toFixed(2):"0.00"); };
 
     function confirmarVenta() {
         let metodo = document.getElementById('m-metodo').value;
         carr.forEach(i=>{ db[i.code].stock--; });
         vent.push({t:tot, f:new Date().toLocaleString(), m: metodo});
-        
-        // Si es fiado, registrar en la lista de fiados automáticamente
-        if(metodo === 'fiado') {
-            let cli = prompt("Nombre del cliente para fiar:");
-            if(cli) fia[cli] = (fia[cli] || 0) + tot;
-        }
-
-        localStorage.setItem('p_v12_db', JSON.stringify(db));
-        localStorage.setItem('p_v12_v', JSON.stringify(vent));
-        localStorage.setItem('p_v12_f', JSON.stringify(fia));
-        
-        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Guardada");
+        if(metodo === 'fiado') { let cli = prompt("Cliente:"); if(cli) fia[cli] = (fia[cli] || 0) + tot; }
+        localStorage.setItem('p_v13_db', JSON.stringify(db));
+        localStorage.setItem('p_v13_v', JSON.stringify(vent));
+        localStorage.setItem('p_v13_f', JSON.stringify(fia));
+        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
     }
 
+    function exportarPDF() {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.text(nTienda + " - CORTE", 10, 20);
+        doc.text("Utilidad Neta: " + document.getElementById('c-utilidad').innerText, 10, 40);
+        doc.save("Corte.pdf");
+    }
+
+    function guardarProd() {
+        let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
+        if(c&&n) { db[c]={nombre:n, precio:p, stock:s}; localStorage.setItem('p_v13_db', JSON.stringify(db)); rInv(); alert("Guardado"); }
+    }
     function rCorte() {
-        let e=0, t=0, f=0, g=0;
-        vent.forEach(v => {
-            if(v.m === 'efectivo') e += v.t;
-            else if(v.m === 'tarjeta') t += v.t;
-            else if(v.m === 'fiado') f += v.t;
-        });
+        let e=0, t=0, f=0, g=0; vent.forEach(v => { if(v.m==='efectivo') e+=v.t; else if(v.m==='tarjeta') t+=v.t; else f+=v.t; });
         gst.forEach(gs => g += gs.monto);
-        
         document.getElementById('c-efectivo').innerText = "$"+e.toFixed(2);
         document.getElementById('c-tarjeta').innerText = "$"+t.toFixed(2);
         document.getElementById('c-fiado-v').innerText = "$"+f.toFixed(2);
         document.getElementById('c-gastos-v').innerText = "-$"+g.toFixed(2);
         document.getElementById('c-utilidad').innerText = "$"+(e + t - g).toFixed(2);
     }
-
-    function exportarPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        let y = 20;
-        doc.setFontSize(18); doc.text(nTienda, 10, y); y+=10;
-        doc.setFontSize(12); doc.text("REPORTE DE CORTE DE CAJA - " + new Date().toLocaleDateString(), 10, y); y+=15;
-        
-        doc.text("Resumen:", 10, y); y+=10;
-        doc.text("Total Efectivo: " + document.getElementById('c-efectivo').innerText, 10, y); y+=7;
-        doc.text("Total Tarjeta: " + document.getElementById('c-tarjeta').innerText, 10, y); y+=7;
-        doc.text("Total Fiado: " + document.getElementById('c-fiado-v').innerText, 10, y); y+=7;
-        doc.text("Total Gastos: " + document.getElementById('c-gastos-v').innerText, 10, y); y+=10;
-        doc.text("UTILIDAD NETA: " + document.getElementById('c-utilidad').innerText, 10, y);
-        
-        doc.save(`Corte_${new Date().toLocaleDateString()}.pdf`);
-    }
-
-    // Funciones base repetidas por estabilidad
-    function guardarProd() {
-        let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
-        if(c&&n) { db[c]={nombre:n, precio:p, stock:s}; localStorage.setItem('p_v12_db', JSON.stringify(db)); rInv(); alert("OK"); }
-    }
-    function guardarGasto() {
-        let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value);
-        if(d&&m) { gst.push({desc:d, monto:m}); localStorage.setItem('p_v12_g', JSON.stringify(gst)); rGst(); }
-    }
-    function rInv() { let h=''; for(let k in db) h+=`<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`; document.getElementById('l-inv').innerHTML=h; }
+    function cerrarModalCant() { document.getElementById('modal-cantidad').style.display='none'; }
+    function cerrarModalCobro() { document.getElementById('modal-cobro').style.display='none'; }
+    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m) { gst.push({desc:d, monto:m}); localStorage.setItem('p_v13_g', JSON.stringify(gst)); rGst(); } }
     function rGst() { let h=''; gst.forEach(g=>h+=`<tr><td>${g.desc}</td><td>$${g.monto}</td></tr>`); document.getElementById('l-gastos').innerHTML=h; }
-    function gFiado() { let n=document.getElementById('f-nom').value, m=parseFloat(document.getElementById('f-mon').value); if(n&&m){fia[n]=(fia[n]||0)+m; localStorage.setItem('p_v12_f', JSON.stringify(fia)); rFia();}}
+    function gFiado() { let n=document.getElementById('f-nom').value, m=parseFloat(document.getElementById('f-mon').value); if(n&&m){fia[n]=(fia[n]||0)+m; localStorage.setItem('p_v13_f', JSON.stringify(fia)); rFia();}}
     function rFia() { let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n]}</td><td><button onclick="pagaF('${n}')">Pagar</button></td></tr>`; document.getElementById('l-fiado').innerHTML=h;}
-    function pagaF(n){ delete fia[n]; localStorage.setItem('p_v12_f', JSON.stringify(fia)); rFia(); }
-    function limp(){ if(confirm("¿Borrar todo el día?")){ vent=[]; gst=[]; localStorage.setItem('p_v12_v', JSON.stringify(vent)); localStorage.setItem('p_v12_g', JSON.stringify(gst)); rCorte(); } }
-    function cerrarModalCobro(){ document.getElementById('modal-cobro').style.display='none'; }
-    function guardarNombre(){ let n=document.getElementById('config-nombre').value; localStorage.setItem('p_v12_nom', n); document.getElementById('display-nombre').innerText=n; }
+    function pagaF(n){ delete fia[n]; localStorage.setItem('p_v13_f', JSON.stringify(fia)); rFia(); }
+    function limp(){ if(confirm("¿Limpiar?")){ vent=[]; gst=[]; localStorage.setItem('p_v13_v', JSON.stringify(vent)); localStorage.setItem('p_v13_g', JSON.stringify(gst)); rCorte(); } }
+    function guardarNombre(){ let n=document.getElementById('config-nombre').value; if(n){localStorage.setItem('p_v13_nom', n); document.getElementById('display-nombre').innerText=n; alert("Actualizado");} }
     window.onload = () => { document.getElementById('display-nombre').innerText=nTienda; init(); };
 </script>
 </body>
 </html>
-
