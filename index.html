@@ -5,23 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Elite POS Pro - Josué Castillo Rubio</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <style id="custom-styles">
+    <style>
         :root {
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --font-main: 'Poppins', sans-serif;
             --accent: #00f2fe;
             --bg-dark: #111;
             --danger: #ff4757;
             --success: #2ed573;
             --info: #3498db;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font-main); margin: 0; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: #f0f2f5; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
         /* BIENVENIDA */
         #welcome-screen {
@@ -32,31 +30,35 @@
         }
         .welcome-logo { font-family: 'Grand Hotel', cursive; font-size: 5em; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
 
-        /* APP PRINCIPAL */
-        #main-app { display: none; flex-direction: column; height: 100vh; width: 100%; }
-        .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; white-space: nowrap; z-index: 100; border-bottom: 2px solid var(--accent); }
-        .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; cursor: pointer; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
+        /* NAVEGACIÓN */
+        #main-app { display: none; flex-direction: column; height: 100vh; }
+        .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; border-bottom: 2px solid var(--accent); }
+        .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
         .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
 
         .main-content { flex-grow: 1; padding: 12px; overflow-y: auto; padding-bottom: 80px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
-        .section.active { display: block; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
 
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; outline: none; }
+        
         .total-box { background: var(--gradient); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
         .total-box h2 { font-size: 2.8em; margin: 0; }
+        
         .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-bottom: 10px; }
 
-        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 16px; }
-        
-        /* TABLAS MODERNAS */
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; }
-        td { padding: 12px 8px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
+        th { text-align: left; color: #7f8c8d; padding: 10px; font-size: 10px; border-bottom: 2px solid #f0f0f0; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
 
-        .qty-controls { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { background: #eee; border: none; width: 28px; height: 28px; border-radius: 5px; cursor: pointer; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { background: #eee; border: none; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 1.2em; }
 
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 95%; max-width: 420px; padding: 20px; border-radius: 20px; text-align: center; }
+        
         #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
     </style>
 </head>
@@ -64,12 +66,12 @@
 
     <div id="welcome-screen">
         <h1 class="welcome-logo">Elite POS</h1>
-        <p style="letter-spacing: 3px; color: var(--accent);">SISTEMA DE GESTIÓN PRO</p>
-        <div style="margin: 20px 0;">
+        <p>CONTROL TOTAL DE VENTAS</p>
+        <div style="margin: 30px 0;">
             <p>Desarrollado por:</p>
             <h2 style="margin: 5px 0;">Josué Castillo Rubio</h2>
         </div>
-        <button class="btn-main" style="width: 260px;" onclick="startApp()">COMENZAR SESIÓN</button>
+        <button class="btn-main" style="width: 250px;" onclick="startApp()">INGRESAR AL SISTEMA</button>
     </div>
 
     <div id="main-app">
@@ -83,24 +85,80 @@
         <div class="main-content">
             <div id="pos" class="section active">
                 <div style="display: flex; gap: 8px;">
-                    <input type="text" id="sku-in" class="input-style" placeholder="Escaneo de Venta..." onkeypress="handleSKU(event)">
+                    <input type="text" id="sku-in" class="input-style" placeholder="Escanea o escribe código..." onkeypress="handleSKU(event)">
                     <button onclick="toggleCam('reader-pos', 'sale')" style="height:52px; width:60px; border-radius:10px; border:none; background:var(--gradient); color:white; font-size:1.5em;">📷</button>
                 </div>
                 <div id="reader-pos"></div>
-                <div class="card"><table><thead><tr><th>Producto</th><th>Cant</th><th>Sub</th><th></th></tr></thead><tbody id="cart-body"></tbody></table></div>
-                <div class="total-box"><small>TOTAL VENTA</small><h2 id="total-val">$0.00</h2></div>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr></thead>
+                        <tbody id="cart-body"></tbody>
+                    </table>
+                </div>
+                <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val">$0.00</h2></div>
                 <button class="btn-main" onclick="openPaymentModal()">COBRAR (F12)</button>
             </div>
 
             <div id="stock" class="section">
                 <button class="btn-main" onclick="toggleCam('reader-stock', 'add')" style="background:var(--success)">➕ RESURTIR CON CÁMARA</button>
                 <div id="reader-stock"></div>
-                <div class="card"><table><thead><tr><th>SKU</th><th>Nombre</th><th>Stock</th></tr></thead><tbody id="inv-list"></tbody></table></div>
+                <div class="card">
+                    <h3>Registrar / Resurtir Manual</h3>
+                    <input type="text" id="s-sku" class="input-style" placeholder="Código SKU">
+                    <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="s-pre" class="input-style" placeholder="Precio $">
+                        <input type="number" id="s-sto" class="input-style" placeholder="Cantidad a SUMAR">
+                    </div>
+                    <button class="btn-main" onclick="addInv()">GUARDAR / ACTUALIZAR</button>
+                </div>
+                <div class="card">
+                    <h3>Inventario Actual</h3>
+                    <div id="inv-list-container">
+                        <table><thead><tr><th>Nombre</th><th>Precio</th><th>Stock</th><th></th></tr></thead><tbody id="inv-list-body"></tbody></table>
+                    </div>
+                </div>
             </div>
 
-            <div id="fiados" class="section"><div class="card"><h3>Fiados Permanentes</h3><table><thead><tr><th>Cliente</th><th>Deuda</th></tr></thead><tbody id="fiados-list"></tbody></table></div></div>
-            
-            <div id="corte" class="section"><div class="card" style="text-align:center;"><h3>Balance Hoy</h3><h1 id="c-total" style="color:var(--success);">$0.00</h1><button class="btn-main" onclick="resetCorte()">CERRAR CAJA</button></div></div>
+            <div id="fiados" class="section">
+                <div class="card">
+                    <h3>Clientes Deudores (Permanente)</h3>
+                    <div id="fiados-list"></div>
+                </div>
+            </div>
+
+            <div id="corte" class="section">
+                <div class="card" style="text-align:center;">
+                    <h3>Balance General</h3>
+                    <h1 id="c-total" style="color:var(--success); font-size:3em;">$0.00</h1>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px;">
+                        <div style="background:#eee; padding:10px; border-radius:10px;">Efe:<br><b id="c-cash">$0</b></div>
+                        <div style="background:#eee; padding:10px; border-radius:10px;">Tar:<br><b id="c-card">$0</b></div>
+                        <div style="background:#eee; padding:10px; border-radius:10px;">Fia:<br><b id="c-debt">$0</b></div>
+                    </div>
+                    <button class="btn-main" onclick="resetCorte()">CERRAR CAJA DIARIA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="m-total-text" style="margin-top:0;">Total: $0.00</h2>
+            <select id="p-method" class="input-style" onchange="togglePaymentUI()">
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="tarjeta">💳 Tarjeta</option>
+                <option value="fiado">📝 Fiado (Crédito)</option>
+            </select>
+            <div id="cash-ui">
+                <input type="number" id="cash-received" class="input-style" placeholder="¿Cuánto recibes?" oninput="calcChange()">
+                <h2 id="change-text" style="color:var(--success);">$0.00 Cambio</h2>
+            </div>
+            <div id="debt-ui" style="display:none;">
+                <input type="text" id="debt-customer" class="input-style" placeholder="Nombre del Cliente">
+            </div>
+            <button class="btn-main" onclick="confirmPayment()">FINALIZAR VENTA</button>
+            <button class="btn-main" style="background:#ccc;" onclick="closeModal()">CANCELAR</button>
         </div>
     </div>
 
@@ -108,60 +166,55 @@
     let db = {
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
         fiados: JSON.parse(localStorage.getItem('e_fia_perma')) || [],
-        ventasEfectivo: 0,
-        // ... resto de la base de datos
+        vEfe: parseFloat(localStorage.getItem('e_v_e')) || 0,
+        vTar: parseFloat(localStorage.getItem('e_v_t')) || 0,
+        vFia: parseFloat(localStorage.getItem('e_v_f')) || 0
     };
-    
     let cart = [];
-    let isScanning = false; // Bloqueo anti-accidentes
+    let isScanning = false;
+    let scanner;
 
-    // Función de Audio y Voz
-    function notifyProduct(text) {
-        // 1. Sonido Beep (Frecuencia alta corta)
-        const context = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = context.createOscillator();
-        const gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        osc.frequency.value = 880; 
-        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.1);
-        osc.start();
-        osc.stop(context.currentTime + 0.1);
+    function startApp() {
+        document.getElementById('welcome-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+    }
 
-        // 2. Voz (Nombre y Precio)
+    function notify(text) {
+        // Sonido Beep
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 850; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
+        o.start(); o.stop(ctx.currentTime + 0.1);
+        // Voz
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'es-MX';
-        msg.rate = 1.1;
         window.speechSynthesis.speak(msg);
     }
 
     function process(code, mode = 'sale') {
-        if(isScanning) return; // Si está bloqueado, no procesa
-        
+        if(isScanning) return;
         const p = db.inv.find(x => x.sku === code);
+        
         if(p) {
-            // Activar bloqueo por 2 segundos para evitar marcar doble
-            isScanning = true; 
-            setTimeout(() => { isScanning = false; }, 2000);
+            isScanning = true;
+            setTimeout(() => isScanning = false, 2000); // 2 seg de bloqueo
 
             if(mode === 'sale') {
                 const item = cart.find(x => x.sku === code);
                 if(item) item.q++; else cart.push({...p, q: 1});
-                
-                // NOTIFICAR VOZ Y BEEP
-                notifyProduct(`${p.name}, ${p.price} pesos`);
+                notify(`${p.name}, ${p.price} pesos`);
                 renderCart();
             } else {
-                // Lógica de resurtido
-                const add = parseInt(prompt(`Surtir ${p.name}:`)) || 0;
+                const add = parseInt(prompt(`Surtir ${p.name}. ¿Cuántos sumamos?`)) || 0;
                 p.stock += add; save(); renderInv();
             }
         } else {
-            // Producto nuevo
-            const n = prompt("Nuevo producto - Nombre:");
+            const n = prompt("Producto Nuevo. Nombre:");
             if(n) {
-                const pr = parseFloat(prompt("Precio:"));
-                db.inv.push({sku: code, name: n, price: pr, stock: 10});
+                const pr = parseFloat(prompt("Precio:")) || 0;
+                const st = parseInt(prompt("Stock inicial:")) || 0;
+                db.inv.push({sku: code, name: n, price: pr, stock: st});
                 save(); renderInv();
             }
         }
@@ -169,41 +222,140 @@
 
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
 
-    function toggleCam(id, mode) {
-        const r = document.getElementById(id);
-        if(r.style.display === 'block') {
-            if(window.scanner) window.scanner.stop();
-            r.style.display = 'none';
+    function updateQty(idx, delta) {
+        const item = cart[idx];
+        const p = db.inv.find(x => x.sku === item.sku);
+        if(item.q + delta > p.stock) return alert("Sin stock suficiente");
+        if(item.q + delta <= 0) cart.splice(idx, 1);
+        else item.q += delta;
+        renderCart();
+    }
+
+    function renderCart() {
+        let t = 0;
+        document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
+            t += (i.price * i.q);
+            return `<tr>
+                <td>${i.name}</td>
+                <td>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty(${idx},-1)">-</button>
+                        <span>${i.q}</span>
+                        <button class="qty-btn" onclick="updateQty(${idx},1)">+</button>
+                    </div>
+                </td>
+                <td>$${(i.price * i.q).toFixed(2)}</td>
+                <td onclick="cart.splice(${idx},1);renderCart()">❌</td>
+            </tr>`;
+        }).join('');
+        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
+    }
+
+    // LÓGICA DE COBRO
+    function openPaymentModal() {
+        if(!cart.length) return;
+        const t = cart.reduce((a, b) => a + (b.price * b.q), 0);
+        document.getElementById('m-total-text').innerText = `Total: $${t.toFixed(2)}`;
+        document.getElementById('payment-modal').style.display = 'flex';
+        document.getElementById('cash-received').value = '';
+    }
+
+    function togglePaymentUI() {
+        const m = document.getElementById('p-method').value;
+        document.getElementById('cash-ui').style.display = m === 'efectivo' ? 'block' : 'none';
+        document.getElementById('debt-ui').style.display = m === 'fiado' ? 'block' : 'none';
+    }
+
+    function calcChange() {
+        const t = cart.reduce((a, b) => a + (b.price * b.q), 0);
+        const r = parseFloat(document.getElementById('cash-received').value) || 0;
+        document.getElementById('change-text').innerText = `$${(r - t).toFixed(2)} Cambio`;
+    }
+
+    function confirmPayment() {
+        const t = cart.reduce((a, b) => a + (b.price * b.q), 0);
+        const m = document.getElementById('p-method').value;
+
+        if(m === 'efectivo') {
+            const r = parseFloat(document.getElementById('cash-received').value) || 0;
+            if(r < t) return alert("Dinero insuficiente");
+            db.vEfe += t;
+        } else if(m === 'tarjeta') {
+            db.vTar += t;
         } else {
-            r.style.display = 'block';
-            window.scanner = new Html5Qrcode(id);
-            window.scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => {
-                process(t, mode);
-            });
+            const c = document.getElementById('debt-customer').value;
+            if(!c) return alert("Nombre del cliente?");
+            db.vFia += t;
+            const ex = db.fiados.find(f => f.n.toLowerCase() === c.toLowerCase());
+            if(ex) ex.m += t; else db.fiados.unshift({n: c, m: t});
         }
+
+        cart.forEach(c => { const p = db.inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
+        save(); cart = []; renderCart(); document.getElementById('payment-modal').style.display = 'none';
+        alert("¡Venta Finalizada!");
     }
 
-    function startApp() { 
-        document.getElementById('welcome-screen').style.display = 'none'; 
-        document.getElementById('main-app').style.display = 'flex'; 
+    // STOCK E INVENTARIO
+    function addInv() {
+        const sku = document.getElementById('s-sku').value;
+        const nom = document.getElementById('s-nom').value;
+        const pre = parseFloat(document.getElementById('s-pre').value);
+        const sto = parseInt(document.getElementById('s-sto').value) || 0;
+        if(!sku) return;
+        const ex = db.inv.find(x => x.sku === sku);
+        if(ex) {
+            ex.stock += sto; if(nom) ex.name = nom; if(!isNaN(pre)) ex.price = pre;
+            alert("Stock actualizado");
+        } else {
+            db.inv.push({sku, name: nom, price: pre, stock: sto});
+            alert("Producto nuevo guardado");
+        }
+        save(); renderInv();
     }
 
-    // ... (Mantengo las funciones de renderizado, fiados y corte idénticas a las anteriores)
-    function save() { localStorage.setItem('e_inv', JSON.stringify(db.inv)); }
+    function renderInv() {
+        document.getElementById('inv-list-body').innerHTML = db.inv.map(p => `<tr><td>${p.name}</td><td>$${p.price}</td><td style="color:${p.stock<5?'red':'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
+    }
+
+    function renderFiados() {
+        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<div class="card">${f.n}: <b>$${f.m.toFixed(2)}</b> <button onclick="db.fiados.splice(${i},1);save();renderFiados()" style="float:right">✅ Pagó</button></div>`).join('');
+    }
+
     function showSec(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active'); btn.classList.add('active');
+        if(id === 'stock') renderInv();
+        if(id === 'fiados') renderFiados();
+        if(id === 'corte') {
+            document.getElementById('c-total').innerText = `$${(db.vEfe + db.vTar + db.vFia).toFixed(2)}`;
+            document.getElementById('c-cash').innerText = `$${db.vEfe}`;
+            document.getElementById('c-card').innerText = `$${db.vTar}`;
+            document.getElementById('c-debt').innerText = `$${db.vFia}`;
+        }
     }
-    function renderCart() {
-        let t = 0;
-        document.getElementById('cart-body').innerHTML = cart.map(i => {
-            t += (i.price * i.q);
-            return `<tr><td>${i.name}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td>❌</td></tr>`;
-        }).join('');
-        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
+
+    function save() {
+        localStorage.setItem('e_inv', JSON.stringify(db.inv));
+        localStorage.setItem('e_fia_perma', JSON.stringify(db.fiados));
+        localStorage.setItem('e_v_e', db.vEfe);
+        localStorage.setItem('e_v_t', db.vTar);
+        localStorage.setItem('e_v_f', db.vFia);
     }
+
+    function toggleCam(id, mode) {
+        const r = document.getElementById(id);
+        if(r.style.display === 'block') { scanner.stop(); r.style.display = 'none'; }
+        else {
+            r.style.display = 'block'; scanner = new Html5Qrcode(id);
+            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => process(t, mode));
+        }
+    }
+
+    function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
+    function resetCorte() { if(confirm("¿Cerrar caja diaria?")) { db.vEfe=0; db.vTar=0; db.vFia=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
+
+    renderInv();
 </script>
 </body>
 </html>
-
