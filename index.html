@@ -3,360 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite POS - Tipografía y Diseño Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style id="dynamic-styles">
+    <title>Elite POS - Multiplataforma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
         :root {
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --sidebar-bg: #111;
             --font-main: 'Poppins', sans-serif;
-            --accent-color: #00f2fe;
+            --accent: #00f2fe;
         }
 
         body { 
             font-family: var(--font-main); 
-            background: #f4f6f9; 
             margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-            transition: all 0.3s ease;
-        }
-        
-        /* Sidebar Estilo Tornasol */
-        .sidebar { 
-            width: 280px; 
-            background: var(--sidebar-bg); 
-            color: white; 
+            background: #f8f9fa; 
             display: flex; 
             flex-direction: column; 
-            box-shadow: 5px 0 20px rgba(0,0,0,0.4);
-            z-index: 10;
+            height: 100vh; 
+        }
+
+        /* DISEÑO RESPONSIVO: Sidebar se vuelve Header en móvil */
+        .app-container { display: flex; flex-direction: row; height: 100vh; flex-grow: 1; }
+        
+        .sidebar { 
+            width: 260px; background: #111; color: white; display: flex; flex-direction: column; 
+            box-shadow: 4px 0 15px rgba(0,0,0,0.2); z-index: 100;
         }
 
         .sidebar h2 { 
-            text-align: center; 
-            padding: 35px 15px; 
-            margin: 0; 
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 2em;
-            font-weight: 800;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+            text-align: center; padding: 25px 10px; margin: 0; background: var(--gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em;
         }
 
         .nav-btn { 
-            padding: 22px 25px; 
-            border: none; 
-            background: transparent; 
-            color: #777; 
-            text-align: left; 
-            cursor: pointer; 
-            font-size: 15px; 
-            font-weight: 600;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border-left: 5px solid transparent;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            padding: 20px; border: none; background: transparent; color: #888; 
+            text-align: left; cursor: pointer; font-weight: 600; text-transform: uppercase;
+            border-left: 5px solid transparent; transition: 0.3s;
         }
 
-        /* RESALTE DE SECCIÓN ACTIVA */
         .nav-btn.active { 
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff; 
-            border-left: 7px solid var(--accent-color);
-            box-shadow: inset 15px 0 25px rgba(0,0,0,0.3);
-            transform: translateX(8px);
+            background: rgba(255,255,255,0.1); color: white; border-left: 6px solid var(--accent); 
         }
 
-        /* Contenido Principal */
-        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
-        .section { display: none; animation: slideUp 0.5s ease; }
+        /* Área de Contenido */
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; width: 100%; box-sizing: border-box; }
+        .section { display: none; max-width: 1200px; margin: 0 auto; }
         .section.active { display: block; }
 
-        @keyframes slideUp { 
-            from { transform: translateY(30px); opacity: 0; } 
-            to { transform: translateY(0); opacity: 1; } 
-        }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        .card { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 25px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.06); 
-            margin-bottom: 30px;
-            border: 1px solid rgba(0,0,0,0.03);
-        }
-
-        /* Venta Visual */
+        /* VENTA ESTILO MÓVIL */
+        .pos-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
         #sku-input { 
-            width: 100%; 
-            padding: 25px; 
-            font-size: 1.6rem; 
-            border-radius: 20px; 
-            border: 2px solid #e0e0e0;
-            outline: none;
-            transition: 0.4s;
-            background: #fafafa;
+            width: 100%; padding: 20px; font-size: 1.4em; border-radius: 15px; 
+            border: 2px solid #ddd; outline: none; margin-bottom: 15px; box-sizing: border-box;
         }
-        #sku-input:focus { border-color: var(--accent-color); background: white; box-shadow: 0 0 20px rgba(0,242,254,0.15); }
 
-        .btn-elite {
-            background: var(--gradient);
-            color: white;
-            border: none;
-            padding: 18px 30px;
-            border-radius: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            transition: 0.3s;
-            text-transform: uppercase;
+        .total-box { 
+            background: var(--gradient); color: white; padding: 30px; border-radius: 20px; 
+            text-align: center; margin-bottom: 15px;
         }
-        .btn-elite:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.25); }
+        .total-box h2 { font-size: 3em; margin: 5px 0; }
 
-        .total-card { 
-            background: var(--gradient); 
-            color: white; 
-            padding: 50px; 
-            border-radius: 30px; 
-            text-align: center;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
+        .btn-pay { 
+            width: 100%; padding: 25px; font-size: 1.5em; border-radius: 15px; 
+            border: none; background: var(--gradient); color: white; font-weight: bold; cursor: pointer;
         }
-        .total-card::after {
-            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: rgba(255,255,255,0.1); transform: rotate(45deg); pointer-events: none;
-        }
-        .total-card h2 { font-size: 4.5em; margin: 15px 0; letter-spacing: -2px; }
 
-        table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
-        th { padding: 15px; color: #999; text-transform: uppercase; font-size: 12px; }
-        td { padding: 22px; background: #fff; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; }
-        td:first-child { border-radius: 18px 0 0 18px; border-left: 1px solid #f0f0f0; }
-        td:last-child { border-radius: 0 18px 18px 0; border-right: 1px solid #f0f0f0; }
+        /* TABLAS ADAPTABLES */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { text-align: left; color: #999; padding: 10px; font-size: 0.8em; }
+        td { padding: 15px 10px; border-bottom: 1px solid #eee; }
 
-        /* Selector de Temas */
-        .swatch { 
-            width: 60px; height: 60px; border-radius: 15px; cursor: pointer; 
-            border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: 0.3s;
+        /* MEDIA QUERIES PARA CELULAR */
+        @media (max-width: 850px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
+            .sidebar h2 { display: none; } /* Ocultar título en móvil para ganar espacio */
+            .nav-btn { padding: 15px; font-size: 12px; border-left: none; border-bottom: 4px solid transparent; flex-shrink: 0; }
+            .nav-btn.active { border-left: none; border-bottom: 4px solid var(--accent); }
+            
+            .pos-layout { grid-template-columns: 1fr; } /* Una sola columna en móvil */
+            .main-content { padding: 15px; }
         }
-        .swatch:hover { transform: scale(1.1) rotate(5deg); }
+
+        /* Swatches de colores */
+        .swatch { width: 45px; height: 45px; border-radius: 10px; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
-<div class="sidebar">
-    <h2 id="display-name">ELITE POS</h2>
-    <button class="nav-btn active" onclick="showSection('pos', this)">🛒 CAJA REGISTRADORA</button>
-    <button class="nav-btn" onclick="showSection('inventory', this)">📦 STOCK / PRODUCTOS</button>
-    <button class="nav-btn" onclick="showSection('settings', this)">⚙️ PERSONALIZAR</button>
-</div>
+<div class="app-container">
+    <div class="sidebar">
+        <h2 id="brand-name">ELITE</h2>
+        <button class="nav-btn active" onclick="showSec('pos', this)">🛒 CAJA</button>
+        <button class="nav-btn" onclick="showSec('inv', this)">📦 STOCK</button>
+        <button class="nav-btn" onclick="showSec('set', this)">⚙️ DISEÑO</button>
+    </div>
 
-<div class="main-content">
-    
-    <div id="pos" class="section active">
-        <div style="display: grid; grid-template-columns: 1.7fr 1.1fr; gap: 40px;">
-            <div class="card">
-                <input type="text" id="sku-input" placeholder="Escanear Producto..." onkeypress="handleScan(event)" autofocus>
-                <table>
-                    <thead>
-                        <tr><th>Producto</th><th>Precio</th><th>Cant.</th><th>Subtotal</th><th></th></tr>
-                    </thead>
-                    <tbody id="cart-items"></tbody>
-                </table>
-            </div>
-            <div class="side">
-                <div class="total-card">
-                    <p style="font-weight: 600; opacity: 0.9;">TOTAL A PAGAR</p>
-                    <h2>$<span id="total-val">0.00</span></h2>
+    <div class="main-content">
+        <div id="pos" class="section active">
+            <div class="pos-layout">
+                <div class="card">
+                    <input type="text" id="sku-input" placeholder="Escanear o SKU..." onkeypress="handleScan(event)" autofocus>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>PRODUCTO</th><th>PRECIO</th><th>CANT.</th><th>SUB</th><th></th></tr></thead>
+                            <tbody id="cart-list"></tbody>
+                        </table>
+                    </div>
                 </div>
-                <button class="btn-elite" style="width: 100%; margin-top: 25px; padding: 30px; font-size: 1.6em;" onclick="processSale()">COBRAR (F12)</button>
+                <div>
+                    <div class="total-box">
+                        <p>TOTAL</p>
+                        <h2 id="total-val">$0.00</h2>
+                    </div>
+                    <button class="btn-pay" onclick="finishSale()">COBRAR (F12)</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="inventory" class="section">
-        <div class="card">
-            <h3>Gestión de Productos</h3>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                <input type="text" id="inv-sku" placeholder="SKU/Código">
-                <input type="text" id="inv-name" placeholder="Nombre">
-                <input type="number" id="inv-price" placeholder="Precio">
-                <input type="number" id="inv-stock" placeholder="Stock Inicial">
-            </div><br>
-            <button class="btn-elite" onclick="saveProduct()">Guardar en Sistema</button>
-        </div>
-        <div class="card">
-            <table id="inv-table">
-                <thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
-                <tbody id="inv-list"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="settings" class="section">
-        <div class="card">
-            <h3>Panel de Estilo de Marca</h3>
-            
-            <p><strong>1. Nombre del Negocio</strong></p>
-            <input type="text" id="set-name" style="padding:15px; width: 400px; border-radius:10px; border:1px solid #ccc;">
-            
-            <p><strong>2. Selección de Tipografía Exclusiva</strong></p>
-            <select id="set-font" style="padding:15px; width: 425px; border-radius:10px; font-size:16px;" onchange="applyVisuals()">
-                <option value="'Grand Hotel', cursive">Grand Hotel (Elegante/Script)</option>
-                <option value="'Berkshire Swash', cursive">Berkshire Swash (Vintage/Artística)</option>
-                <option value="'Lora', serif">Lora (Serif Profesional)</option>
-                <option value="'Poppins', sans-serif">Poppins (Moderna/Limpia)</option>
-                <option value="'Courier New', monospace">Clásica (Máquina de escribir)</option>
-            </select>
-
-            <p><strong>3. Temas Tornasol (Gradientes)</strong></p>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
-                <div class="swatch" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="setTheme('linear-gradient(135deg, #667eea 0%, #764ba2 100%)', '#00f2fe')"></div>
-                <div class="swatch" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="setTheme('linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', '#f093fb')"></div>
-                <div class="swatch" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" onclick="setTheme('linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', '#43e97b')"></div>
-                <div class="swatch" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" onclick="setTheme('linear-gradient(135deg, #fa709a 0%, #fee140 100%)', '#fa709a')"></div>
-                <div class="swatch" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" onclick="setTheme('linear-gradient(135deg, #30cfd0 0%, #330867 100%)', '#30cfd0')"></div>
-                <div class="swatch" style="background: linear-gradient(135deg, #09203f 0%, #537895 100%);" onclick="setTheme('linear-gradient(135deg, #09203f 0%, #537895 100%)', '#09203f')"></div>
+        <div id="inv" class="section">
+            <div class="card">
+                <h3>Nuevo Producto</h3>
+                <input type="text" id="i-sku" placeholder="SKU" style="width:20%; padding:10px;">
+                <input type="text" id="i-nom" placeholder="Nombre" style="width:40%; padding:10px;">
+                <input type="number" id="i-pre" placeholder="Precio" style="width:15%; padding:10px;">
+                <input type="number" id="i-sto" placeholder="Stock" style="width:15%; padding:10px;">
+                <button class="btn-pay" style="padding:10px; font-size:1em; margin-top:10px;" onclick="addProd()">Guardar</button>
             </div>
+            <div class="card">
+                <div class="table-wrapper">
+                    <table id="inv-table">
+                        <thead><tr><th>SKU</th><th>NOMBRE</th><th>PRECIO</th><th>STOCK</th><th></th></tr></thead>
+                        <tbody id="inv-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-            <br><br>
-            <button class="btn-elite" onclick="saveSettings()">Aplicar y Guardar Cambios</button>
+        <div id="set" class="section">
+            <div class="card">
+                <h3>Personalización</h3>
+                <p>Nombre:</p>
+                <input type="text" id="s-name" oninput="updateBrand(this.value)" style="padding:15px; width:80%;">
+                
+                <p>Tipografía:</p>
+                <select id="s-font" onchange="updateFont(this.value)" style="padding:15px; width:80%;">
+                    <option value="'Poppins', sans-serif">Poppins (Moderna)</option>
+                    <option value="'Grand Hotel', cursive">Grand Hotel (Elegante)</option>
+                    <option value="'Berkshire Swash', cursive">Berkshire Swash (Vintage)</option>
+                    <option value="'Lora', serif">Lora (Profesional)</option>
+                </select>
+
+                <p>Tema Tornasol:</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div class="swatch" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="updateTheme('linear-gradient(135deg, #667eea, #764ba2)', '#00f2fe')"></div>
+                    <div class="swatch" style="background: linear-gradient(135deg, #f093fb, #f5576c);" onclick="updateTheme('linear-gradient(135deg, #f093fb, #f5576c)', '#f093fb')"></div>
+                    <div class="swatch" style="background: linear-gradient(135deg, #43e97b, #38f9d7);" onclick="updateTheme('linear-gradient(135deg, #43e97b, #38f9d7)', '#43e97b')"></div>
+                    <div class="swatch" style="background: linear-gradient(135deg, #fa709a, #fee140);" onclick="updateTheme('linear-gradient(135deg, #fa709a, #fee140)', '#fa709a')"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    let inventory = JSON.parse(localStorage.getItem('e_inv')) || [];
+    let inv = JSON.parse(localStorage.getItem('e_inv')) || [];
     let cart = [];
-    let config = JSON.parse(localStorage.getItem('e_cfg')) || {
-        name: 'ELITE POS',
-        font: "'Poppins', sans-serif",
-        theme: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        accent: '#00f2fe'
-    };
+    let cfg = JSON.parse(localStorage.getItem('e_cfg')) || { name: 'ELITE POS', font: "'Poppins', sans-serif", theme: 'linear-gradient(135deg, #667eea, #764ba2)', acc: '#00f2fe' };
 
     function init() {
-        document.getElementById('display-name').innerText = config.name;
-        document.getElementById('set-name').value = config.name;
-        document.getElementById('set-font').value = config.font;
-        applyVisuals();
+        document.getElementById('brand-name').innerText = cfg.name;
+        document.getElementById('s-name').value = cfg.name;
+        document.getElementById('s-font').value = cfg.font;
+        applyStyles();
     }
 
-    function applyVisuals() {
-        const root = document.documentElement;
-        root.style.setProperty('--gradient', config.theme);
-        root.style.setProperty('--font-main', config.font);
-        root.style.setProperty('--accent-color', config.accent);
-        document.body.style.fontFamily = config.font;
-        // Forzar actualización de fuentes en inputs y botones
-        document.querySelectorAll('input, button, select').forEach(el => el.style.fontFamily = config.font);
+    function applyStyles() {
+        document.documentElement.style.setProperty('--gradient', cfg.theme);
+        document.documentElement.style.setProperty('--font-main', cfg.font);
+        document.documentElement.style.setProperty('--accent', cfg.acc);
+        document.body.style.fontFamily = cfg.font;
     }
 
-    function setTheme(grad, accent) {
-        config.theme = grad;
-        config.accent = accent;
-        applyVisuals();
-    }
+    function updateBrand(v) { cfg.name = v; document.getElementById('brand-name').innerText = v; saveCfg(); }
+    function updateFont(v) { cfg.font = v; applyStyles(); saveCfg(); }
+    function updateTheme(t, a) { cfg.theme = t; cfg.acc = a; applyStyles(); saveCfg(); }
+    function saveCfg() { localStorage.setItem('e_cfg', JSON.stringify(cfg)); }
 
-    function saveSettings() {
-        config.name = document.getElementById('set-name').value;
-        config.font = document.getElementById('set-font').value;
-        localStorage.setItem('e_cfg', JSON.stringify(config));
-        document.getElementById('display-name').innerText = config.name;
-        alert("Personalización actualizada correctamente");
-    }
-
-    // --- NAVEGACIÓN ---
-    function showSection(id, btn) {
+    function showSec(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         btn.classList.add('active');
-        if(id === 'inventory') renderInv();
-        if(id === 'pos') setTimeout(() => document.getElementById('sku-input').focus(), 100);
+        if(id === 'inv') renderInv();
     }
 
-    // --- CAJA ---
     function handleScan(e) {
         if(e.key === 'Enter') {
             const sku = e.target.value.trim();
             if(!sku) return;
-            const p = inventory.find(x => x.sku === sku);
+            const p = inv.find(x => x.sku === sku);
             if(p) {
-                addToCart(p);
+                const item = cart.find(x => x.sku === sku);
+                if(item) item.q++; else cart.push({...p, q: 1});
+                renderCart();
             } else {
-                const n = prompt("NUEVO PRODUCTO\nNombre:");
+                const n = prompt("Producto Nuevo - Nombre:");
                 if(n) {
-                    const pr = parseFloat(prompt("Precio de Venta:"));
-                    if(!isNaN(pr)) {
-                        const np = { sku, name: n, price: pr, stock: 99 };
-                        inventory.push(np);
-                        saveInv();
-                        addToCart(np);
-                    }
+                    const pr = parseFloat(prompt("Precio:"));
+                    const np = { sku, name: n, price: pr, stock: 100 };
+                    inv.push(np); saveInv();
+                    cart.push({...np, q: 1}); renderCart();
                 }
             }
             e.target.value = '';
         }
     }
 
-    function addToCart(p) {
-        const item = cart.find(x => x.sku === p.sku);
-        if(item) item.qty++;
-        else cart.push({...p, qty: 1});
-        renderCart();
-    }
-
     function renderCart() {
-        const b = document.getElementById('cart-items');
         let t = 0;
-        b.innerHTML = cart.map((i, idx) => {
-            t += i.price * i.qty;
-            return `<tr><td>${i.name}</td><td>$${i.price.toFixed(2)}</td><td>${i.qty}</td><td>$${(i.price*i.qty).toFixed(2)}</td><td><button class="btn-elite" style="padding:5px 12px; background: #ff4757;" onclick="cart.splice(${idx},1);renderCart()">X</button></td></tr>`;
+        document.getElementById('cart-list').innerHTML = cart.map((i, idx) => {
+            t += i.price * i.q;
+            return `<tr><td>${i.name}</td><td>$${i.price}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
-        document.getElementById('total-val').innerText = t.toFixed(2);
+        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
-    function processSale() {
+    function finishSale() {
         if(cart.length === 0) return;
-        cart.forEach(c => {
-            const p = inventory.find(x => x.sku === c.sku);
-            if(p) p.stock -= c.qty;
-        });
-        saveInv();
-        alert("Venta procesada con éxito");
-        cart = [];
-        renderCart();
+        cart.forEach(c => { const p = inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
+        saveInv(); alert("Venta Exitosa"); cart = []; renderCart();
     }
 
-    // --- INVENTARIO ---
-    function saveProduct() {
-        const sku = document.getElementById('inv-sku').value;
-        const name = document.getElementById('inv-name').value;
-        const price = parseFloat(document.getElementById('inv-price').value);
-        const stock = parseInt(document.getElementById('inv-stock').value);
-        if(!sku || !name) return;
-        inventory.push({sku, name, price, stock});
-        saveInv();
-        renderInv();
-        document.querySelectorAll('#inventory input').forEach(i => i.value = '');
+    function addProd() {
+        const sku = document.getElementById('i-sku').value;
+        const name = document.getElementById('i-nom').value;
+        const price = parseFloat(document.getElementById('i-pre').value);
+        const stock = parseInt(document.getElementById('i-sto').value);
+        inv.push({sku, name, price, stock}); saveInv(); renderInv();
+        alert("Guardado");
     }
 
     function renderInv() {
-        document.getElementById('inv-list').innerHTML = inventory.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price.toFixed(2)}</td><td><b>${p.stock}</b></td><td><button class="btn-elite" style="background:#ff4757; padding:5px 10px;" onclick="inventory=inventory.filter(x=>x.sku!='${p.sku}');saveInv();renderInv()">Borrar</button></td></tr>`).join('');
+        document.getElementById('inv-list').innerHTML = inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td>${p.stock}</td><td onclick="inv=inv.filter(x=>x.sku!='${p.sku}');saveInv();renderInv()">🗑️</td></tr>`).join('');
     }
 
-    function saveInv() { localStorage.setItem('e_inv', JSON.stringify(inventory)); }
-
-    window.addEventListener('keydown', (e) => { if(e.key === 'F12') processSale(); });
+    function saveInv() { localStorage.setItem('e_inv', JSON.stringify(inv)); }
+    window.addEventListener('keydown', (e) => { if(e.key === 'F12') finishSale(); });
     init();
 </script>
-
 </body>
 </html>
