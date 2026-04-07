@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite POS - Multiplataforma</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elite POS + Cámara Scanner</title>
     <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -13,158 +14,126 @@
         }
 
         body { 
-            font-family: var(--font-main); 
-            margin: 0; 
-            background: #f8f9fa; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
+            font-family: var(--font-main); margin: 0; background: #f8f9fa; 
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* DISEÑO RESPONSIVO: Sidebar se vuelve Header en móvil */
-        .app-container { display: flex; flex-direction: row; height: 100vh; flex-grow: 1; }
-        
-        .sidebar { 
-            width: 260px; background: #111; color: white; display: flex; flex-direction: column; 
-            box-shadow: 4px 0 15px rgba(0,0,0,0.2); z-index: 100;
-        }
-
-        .sidebar h2 { 
-            text-align: center; padding: 25px 10px; margin: 0; background: var(--gradient);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em;
-        }
-
+        /* Navegación */
+        .sidebar { background: #111; color: white; display: flex; justify-content: space-around; z-index: 100; }
         .nav-btn { 
-            padding: 20px; border: none; background: transparent; color: #888; 
-            text-align: left; cursor: pointer; font-weight: 600; text-transform: uppercase;
-            border-left: 5px solid transparent; transition: 0.3s;
+            padding: 15px; border: none; background: transparent; color: #888; 
+            cursor: pointer; font-weight: 600; font-size: 12px; text-transform: uppercase;
+            border-bottom: 3px solid transparent; flex: 1;
         }
+        .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
 
-        .nav-btn.active { 
-            background: rgba(255,255,255,0.1); color: white; border-left: 6px solid var(--accent); 
-        }
-
-        /* Área de Contenido */
-        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; width: 100%; box-sizing: border-box; }
-        .section { display: none; max-width: 1200px; margin: 0 auto; }
+        .main-content { flex-grow: 1; padding: 10px; overflow-y: auto; box-sizing: border-box; }
+        .section { display: none; }
         .section.active { display: block; }
 
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-
-        /* VENTA ESTILO MÓVIL */
-        .pos-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        /* Componentes de Caja */
+        .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
         
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
         #sku-input { 
-            width: 100%; padding: 20px; font-size: 1.4em; border-radius: 15px; 
-            border: 2px solid #ddd; outline: none; margin-bottom: 15px; box-sizing: border-box;
+            flex-grow: 1; padding: 15px; font-size: 1.1em; border-radius: 10px; 
+            border: 2px solid #eee; outline: none; font-family: sans-serif !important;
         }
+        
+        .btn-cam { 
+            background: var(--gradient); border: none; border-radius: 10px; 
+            width: 55px; color: white; font-size: 1.5em; cursor: pointer;
+        }
+
+        /* Lector de Cámara */
+        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 10px; display: none; }
 
         .total-box { 
-            background: var(--gradient); color: white; padding: 30px; border-radius: 20px; 
-            text-align: center; margin-bottom: 15px;
+            background: var(--gradient); color: white; padding: 20px; border-radius: 15px; 
+            text-align: center; margin-bottom: 10px;
         }
-        .total-box h2 { font-size: 3em; margin: 5px 0; }
+        .total-box h2 { font-size: 2.5em; margin: 0; }
 
         .btn-pay { 
-            width: 100%; padding: 25px; font-size: 1.5em; border-radius: 15px; 
-            border: none; background: var(--gradient); color: white; font-weight: bold; cursor: pointer;
+            width: 100%; padding: 18px; font-size: 1.3em; border-radius: 12px; 
+            border: none; background: var(--gradient); color: white; font-weight: bold;
         }
 
-        /* TABLAS ADAPTABLES */
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th { text-align: left; color: #999; padding: 10px; font-size: 0.8em; }
-        td { padding: 15px 10px; border-bottom: 1px solid #eee; }
-
-        /* MEDIA QUERIES PARA CELULAR */
-        @media (max-width: 850px) {
-            .app-container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
-            .sidebar h2 { display: none; } /* Ocultar título en móvil para ganar espacio */
-            .nav-btn { padding: 15px; font-size: 12px; border-left: none; border-bottom: 4px solid transparent; flex-shrink: 0; }
-            .nav-btn.active { border-left: none; border-bottom: 4px solid var(--accent); }
-            
-            .pos-layout { grid-template-columns: 1fr; } /* Una sola columna en móvil */
-            .main-content { padding: 15px; }
+        /* Tabla */
+        .table-wrapper { max-height: 200px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            text-align: left; color: #666; padding: 8px; font-size: 11px; 
+            font-family: 'Poppins', sans-serif !important; border-bottom: 1px solid #eee;
         }
-
-        /* Swatches de colores */
-        .swatch { width: 45px; height: 45px; border-radius: 10px; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        td { padding: 10px 8px; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .del-btn { color: #ff4757; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="sidebar">
-        <h2 id="brand-name">ELITE</h2>
-        <button class="nav-btn active" onclick="showSec('pos', this)">🛒 CAJA</button>
-        <button class="nav-btn" onclick="showSec('inv', this)">📦 STOCK</button>
-        <button class="nav-btn" onclick="showSec('set', this)">⚙️ DISEÑO</button>
+<div class="sidebar">
+    <button class="nav-btn active" onclick="showSec('pos', this)">🛒 CAJA</button>
+    <button class="nav-btn" onclick="showSec('inv', this)">📦 STOCK</button>
+    <button class="nav-btn" onclick="showSec('set', this)">⚙️ DISEÑO</button>
+</div>
+
+<div class="main-content">
+    <div id="pos" class="section active">
+        <div class="input-group">
+            <input type="text" id="sku-input" placeholder="Escribe o escanea..." onkeypress="handleManual(event)">
+            <button class="btn-cam" onclick="toggleCamera()">📷</button>
+        </div>
+
+        <div id="reader"></div>
+
+        <div class="card" style="padding: 5px;">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>PRODUCTO</th><th>PRECIO</th><th>CANT.</th><th>SUB</th><th></th></tr>
+                    </thead>
+                    <tbody id="cart-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="total-box">
+            <p>TOTAL</p>
+            <h2 id="total-val">$0.00</h2>
+        </div>
+        <button class="btn-pay" onclick="finishSale()">FINALIZAR VENTA</button>
     </div>
 
-    <div class="main-content">
-        <div id="pos" class="section active">
-            <div class="pos-layout">
-                <div class="card">
-                    <input type="text" id="sku-input" placeholder="Escanear o SKU..." onkeypress="handleScan(event)" autofocus>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead><tr><th>PRODUCTO</th><th>PRECIO</th><th>CANT.</th><th>SUB</th><th></th></tr></thead>
-                            <tbody id="cart-list"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div>
-                    <div class="total-box">
-                        <p>TOTAL</p>
-                        <h2 id="total-val">$0.00</h2>
-                    </div>
-                    <button class="btn-pay" onclick="finishSale()">COBRAR (F12)</button>
-                </div>
+    <div id="inv" class="section">
+        <div class="card">
+            <h3>Registrar Producto</h3>
+            <input type="text" id="i-sku" placeholder="SKU" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #ccc;">
+            <input type="text" id="i-nom" placeholder="Nombre" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #ccc;">
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="i-pre" placeholder="Precio" style="width:50%; padding:12px; border-radius:8px; border:1px solid #ccc;">
+                <input type="number" id="i-sto" placeholder="Stock" style="width:50%; padding:12px; border-radius:8px; border:1px solid #ccc;">
             </div>
+            <button class="btn-pay" style="margin-top:10px; font-size:1em;" onclick="addProd()">GUARDAR</button>
         </div>
-
-        <div id="inv" class="section">
-            <div class="card">
-                <h3>Nuevo Producto</h3>
-                <input type="text" id="i-sku" placeholder="SKU" style="width:20%; padding:10px;">
-                <input type="text" id="i-nom" placeholder="Nombre" style="width:40%; padding:10px;">
-                <input type="number" id="i-pre" placeholder="Precio" style="width:15%; padding:10px;">
-                <input type="number" id="i-sto" placeholder="Stock" style="width:15%; padding:10px;">
-                <button class="btn-pay" style="padding:10px; font-size:1em; margin-top:10px;" onclick="addProd()">Guardar</button>
-            </div>
-            <div class="card">
-                <div class="table-wrapper">
-                    <table id="inv-table">
-                        <thead><tr><th>SKU</th><th>NOMBRE</th><th>PRECIO</th><th>STOCK</th><th></th></tr></thead>
-                        <tbody id="inv-list"></tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="card">
+            <table id="inv-table">
+                <thead><tr><th>SKU</th><th>PRODUCTO</th><th>STOCK</th><th></th></tr></thead>
+                <tbody id="inv-list"></tbody>
+            </table>
         </div>
+    </div>
 
-        <div id="set" class="section">
-            <div class="card">
-                <h3>Personalización</h3>
-                <p>Nombre:</p>
-                <input type="text" id="s-name" oninput="updateBrand(this.value)" style="padding:15px; width:80%;">
-                
-                <p>Tipografía:</p>
-                <select id="s-font" onchange="updateFont(this.value)" style="padding:15px; width:80%;">
-                    <option value="'Poppins', sans-serif">Poppins (Moderna)</option>
-                    <option value="'Grand Hotel', cursive">Grand Hotel (Elegante)</option>
-                    <option value="'Berkshire Swash', cursive">Berkshire Swash (Vintage)</option>
-                    <option value="'Lora', serif">Lora (Profesional)</option>
-                </select>
-
-                <p>Tema Tornasol:</p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <div class="swatch" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="updateTheme('linear-gradient(135deg, #667eea, #764ba2)', '#00f2fe')"></div>
-                    <div class="swatch" style="background: linear-gradient(135deg, #f093fb, #f5576c);" onclick="updateTheme('linear-gradient(135deg, #f093fb, #f5576c)', '#f093fb')"></div>
-                    <div class="swatch" style="background: linear-gradient(135deg, #43e97b, #38f9d7);" onclick="updateTheme('linear-gradient(135deg, #43e97b, #38f9d7)', '#43e97b')"></div>
-                    <div class="swatch" style="background: linear-gradient(135deg, #fa709a, #fee140);" onclick="updateTheme('linear-gradient(135deg, #fa709a, #fee140)', '#fa709a')"></div>
-                </div>
-            </div>
+    <div id="set" class="section">
+        <div class="card">
+            <h3>Personalización</h3>
+            <p>Tipografía:</p>
+            <select id="s-font" onchange="updateFont(this.value)" style="width:100%; padding:12px; border-radius:8px;">
+                <option value="'Poppins', sans-serif">Poppins</option>
+                <option value="'Grand Hotel', cursive">Grand Hotel</option>
+                <option value="'Berkshire Swash', cursive">Berkshire Swash</option>
+                <option value="'Lora', serif">Lora</option>
+            </select>
         </div>
     </div>
 </div>
@@ -172,88 +141,108 @@
 <script>
     let inv = JSON.parse(localStorage.getItem('e_inv')) || [];
     let cart = [];
-    let cfg = JSON.parse(localStorage.getItem('e_cfg')) || { name: 'ELITE POS', font: "'Poppins', sans-serif", theme: 'linear-gradient(135deg, #667eea, #764ba2)', acc: '#00f2fe' };
-
-    function init() {
-        document.getElementById('brand-name').innerText = cfg.name;
-        document.getElementById('s-name').value = cfg.name;
-        document.getElementById('s-font').value = cfg.font;
-        applyStyles();
-    }
+    let cfg = JSON.parse(localStorage.getItem('e_cfg')) || { font: "'Poppins', sans-serif", theme: 'linear-gradient(135deg, #667eea, #764ba2)' };
+    let html5QrCode;
 
     function applyStyles() {
-        document.documentElement.style.setProperty('--gradient', cfg.theme);
-        document.documentElement.style.setProperty('--font-main', cfg.font);
-        document.documentElement.style.setProperty('--accent', cfg.acc);
         document.body.style.fontFamily = cfg.font;
+        document.documentElement.style.setProperty('--gradient', cfg.theme);
+        document.querySelectorAll('input, button, td, h2, select').forEach(el => el.style.fontFamily = cfg.font);
     }
 
-    function updateBrand(v) { cfg.name = v; document.getElementById('brand-name').innerText = v; saveCfg(); }
-    function updateFont(v) { cfg.font = v; applyStyles(); saveCfg(); }
-    function updateTheme(t, a) { cfg.theme = t; cfg.acc = a; applyStyles(); saveCfg(); }
-    function saveCfg() { localStorage.setItem('e_cfg', JSON.stringify(cfg)); }
+    function updateFont(v) { cfg.font = v; applyStyles(); localStorage.setItem('e_cfg', JSON.stringify(cfg)); }
 
     function showSec(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         btn.classList.add('active');
-        if(id === 'inv') renderInv();
+        if(id !== 'pos' && html5QrCode) stopCamera();
     }
 
-    function handleScan(e) {
-        if(e.key === 'Enter') {
-            const sku = e.target.value.trim();
-            if(!sku) return;
-            const p = inv.find(x => x.sku === sku);
-            if(p) {
-                const item = cart.find(x => x.sku === sku);
-                if(item) item.q++; else cart.push({...p, q: 1});
-                renderCart();
-            } else {
-                const n = prompt("Producto Nuevo - Nombre:");
-                if(n) {
-                    const pr = parseFloat(prompt("Precio:"));
-                    const np = { sku, name: n, price: pr, stock: 100 };
-                    inv.push(np); saveInv();
-                    cart.push({...np, q: 1}); renderCart();
-                }
+    // --- LÓGICA DE ESCANEO ---
+    function processCode(sku) {
+        const p = inv.find(x => x.sku === sku);
+        if(p) {
+            const item = cart.find(x => x.sku === sku);
+            if(item) item.q++; else cart.push({...p, q: 1});
+            renderCart();
+            // Pitido de éxito
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            osc.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } else {
+            stopCamera();
+            const n = prompt("PRODUCTO NUEVO\nSKU: " + sku + "\nNombre:");
+            if(n) {
+                const pr = parseFloat(prompt("Precio:"));
+                const np = { sku, name: n, price: pr, stock: 100 };
+                inv.push(np); saveInv();
+                cart.push({...np, q: 1}); renderCart();
             }
-            e.target.value = '';
         }
     }
 
+    function handleManual(e) {
+        if(e.key === 'Enter') { processCode(e.target.value.trim()); e.target.value = ''; }
+    }
+
+    // --- CÁMARA ---
+    function toggleCamera() {
+        const readerDiv = document.getElementById('reader');
+        if (readerDiv.style.display === 'block') {
+            stopCamera();
+        } else {
+            readerDiv.style.display = 'block';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => { processCode(decodedText); },
+                (errorMessage) => { /* errores silenciosos de enfoque */ }
+            ).catch(err => alert("Error de cámara: " + err));
+        }
+    }
+
+    function stopCamera() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader').style.display = 'none';
+            });
+        }
+    }
+
+    // --- RESTO DE FUNCIONES ---
     function renderCart() {
         let t = 0;
         document.getElementById('cart-list').innerHTML = cart.map((i, idx) => {
             t += i.price * i.q;
-            return `<tr><td>${i.name}</td><td>$${i.price}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
+            return `<tr><td>${i.name}</td><td>$${i.price}</td><td>${i.q}</td><td>$${(i.price*i.q).toFixed(2)}</td><td class="del-btn" onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
-    function finishSale() {
-        if(cart.length === 0) return;
-        cart.forEach(c => { const p = inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
-        saveInv(); alert("Venta Exitosa"); cart = []; renderCart();
-    }
-
+    function saveInv() { localStorage.setItem('e_inv', JSON.stringify(inv)); }
     function addProd() {
         const sku = document.getElementById('i-sku').value;
         const name = document.getElementById('i-nom').value;
         const price = parseFloat(document.getElementById('i-pre').value);
         const stock = parseInt(document.getElementById('i-sto').value);
-        inv.push({sku, name, price, stock}); saveInv(); renderInv();
-        alert("Guardado");
+        if(sku && name) { inv.push({sku, name, price, stock}); saveInv(); renderInv(); alert("Guardado"); }
     }
 
     function renderInv() {
-        document.getElementById('inv-list').innerHTML = inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td>${p.stock}</td><td onclick="inv=inv.filter(x=>x.sku!='${p.sku}');saveInv();renderInv()">🗑️</td></tr>`).join('');
+        document.getElementById('inv-list').innerHTML = inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>${p.stock}</td><td onclick="inv=inv.filter(x=>x.sku!='${p.sku}');saveInv();renderInv()">🗑️</td></tr>`).join('');
     }
 
-    function saveInv() { localStorage.setItem('e_inv', JSON.stringify(inv)); }
-    window.addEventListener('keydown', (e) => { if(e.key === 'F12') finishSale(); });
-    init();
+    function finishSale() {
+        if(cart.length === 0) return;
+        cart.forEach(c => { const p = inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
+        saveInv(); alert("Venta Realizada"); cart = []; renderCart();
+    }
+
+    applyStyles();
 </script>
 </body>
 </html>
