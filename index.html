@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite POS Pro - Edición de Cantidades</title>
+    <title>Elite POS Pro - Métodos de Pago</title>
     <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Grand+Hotel&family=Lora:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,6 +15,7 @@
             --bg-dark: #111;
             --danger: #ff4757;
             --success: #2ed573;
+            --info: #3498db;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: var(--font-main); margin: 0; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -38,20 +39,56 @@
         th { text-align: left; color: #7f8c8d; padding: 12px 8px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; position: sticky; top: 0; background: white; }
         td { padding: 12px 8px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
         
-        /* Controles de Cantidad */
         .qty-controls { display: flex; align-items: center; gap: 8px; }
         .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .qty-btn:active { background: #ccc; }
 
         .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 16px; }
         .total-box { background: var(--gradient); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
         .total-box h2 { font-size: 2.8em; margin: 0; }
         .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-bottom: 10px; }
         
+        /* Modal Pago */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 95%; max-width: 420px; padding: 20px; border-radius: 20px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .method-btn { padding: 10px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; font-size: 0.8em; font-weight: bold; background: #f9f9f9; }
+        .method-btn.selected { border-color: var(--info); background: #e3f2fd; color: var(--info); }
+
         #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
     </style>
 </head>
 <body>
+
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="m-total-text" style="margin-top:0;">Total: $0.00</h2>
+            
+            <p style="margin-bottom:5px;">Método de Pago:</p>
+            <div class="payment-methods">
+                <div class="method-btn selected" id="btn-cash" onclick="selectMethod('efectivo')">💵<br>Efectivo</div>
+                <div class="method-btn" id="btn-card" onclick="selectMethod('tarjeta')">💳<br>Tarjeta</div>
+                <div class="method-btn" id="btn-debt" onclick="selectMethod('fiado')">📝<br>Fiado</div>
+            </div>
+
+            <div id="cash-section">
+                <p>Efectivo Recibido:</p>
+                <input type="number" id="cash-received" class="input-style" placeholder="$0.00" oninput="calcChange()">
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
+                    <small>Cambio:</small>
+                    <h2 id="change-text" style="margin: 0; color: var(--success);">$0.00</h2>
+                </div>
+            </div>
+
+            <div id="debt-section" style="display:none;">
+                <p>Nombre del Cliente (Para Fiado):</p>
+                <input type="text" id="debt-customer" class="input-style" placeholder="Nombre completo">
+            </div>
+
+            <button class="btn-main" onclick="confirmPayment()">FINALIZAR VENTA</button>
+            <button class="btn-main" style="background: #ccc;" onclick="closeModal()">CANCELAR</button>
+        </div>
+    </div>
 
     <div class="navbar">
         <button class="nav-btn active" onclick="showSec('pos', this)">🛒 Caja</button>
@@ -76,8 +113,8 @@
                     </table>
                 </div>
             </div>
-            <div class="total-box"><small>TOTAL</small><h2 id="total-val">$0.00</h2></div>
-            <button class="btn-main" onclick="sell()">COBRAR (F12)</button>
+            <div class="total-box"><small>TOTAL VENTA</small><h2 id="total-val">$0.00</h2></div>
+            <button class="btn-main" onclick="openPaymentModal()">COBRAR (F12)</button>
         </div>
 
         <div id="stock" class="section">
@@ -109,15 +146,13 @@
         </div>
 
         <div id="fiados" class="section">
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">NUEVO FIADO <span>▼</span></div>
-                <div class="accordion-content">
-                    <input type="text" id="f-cliente" class="input-style" placeholder="Nombre">
-                    <input type="number" id="f-monto" class="input-style" placeholder="Monto">
-                    <button class="btn-main" onclick="addFiado()">Guardar</button>
+            <div class="card">
+                <h3>Lista de Clientes Deudores</h3>
+                <p><small>Aquí se guardan las ventas marcadas como "Fiado".</small></p>
+                <div class="table-scroll">
+                    <table><thead><tr><th>Cliente</th><th>Monto Deuda</th><th>Acción</th></tr></thead><tbody id="fiados-list"></tbody></table>
                 </div>
             </div>
-            <div class="card"><table><thead><tr><th>Cliente</th><th>Deuda</th><th></th></tr></thead><tbody id="fiados-list"></tbody></table></div>
         </div>
 
         <div id="gastos" class="section">
@@ -134,9 +169,21 @@
 
         <div id="corte" class="section">
             <div class="card" style="text-align: center;">
-                <h3>Balance del Día</h3>
-                <h1 id="c-total" style="color:var(--success); font-size:3.5em;">$0.00</h1>
-                <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR PDF</button>
+                <h3>Ventas del Día</h3>
+                <h1 id="c-total" style="color:var(--success); font-size:3em; margin:10px 0;">$0.00</h1>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.8em; margin-bottom: 15px;">
+                    <div style="background:#f1f1f1; padding:10px; border-radius:10px;">Efectivo:<br><b id="c-cash">$0.00</b></div>
+                    <div style="background:#f1f1f1; padding:10px; border-radius:10px;">Tarjeta:<br><b id="c-card">$0.00</b></div>
+                    <div style="background:#f1f1f1; padding:10px; border-radius:10px;">Fiado:<br><b id="c-debt">$0.00</b></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-around; font-size: 0.8em; margin-bottom: 20px;">
+                    <div>Cambios:<br><b id="c-cambios" style="color:var(--danger)">$0.00</b></div>
+                    <div>Gastos:<br><b id="c-gastos" style="color:var(--danger)">$0.00</b></div>
+                </div>
+
+                <button class="btn-main" onclick="generatePDF()">📥 DESCARGAR PDF DETALLADO</button>
                 <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
             </div>
         </div>
@@ -147,18 +194,89 @@
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
         fiados: JSON.parse(localStorage.getItem('e_fia')) || [],
         gastos: JSON.parse(localStorage.getItem('e_gas')) || [],
-        ventasHoy: parseFloat(localStorage.getItem('e_vhoy')) || 0
+        ventasEfectivo: parseFloat(localStorage.getItem('e_v_efectivo')) || 0,
+        ventasTarjeta: parseFloat(localStorage.getItem('e_v_tarjeta')) || 0,
+        ventasFiado: parseFloat(localStorage.getItem('e_v_fiado')) || 0,
+        cambioHoy: parseFloat(localStorage.getItem('e_cambio')) || 0
     };
     let cart = [];
     let scanner;
+    let currentTotal = 0;
+    let selectedMethod = 'efectivo';
 
     function save() {
         localStorage.setItem('e_inv', JSON.stringify(db.inv));
         localStorage.setItem('e_fia', JSON.stringify(db.fiados));
         localStorage.setItem('e_gas', JSON.stringify(db.gastos));
-        localStorage.setItem('e_vhoy', db.ventasHoy);
+        localStorage.setItem('e_v_efectivo', db.ventasEfectivo);
+        localStorage.setItem('e_v_tarjeta', db.ventasTarjeta);
+        localStorage.setItem('e_v_fiado', db.ventasFiado);
+        localStorage.setItem('e_cambio', db.cambioHoy);
     }
 
+    // --- MÉTODOS DE PAGO ---
+    function selectMethod(m) {
+        selectedMethod = m;
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+        if(m === 'efectivo') {
+            document.getElementById('btn-cash').classList.add('selected');
+            document.getElementById('cash-section').style.display = 'block';
+            document.getElementById('debt-section').style.display = 'none';
+        } else if(m === 'tarjeta') {
+            document.getElementById('btn-card').classList.add('selected');
+            document.getElementById('cash-section').style.display = 'none';
+            document.getElementById('debt-section').style.display = 'none';
+        } else {
+            document.getElementById('btn-debt').classList.add('selected');
+            document.getElementById('cash-section').style.display = 'none';
+            document.getElementById('debt-section').style.display = 'block';
+        }
+    }
+
+    function openPaymentModal() {
+        if (!cart.length) return;
+        currentTotal = cart.reduce((acc, i) => acc + (i.price * i.q), 0);
+        document.getElementById('m-total-text').innerText = `Total: $${currentTotal.toFixed(2)}`;
+        document.getElementById('payment-modal').style.display = 'flex';
+        selectMethod('efectivo');
+        document.getElementById('cash-received').value = '';
+    }
+
+    function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
+
+    function confirmPayment() {
+        let change = 0;
+        if(selectedMethod === 'efectivo') {
+            const rec = parseFloat(document.getElementById('cash-received').value) || 0;
+            if(rec < currentTotal) return alert("Falta dinero");
+            change = rec - currentTotal;
+            db.ventasEfectivo += currentTotal;
+            db.cambioHoy += change;
+        } else if(selectedMethod === 'tarjeta') {
+            db.ventasTarjeta += currentTotal;
+        } else {
+            const client = document.getElementById('debt-customer').value.trim();
+            if(!client) return alert("Ingrese el nombre del cliente para el fiado");
+            db.ventasFiado += currentTotal;
+            db.fiados.unshift({n: client, m: currentTotal});
+        }
+
+        // Descontar Stock
+        cart.forEach(c => {
+            const p = db.inv.find(x => x.sku === c.sku);
+            if(p) p.stock -= c.q;
+        });
+
+        save(); cart = []; renderCart(); closeModal();
+        alert("Venta procesada con éxito.");
+    }
+
+    function calcChange() {
+        const rec = parseFloat(document.getElementById('cash-received').value) || 0;
+        document.getElementById('change-text').innerText = (rec - currentTotal >= 0) ? `$${(rec - currentTotal).toFixed(2)}` : "Falta...";
+    }
+
+    // --- FUNCIONES CORE ---
     function toggleAccordion(header) {
         const content = header.nextElementSibling;
         content.classList.toggle('open');
@@ -174,7 +292,6 @@
         if(id === 'fiados') renderFiados();
         if(id === 'gastos') renderGastos();
         if(id === 'corte') renderCorte();
-        if(scanner) { scanner.stop(); document.querySelectorAll("[id^='reader']").forEach(r => r.style.display='none'); }
     }
 
     function process(code, mode = 'sale') {
@@ -186,15 +303,15 @@
                 if(i) i.q++; else cart.push({...p, q: 1});
                 renderCart();
             } else {
-                const add = parseInt(prompt(`RESURTIR: ${p.name}\nActual: ${p.stock}\n¿Cuántos sumamos?`));
-                if(!isNaN(add)) { p.stock += add; save(); renderInv(); alert("Stock actualizado"); }
+                const add = parseInt(prompt(`RESURTIR: ${p.name}\nActual: ${p.stock}\nSumar:`));
+                if(!isNaN(add)) { p.stock += add; save(); renderInv(); }
             }
         } else {
-            const n = prompt("PRODUCTO NUEVO\nNombre:");
+            const n = prompt("NUEVO PRODUCTO\nNombre:");
             if(n) {
                 const pr = parseFloat(prompt("Precio:"));
-                const st = parseInt(prompt("Stock inicial:"));
-                db.inv.push({ sku: code, name: n, price: pr, stock: st });
+                const st = parseInt(prompt("Stock:"));
+                db.inv.push({sku: code, name: n, price: pr, stock: st});
                 save(); renderInv();
             }
         }
@@ -202,17 +319,12 @@
 
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
 
-    // --- FUNCIÓN PARA MODIFICAR CANTIDAD ---
     function updateCartQty(idx, delta) {
         const item = cart[idx];
         const p = db.inv.find(x => x.sku === item.sku);
-        
-        if (item.q + delta > p.stock) return alert("No hay suficiente stock");
-        if (item.q + delta <= 0) {
-            cart.splice(idx, 1);
-        } else {
-            item.q += delta;
-        }
+        if (item.q + delta > p.stock) return alert("Sin stock");
+        if (item.q + delta <= 0) cart.splice(idx, 1);
+        else item.q += delta;
         renderCart();
     }
 
@@ -220,62 +332,17 @@
         let t = 0;
         document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += i.price * i.q;
-            return `<tr>
-                <td>${i.name}</td>
-                <td>$${i.price}</td>
-                <td>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateCartQty(${idx}, -1)">-</button>
-                        <span>${i.q}</span>
-                        <button class="qty-btn" onclick="updateCartQty(${idx}, 1)">+</button>
-                    </div>
-                </td>
-                <td>$${(i.price*i.q).toFixed(2)}</td>
-                <td onclick="cart.splice(${idx},1);renderCart()">❌</td>
-            </tr>`;
+            return `<tr><td>${i.name}</td><td>$${i.price}</td><td><div class="qty-controls"><button class="qty-btn" onclick="updateCartQty(${idx},-1)">-</button><span>${i.q}</span><button class="qty-btn" onclick="updateCartQty(${idx},1)">+</button></div></td><td>$${(i.price*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
-    function sell() {
-        if(!cart.length) return;
-        let tTotal = 0;
-        cart.forEach(c => { tTotal += c.price * c.q; const p = db.inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
-        db.ventasHoy += tTotal; save(); cart = []; renderCart(); alert("¡Venta Exitosa!");
-    }
-
-    function addInv() {
-        const sku = document.getElementById('s-sku').value.trim();
-        const nom = document.getElementById('s-nom').value.trim();
-        const pre = parseFloat(document.getElementById('s-pre').value);
-        const sto = parseInt(document.getElementById('s-sto').value) || 0;
-        if(!sku) return alert("Ingrese un código");
-        const existing = db.inv.find(x => x.sku === sku);
-        if(existing) {
-            existing.stock += sto;
-            if(nom) existing.name = nom;
-            if(!isNaN(pre)) existing.price = pre;
-            alert(`Actualizado: ${existing.name}. Nuevo stock: ${existing.stock}`);
-        } else {
-            if(!nom || isNaN(pre)) return alert("Complete nombre y precio");
-            db.inv.push({sku, name: nom, price: pre, stock: sto});
-            alert("Producto registrado");
-        }
-        save(); renderInv();
-        document.querySelectorAll('#stock input').forEach(i => i.value = '');
-    }
-
     function renderInv() {
-        document.getElementById('inv-list').innerHTML = db.inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td style="font-weight:bold; color:${p.stock < 5 ? 'red' : 'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')) {db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
+        document.getElementById('inv-list').innerHTML = db.inv.map(p => `<tr><td>${p.sku}</td><td>${p.name}</td><td>$${p.price}</td><td style="font-weight:bold; color:${p.stock < 5 ? 'red' : 'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
     }
 
-    function addFiado() {
-        const n = document.getElementById('f-cliente').value;
-        const m = parseFloat(document.getElementById('f-monto').value);
-        if(n && m) { db.fiados.unshift({n, m}); save(); renderFiados(); }
-    }
     function renderFiados() {
-        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<tr><td>${f.n}</td><td>$${f.m}</td><td onclick="db.fiados.splice(${i},1);save();renderFiados()">✅</td></tr>`).join('');
+        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<tr><td>${f.n}</td><td>$${f.m}</td><td onclick="db.fiados.splice(${i},1);save();renderFiados()">✅ Pagó</td></tr>`).join('');
     }
 
     function addGasto() {
@@ -288,26 +355,41 @@
     }
 
     function renderCorte() {
-        let g = 0; db.gastos.forEach(x => g += x.m);
-        document.getElementById('c-total').innerText = `$${(db.ventasHoy - g).toFixed(2)}`;
+        let gSum = db.gastos.reduce((a, b) => a + b.m, 0);
+        let neto = (db.ventasEfectivo + db.ventasTarjeta + db.ventasFiado) - gSum;
+        document.getElementById('c-total').innerText = `$${neto.toFixed(2)}`;
+        document.getElementById('c-cash').innerText = `$${db.ventasEfectivo.toFixed(2)}`;
+        document.getElementById('c-card').innerText = `$${db.ventasTarjeta.toFixed(2)}`;
+        document.getElementById('c-debt').innerText = `$${db.ventasFiado.toFixed(2)}`;
+        document.getElementById('c-cambios').innerText = `$${db.cambioHoy.toFixed(2)}`;
+        document.getElementById('c-gastos').innerText = `$${gSum.toFixed(2)}`;
     }
 
-    function resetCorte() { if(confirm("¿Cerrar caja diaria?")) { db.ventasHoy = 0; db.gastos = []; save(); renderCorte(); } }
+    function resetCorte() {
+        if(confirm("¿Cerrar caja diaria?")) {
+            db.ventasEfectivo = 0; db.ventasTarjeta = 0; db.ventasFiado = 0;
+            db.cambioHoy = 0; db.gastos = []; save(); renderCorte();
+        }
+    }
 
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(20); doc.text("CORTE DE CAJA ELITE", 10, 20);
-        doc.setFontSize(14); doc.text(`Balance: ${document.getElementById('c-total').innerText}`, 10, 40);
-        doc.save(`corte_${new Date().toLocaleDateString()}.pdf`);
+        let gSum = db.gastos.reduce((a, b) => a + b.m, 0);
+        doc.setFontSize(20); doc.text("REPORTE DE VENTAS DETALLADO", 10, 20);
+        doc.setFontSize(12); doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 10, 30);
+        doc.text(`EFECTIVO EN CAJA: $${db.ventasEfectivo.toFixed(2)}`, 10, 50);
+        doc.text(`VENTAS TARJETA: $${db.ventasTarjeta.toFixed(2)}`, 10, 60);
+        doc.text(`VENTAS FIADO: $${db.ventasFiado.toFixed(2)}`, 10, 70);
+        doc.text(`CAMBIOS ENTREGADOS: $${db.cambioHoy.toFixed(2)}`, 10, 80);
+        doc.text(`GASTOS DEL DÍA: $${gSum.toFixed(2)}`, 10, 90);
+        doc.setFontSize(16); doc.text(`TOTAL NETO: $${((db.ventasEfectivo + db.ventasTarjeta + db.ventasFiado) - gSum).toFixed(2)}`, 10, 110);
+        doc.save("corte_detallado.pdf");
     }
 
     function toggleCam(id, mode) {
         const r = document.getElementById(id);
         if(r.style.display === 'block') { scanner.stop(); r.style.display = 'none'; }
-        else {
-            r.style.display = 'block'; scanner = new Html5Qrcode(id);
-            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { process(t, mode); });
-        }
+        else { r.style.display = 'block'; scanner = new Html5Qrcode(id); scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { process(t, mode); }); }
     }
 
     renderInv();
