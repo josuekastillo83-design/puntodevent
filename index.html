@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Pro - Stock Inteligente</title>
+    <title>POS Pro - Marcado Rápido</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -24,12 +24,9 @@
         input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
         .total-txt { text-align: right; color: var(--celeste); font-size: 32px; font-weight: bold; }
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
-        .search-results { background: #fff; border: 1px solid #ddd; border-radius: 8px; max-height: 150px; overflow-y: auto; margin-top: -5px; margin-bottom: 10px; }
-        .search-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
-        .search-item:active { background: #f0f0f0; }
-        table { width: 100%; font-size: 12px; border-collapse: collapse; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
         .stock-off { color: var(--rojo); font-weight: bold; }
+        table { width: 100%; font-size: 12px; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -47,62 +44,86 @@
     <div class="container">
         <div id="wrapper-cam" class="card">
             <div id="reader"></div>
-            <p id="scan-info" style="text-align:center; font-size:12px; margin-top:5px; color:var(--celeste); font-weight:bold;"></p>
         </div>
 
         <div id="sec-venta">
-            <button class="btn btn-celeste" onclick="abrirVentaManual()">➕ VENTA MANUAL</button>
+            <div class="card" style="border-top-color: var(--verde);">
+                <h3>🔢 Marcado Rápido (Clave 1 dígito)</h3>
+                <input type="number" id="input-clave-rapida" placeholder="Escribe la clave (1, 2, 3...)" oninput="marcadoRapido(this.value)">
+            </div>
+
             <div class="card">
                 <div id="carrito-lista"></div>
                 <div class="total-txt" id="total-txt">$ 0.00</div>
                 <button class="btn btn-verde" onclick="abrirCobro()">💰 COBRAR</button>
+                <button class="btn btn-rojo" style="font-size: 10px; padding: 5px;" onclick="vaciarCarrito()">VACIAR CARRITO</button>
             </div>
         </div>
 
         <div id="sec-inv" style="display:none;">
             <div class="card">
-                <h3>Buscar para Surtir / Editar</h3>
-                <input type="text" id="bus-stock" placeholder="Escribe Clave o Nombre..." oninput="buscarEnStock()">
-                <div id="res-bus-stock" class="search-results" style="display:none;"></div>
-                
-                <input type="text" id="in-code" placeholder="Código / Clave">
+                <h3>Registrar Producto (Asigna Clave Corta)</h3>
+                <input type="text" id="in-code" placeholder="Clave de 1 dígito o Código">
                 <input type="text" id="in-nom" placeholder="Nombre completo">
                 <input type="number" id="in-pre" placeholder="Precio $">
-                <input type="number" id="in-stock" placeholder="¿Cuántos llegaron?">
-                <button class="btn btn-celeste" onclick="guardarProd()">💾 GUARDAR PRODUCTO</button>
+                <input type="number" id="in-stock" placeholder="Stock que llegó">
+                <button class="btn btn-celeste" onclick="guardarProd()">💾 GUARDAR EN STOCK</button>
             </div>
             <div class="card">
-                <input type="text" id="config-nombre" placeholder="Nuevo nombre de tienda">
-                <button class="btn" style="background:#34495e; color:white;" onclick="guardarNombre()">CAMBIAR NOMBRE</button>
+                <h3>Lista de Precios y Stock</h3>
+                <table><thead><tr><th>Clave</th><th>Nombre</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="l-inv"></tbody></table>
             </div>
-            <div class="card"><table><thead><tr><th>Prod</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="l-inv"></tbody></table></div>
         </div>
 
         <div id="sec-fiado" style="display:none;"><div class="card"><h3>Fiados</h3><table><tbody id="l-fiados"></tbody></table></div></div>
+        
         <div id="sec-gastos" style="display:none;"><div class="card"><input type="text" id="g-desc" placeholder="Gasto"><input type="number" id="g-monto" placeholder="$"><button class="btn btn-rojo" onclick="guardarGasto()">REGISTRAR</button></div></div>
+        
         <div id="sec-corte" style="display:none;"><div class="card"><div id="corte-info"></div><button class="btn btn-verde" onclick="exportarPDF()">📄 PDF</button><button class="btn btn-rojo" onclick="limp()">CERRAR DÍA</button></div></div>
     </div>
 
-    <div id="modal-manual" class="modal-overlay">
-        <div class="card" style="width:100%;"><h2>Venta Directa</h2><input type="text" id="vm-nom" placeholder="Producto"><input type="number" id="vm-pre" placeholder="$"><input type="number" id="vm-cant" value="1"><button class="btn btn-verde" onclick="agregarManual()">AGREGAR</button><button class="btn" onclick="cerrarModalManual()">SALIR</button></div>
-    </div>
     <div id="modal-cant" class="modal-overlay">
-        <div class="card" style="width:100%;"><h2 id="n-prod"></h2><input type="number" id="i-cant" value="1" style="font-size:30px; text-align:center;"><button class="btn btn-verde" onclick="sumarCarr()">AÑADIR</button><button class="btn" onclick="cerrarModalCant()">VOLVER</button></div>
+        <div class="card" style="width:100%;">
+            <h2 id="n-prod" style="text-align:center;"></h2>
+            <p id="stock-aviso" style="text-align:center; color:red;"></p>
+            <input type="number" id="i-cant" value="1" style="font-size:30px; text-align:center;">
+            <button class="btn btn-verde" onclick="sumarCarr()">AÑADIR AL CARRITO</button>
+            <button class="btn" onclick="cerrarModalCant()">CANCELAR</button>
+        </div>
     </div>
+
     <div id="modal-cobro" class="modal-overlay">
-        <div class="card" style="width:100%;"><h2 id="m-tot"></h2><select id="m-metodo" onchange="toggleCliente()"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="fiado">Fiado</option></select><input type="text" id="m-cliente" placeholder="Nombre cliente" style="display:none;"><input type="number" id="m-paga" placeholder="Paga con..."><button class="btn btn-verde" onclick="finalizarVenta()">TERMINAR</button><button class="btn" onclick="cerrarModalCobro()">CANCELAR</button></div>
+        <div class="card" style="width:100%;"><h2 id="m-tot"></h2><select id="m-metodo" onchange="toggleCliente()"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="fiado">Fiado</option></select><input type="text" id="m-cliente" placeholder="Nombre cliente" style="display:none;"><input type="number" id="m-paga" placeholder="Paga con..."><button class="btn btn-verde" onclick="finalizarVenta()">TERMINAR VENTA</button><button class="btn" onclick="cerrarModalCobro()">CANCELAR</button></div>
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('p_v20_db')) || {};
-    let vent = JSON.parse(localStorage.getItem('p_v20_v')) || [];
-    let gst = JSON.parse(localStorage.getItem('p_v20_g')) || [];
-    let fia = JSON.parse(localStorage.getItem('p_v20_f')) || {};
-    let nTienda = localStorage.getItem('p_v20_nom') || "MI TIENDA";
+    let db = JSON.parse(localStorage.getItem('p_v21_db')) || {};
+    let vent = JSON.parse(localStorage.getItem('p_v21_v')) || [];
+    let gst = JSON.parse(localStorage.getItem('p_v21_g')) || [];
+    let fia = JSON.parse(localStorage.getItem('p_v21_f')) || {};
+    let nTienda = localStorage.getItem('p_v21_nom') || "MI TIENDA";
     let carr = []; let tot = 0; let sc; let temp; let modo = 'venta'; let esc = false;
 
     function sonarBip() { let audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let o = audioCtx.createOscillator(); let g = audioCtx.createGain(); o.type = "sine"; o.frequency.setValueAtTime(1000, audioCtx.currentTime); g.gain.setValueAtTime(0.2, audioCtx.currentTime); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.1); }
     function hablar(t) { let m = new SpeechSynthesisUtterance(t); m.lang='es-MX'; window.speechSynthesis.speak(m); }
+
+    // --- FUNCIÓN DE MARCADO RÁPIDO ---
+    function marcadoRapido(valor) {
+        if(valor.length === 0) return;
+        // Si la clave existe en el stock
+        if(db[valor]) {
+            if(db[valor].stock <= 0) {
+                hablar("Stock agotado");
+                alert("No hay existencias de " + db[valor].nombre);
+                document.getElementById('input-clave-rapida').value = '';
+            } else {
+                sonarBip();
+                hablar(db[valor].nombre);
+                abrirModalCant(valor);
+                document.getElementById('input-clave-rapida').value = ''; // Limpiar para el siguiente
+            }
+        }
+    }
 
     function ver(s, btn) {
         modo = s;
@@ -114,55 +135,25 @@
         if(s==='inv') rInv(); if(s==='fiado') rFia(); if(s==='corte') rCorte();
     }
 
-    // BUSCADOR EN STOCK
-    function buscarEnStock() {
-        let txt = document.getElementById('bus-stock').value.toLowerCase();
-        let res = document.getElementById('res-bus-stock');
-        res.innerHTML = '';
-        if(txt.length < 1) { res.style.display = 'none'; return; }
-        res.style.display = 'block';
-        for(let k in db) {
-            if(db[k].nombre.toLowerCase().includes(txt) || k.toLowerCase().includes(txt)) {
-                let d = document.createElement('div');
-                d.className = 'search-item';
-                d.innerHTML = `<b>${k}</b> - ${db[k].nombre}`;
-                d.onclick = () => {
-                    document.getElementById('in-code').value = k;
-                    document.getElementById('in-nom').value = db[k].nombre;
-                    document.getElementById('in-pre').value = db[k].precio;
-                    res.style.display = 'none';
-                    document.getElementById('bus-stock').value = '';
-                };
-                res.appendChild(d);
-            }
-        }
-    }
-
     function init() {
         sc = new Html5Qrcode("reader");
         sc.start({facingMode:"environment"},{fps:20,qrbox:250}, (t)=>{
-            if(esc) return; esc = true; sonarBip();
-            if(modo === 'venta') {
-                if(db[t]) {
-                    if(db[t].stock <= 0) { hablar("Stock agotado"); alert("¡Atención! "+db[t].nombre+" ya no tiene stock."); }
-                    else { hablar(db[t].nombre); abrirModalCant(t); }
-                } else { hablar("No registrado"); }
-            } else if(modo === 'inv') {
-                document.getElementById('in-code').value = t;
-                if(db[t]) { document.getElementById('in-nom').value = db[t].nombre; document.getElementById('in-pre').value = db[t].precio; hablar(db[t].nombre); }
+            if(esc) return; esc = true;
+            if(db[t]) {
+                if(db[t].stock <= 0) { hablar("Stock agotado"); }
+                else { sonarBip(); hablar(db[t].nombre); abrirModalCant(t); }
             }
             setTimeout(()=>esc=false, 2500);
         }).catch(e=>console.log(e));
     }
 
-    function guardarProd() {
-        let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
-        if(c&&n){
-            db[c]={nombre:n, precio:p, stock:(db[c]?.stock||0)+s};
-            localStorage.setItem('p_v20_db', JSON.stringify(db));
-            rInv(); alert("Stock Actualizado");
-            document.getElementById('in-code').value=''; document.getElementById('in-nom').value=''; document.getElementById('in-pre').value=''; document.getElementById('in-stock').value='';
-        }
+    function abrirModalCant(t) {
+        temp = {...db[t], code: t};
+        document.getElementById('n-prod').innerText = temp.nombre;
+        document.getElementById('stock-aviso').innerText = "Disponible: " + temp.stock;
+        document.getElementById('i-cant').value = 1;
+        document.getElementById('modal-cant').style.display = 'flex';
+        document.getElementById('i-cant').focus();
     }
 
     function sumarCarr() {
@@ -171,50 +162,43 @@
         if(temp.stock >= (yaEn + cant)) {
             for(let i=0; i<cant; i++) carr.push({...temp});
             rCarr(); cerrarModalCant();
-        } else { hablar("No hay suficiente"); alert("Solo quedan "+temp.stock+" piezas."); }
+        } else { alert("Stock insuficiente"); }
     }
 
     function rInv() { 
         let h=''; 
         for(let k in db) {
             let cl = db[k].stock <= 0 ? 'class="stock-off"' : '';
-            h+=`<tr><td>${db[k].nombre}</td><td ${cl}>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`;
+            h+=`<tr><td>${k}</td><td>${db[k].nombre}</td><td ${cl}>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`;
         }
         document.getElementById('l-inv').innerHTML=h; 
     }
 
-    function finalizarVenta() {
-        let m = document.getElementById('m-metodo').value;
-        let cName = document.getElementById('m-cliente').value;
-        if(m==='fiado' && !cName) return alert("Nombre de cliente necesario");
-        carr.forEach(i => { if(i.code !== 'manual') db[i.code].stock--; });
-        if(m==='fiado') { fia[cName] = (fia[cName] || 0) + tot; localStorage.setItem('p_v20_f', JSON.stringify(fia)); }
-        vent.push({t: tot, m: m, f: new Date().toLocaleString()});
-        localStorage.setItem('p_v20_db', JSON.stringify(db));
-        localStorage.setItem('p_v20_v', JSON.stringify(vent));
-        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
-    }
-
-    // Funciones de utilidad (Venta manual, modals, etc) se mantienen para asegurar el funcionamiento.
-    function abrirVentaManual() { document.getElementById('modal-manual').style.display = 'flex'; }
-    function cerrarModalManual() { document.getElementById('modal-manual').style.display = 'none'; }
-    function agregarManual() {
-        let n=document.getElementById('vm-nom').value, p=parseFloat(document.getElementById('vm-pre').value), c=parseInt(document.getElementById('vm-cant').value);
-        if(n&&p){ for(let i=0; i<c; i++) carr.push({nombre:n, precio:p, code:'manual'}); rCarr(); cerrarModalManual(); }
-    }
-    function abrirModalCant(t) { temp={...db[t], code:t}; document.getElementById('n-prod').innerText=temp.nombre; document.getElementById('i-cant').value=1; document.getElementById('modal-cant').style.display='flex'; }
-    function rCarr() { let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML=''; let agr={}; carr.forEach(i=>{ let key=i.code==='manual'?'m_'+i.nombre:i.code; if(!agr[key])agr[key]={n:i.nombre,p:i.precio,q:0}; agr[key].q++; tot+=i.precio; }); for(let k in agr){ l.innerHTML+=`<div class="item-lista"><span>${agr[k].q}x ${agr[k].n}</span><b>$${(agr[k].p*agr[k].q).toFixed(2)}</b></div>`; } document.getElementById('total-txt').innerText='$ '+tot.toFixed(2); }
+    // Funciones base de Venta, Corte, Gastos y Fiado...
+    function rCarr() { let l=document.getElementById('carrito-lista'); tot=0; l.innerHTML=''; let agr={}; carr.forEach(i=>{ if(!agr[i.code])agr[key=i.code]={n:i.nombre,p:i.precio,q:0}; agr[key].q++; tot+=i.precio; }); for(let k in agr){ l.innerHTML+=`<div class="item-lista"><span>${agr[k].q}x ${agr[k].n}</span><b>$${(agr[k].p*agr[k].q).toFixed(2)}</b></div>`; } document.getElementById('total-txt').innerText='$ '+tot.toFixed(2); }
+    function vaciarCarrito() { carr=[]; rCarr(); }
     function abrirCobro() { if(carr.length>0){ document.getElementById('modal-cobro').style.display='flex'; document.getElementById('m-tot').innerText="Total: $"+tot.toFixed(2); } }
     function toggleCliente() { document.getElementById('m-cliente').style.display = (document.getElementById('m-metodo').value==='fiado')?'block':'none'; }
     function cerrarModalCant() { document.getElementById('modal-cant').style.display='none'; }
     function cerrarModalCobro() { document.getElementById('modal-cobro').style.display='none'; }
-    function guardarNombre() { let n=document.getElementById('config-nombre').value; if(n){ localStorage.setItem('pos_v20_nom', n); document.getElementById('display-nombre').innerText=n; } }
-    function rFia() { let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n].toFixed(2)}</td><td><button onclick="delete fia['${n}']; localStorage.setItem('p_v20_f', JSON.stringify(fia)); rFia();" class="btn btn-verde" style="padding:5px; margin:0;">Pagar</button></td></tr>`; document.getElementById('l-fiados').innerHTML=h; }
-    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gst.push({desc:d, monto:m}); localStorage.setItem('p_v20_g', JSON.stringify(gst)); alert("Gasto OK"); } }
-    function rCorte() { let e=0,t=0,f=0,g=0; vent.forEach(v=>{if(v.m==='efectivo')e+=v.t;else if(v.m==='tarjeta')t+=v.t;else f+=v.t;}); gst.forEach(gs=>g+=gs.monto); document.getElementById('corte-info').innerHTML=`<p>Efectivo: $${e.toFixed(2)}</p><p>Tarjeta: $${t.toFixed(2)}</p><p>Fiado: $${f.toFixed(2)}</p><p style="color:red">Gastos: -$${g.toFixed(2)}</p><hr><h2 style="color:var(--celeste)">Total: $${(e+t-g).toFixed(2)}</h2>`; }
+    function finalizarVenta() {
+        let m = document.getElementById('m-metodo').value;
+        let cName = document.getElementById('m-cliente').value;
+        carr.forEach(i => { db[i.code].stock--; });
+        if(m==='fiado') { fia[cName] = (fia[cName] || 0) + tot; localStorage.setItem('p_v21_f', JSON.stringify(fia)); }
+        vent.push({t: tot, m: m, f: new Date().toLocaleString()});
+        localStorage.setItem('p_v21_db', JSON.stringify(db)); localStorage.setItem('p_v21_v', JSON.stringify(vent));
+        carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
+    }
+    function guardarProd() {
+        let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value);
+        if(c&&n){ db[c]={nombre:n, precio:p, stock:(db[c]?.stock||0)+s}; localStorage.setItem('p_v21_db', JSON.stringify(db)); rInv(); alert("Stock Guardado"); document.getElementById('in-code').value=''; document.getElementById('in-nom').value=''; document.getElementById('in-pre').value=''; document.getElementById('in-stock').value=''; }
+    }
+    function rFia() { let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n].toFixed(2)}</td><td><button onclick="delete fia['${n}']; localStorage.setItem('p_v21_f', JSON.stringify(fia)); rFia();" class="btn btn-verde" style="padding:5px; margin:0;">Pagar</button></td></tr>`; document.getElementById('l-fiados').innerHTML=h; }
+    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gst.push({desc:d, monto:m}); localStorage.setItem('p_v21_g', JSON.stringify(gst)); alert("Gasto OK"); } }
+    function rCorte() { let e=0,t=0,f=0,g=0; vent.forEach(v=>{if(v.m==='efectivo')e+=v.t;else if(v.m==='tarjeta')t+=v.t;else f+=v.t;}); gst.forEach(gs=>g+=gs.monto); document.getElementById('corte-info').innerHTML=`<p>Efectivo: $${e.toFixed(2)}</p><p>Tarjeta: $${t.toFixed(2)}</p><p>Fiado: $${f.toFixed(2)}</p><p style="color:red">Gastos: -$${g.toFixed(2)}</p><hr><h2>Total: $${(e+t-g).toFixed(2)}</h2>`; }
     function exportarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(nTienda + " - CORTE", 10, 20); doc.text(document.getElementById('corte-info').innerText, 10, 40); doc.save("Corte.pdf"); }
-    function limp() { if(confirm("¿Cerrar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v20_v', JSON.stringify(vent)); localStorage.setItem('p_v20_g', JSON.stringify(gst)); rCorte(); } }
-    function vaciarCarrito() { carr=[]; rCarr(); }
+    function limp() { if(confirm("¿Limpiar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v21_v', JSON.stringify(vent)); localStorage.setItem('p_v21_g', JSON.stringify(gst)); rCorte(); } }
 
     window.onload = () => { document.getElementById('display-nombre').innerText = nTienda; init(); };
 </script>
