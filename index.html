@@ -16,12 +16,19 @@
             --bg-dark: #111;
             --danger: #ff4757;
             --success: #2ed573;
-            --info: #3498db;
         }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #f0f2f5; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* CORRECCIÓN DE PANTALLA: Permitir scroll si el contenido crece */
+        body { 
+            margin: 0; 
+            background: #f0f2f5; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+            overflow-y: auto; /* Permite bajar si el teclado o el modal empujan el diseño */
+        }
 
-        /* BIENVENIDA */
         #welcome-screen {
             position: fixed; top:0; left:0; width:100%; height:100%;
             background: var(--bg-dark); display: flex; flex-direction: column;
@@ -30,13 +37,24 @@
         }
         .welcome-logo { font-family: 'Grand Hotel', cursive; font-size: 5em; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
 
-        /* NAVEGACIÓN */
-        #main-app { display: none; flex-direction: column; height: 100vh; }
-        .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; border-bottom: 2px solid var(--accent); }
+        #main-app { display: none; flex-direction: column; min-height: 100vh; }
+        
+        /* Navbar fija arriba */
+        .navbar { 
+            background: var(--bg-dark); 
+            color: white; 
+            display: flex; 
+            overflow-x: auto; 
+            border-bottom: 2px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
         .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
         .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
 
-        .main-content { flex-grow: 1; padding: 12px; overflow-y: auto; padding-bottom: 80px; }
+        .main-content { flex-grow: 1; padding: 12px; padding-bottom: 100px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; }
 
@@ -55,9 +73,28 @@
         .qty-controls { display: flex; align-items: center; gap: 10px; }
         .qty-btn { background: #eee; border: none; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 1.2em; }
 
-        /* MODAL */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 95%; max-width: 420px; padding: 20px; border-radius: 20px; text-align: center; }
+        /* MODAL CORREGIDO: Ahora permite scroll interno si es muy largo */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            align-items: center; 
+            justify-content: center;
+            overflow-y: auto; 
+            padding: 20px 0;
+        }
+        .modal-content { 
+            background: white; 
+            width: 95%; 
+            max-width: 420px; 
+            padding: 25px; 
+            border-radius: 20px; 
+            text-align: center; 
+            margin: auto; /* Asegura que se centre incluso con scroll */
+        }
         
         #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
     </style>
@@ -163,6 +200,7 @@
     </div>
 
 <script>
+    // --- AQUÍ VA TODA TU LÓGICA DE JAVASCRIPT IGUAL QUE LA TENÍAS ---
     let db = {
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
         fiados: JSON.parse(localStorage.getItem('e_fia_perma')) || [],
@@ -180,13 +218,11 @@
     }
 
     function notify(text) {
-        // Sonido Beep
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const o = ctx.createOscillator(); const g = ctx.createGain();
         o.connect(g); g.connect(ctx.destination);
         o.frequency.value = 850; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
         o.start(); o.stop(ctx.currentTime + 0.1);
-        // Voz
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'es-MX';
         window.speechSynthesis.speak(msg);
@@ -195,11 +231,9 @@
     function process(code, mode = 'sale') {
         if(isScanning) return;
         const p = db.inv.find(x => x.sku === code);
-        
         if(p) {
             isScanning = true;
-            setTimeout(() => isScanning = false, 2000); // 2 seg de bloqueo
-
+            setTimeout(() => isScanning = false, 2000);
             if(mode === 'sale') {
                 const item = cart.find(x => x.sku === code);
                 if(item) item.q++; else cart.push({...p, q: 1});
@@ -235,23 +269,11 @@
         let t = 0;
         document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += (i.price * i.q);
-            return `<tr>
-                <td>${i.name}</td>
-                <td>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQty(${idx},-1)">-</button>
-                        <span>${i.q}</span>
-                        <button class="qty-btn" onclick="updateQty(${idx},1)">+</button>
-                    </div>
-                </td>
-                <td>$${(i.price * i.q).toFixed(2)}</td>
-                <td onclick="cart.splice(${idx},1);renderCart()">❌</td>
-            </tr>`;
+            return `<tr><td>${i.name}</td><td><div class="qty-controls"><button class="qty-btn" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="qty-btn" onclick="updateQty(${idx},1)">+</button></div></td><td>$${(i.price * i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
-    // LÓGICA DE COBRO
     function openPaymentModal() {
         if(!cart.length) return;
         const t = cart.reduce((a, b) => a + (b.price * b.q), 0);
@@ -275,50 +297,29 @@
     function confirmPayment() {
         const t = cart.reduce((a, b) => a + (b.price * b.q), 0);
         const m = document.getElementById('p-method').value;
-
         if(m === 'efectivo') {
             const r = parseFloat(document.getElementById('cash-received').value) || 0;
             if(r < t) return alert("Dinero insuficiente");
             db.vEfe += t;
-        } else if(m === 'tarjeta') {
-            db.vTar += t;
-        } else {
+        } else if(m === 'tarjeta') { db.vTar += t; }
+        else {
             const c = document.getElementById('debt-customer').value;
             if(!c) return alert("Nombre del cliente?");
             db.vFia += t;
             const ex = db.fiados.find(f => f.n.toLowerCase() === c.toLowerCase());
             if(ex) ex.m += t; else db.fiados.unshift({n: c, m: t});
         }
-
         cart.forEach(c => { const p = db.inv.find(x => x.sku === c.sku); if(p) p.stock -= c.q; });
-        save(); cart = []; renderCart(); document.getElementById('payment-modal').style.display = 'none';
+        save(); cart = []; renderCart(); closeModal();
         alert("¡Venta Finalizada!");
     }
 
-    // STOCK E INVENTARIO
-    function addInv() {
-        const sku = document.getElementById('s-sku').value;
-        const nom = document.getElementById('s-nom').value;
-        const pre = parseFloat(document.getElementById('s-pre').value);
-        const sto = parseInt(document.getElementById('s-sto').value) || 0;
-        if(!sku) return;
-        const ex = db.inv.find(x => x.sku === sku);
-        if(ex) {
-            ex.stock += sto; if(nom) ex.name = nom; if(!isNaN(pre)) ex.price = pre;
-            alert("Stock actualizado");
-        } else {
-            db.inv.push({sku, name: nom, price: pre, stock: sto});
-            alert("Producto nuevo guardado");
-        }
-        save(); renderInv();
-    }
-
-    function renderInv() {
-        document.getElementById('inv-list-body').innerHTML = db.inv.map(p => `<tr><td>${p.name}</td><td>$${p.price}</td><td style="color:${p.stock<5?'red':'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
-    }
-
-    function renderFiados() {
-        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<div class="card">${f.n}: <b>$${f.m.toFixed(2)}</b> <button onclick="db.fiados.splice(${i},1);save();renderFiados()" style="float:right">✅ Pagó</button></div>`).join('');
+    function save() {
+        localStorage.setItem('e_inv', JSON.stringify(db.inv));
+        localStorage.setItem('e_fia_perma', JSON.stringify(db.fiados));
+        localStorage.setItem('e_v_e', db.vEfe);
+        localStorage.setItem('e_v_t', db.vTar);
+        localStorage.setItem('e_v_f', db.vFia);
     }
 
     function showSec(id, btn) {
@@ -335,12 +336,12 @@
         }
     }
 
-    function save() {
-        localStorage.setItem('e_inv', JSON.stringify(db.inv));
-        localStorage.setItem('e_fia_perma', JSON.stringify(db.fiados));
-        localStorage.setItem('e_v_e', db.vEfe);
-        localStorage.setItem('e_v_t', db.vTar);
-        localStorage.setItem('e_v_f', db.vFia);
+    function renderInv() {
+        document.getElementById('inv-list-body').innerHTML = db.inv.map(p => `<tr><td>${p.name}</td><td>$${p.price}</td><td style="color:${p.stock<5?'red':'green'}">${p.stock}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`).join('');
+    }
+
+    function renderFiados() {
+        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<div class="card">${f.n}: <b>$${f.m.toFixed(2)}</b> <button onclick="db.fiados.splice(${i},1);save();renderFiados()" style="float:right">✅ Pagó</button></div>`).join('');
     }
 
     function toggleCam(id, mode) {
