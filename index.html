@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>POS Pro - Sistema Completo</title>
+    <title>POS Pro - Sistema Integral con Venta Manual</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -17,7 +17,7 @@
         .container { padding: 15px; }
         .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid var(--celeste); }
         #reader { width: 100%; border-radius: 10px; overflow: hidden; background: #000; min-height: 250px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 14px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-verde { background: var(--verde); color: #fff; }
         .btn-celeste { background: var(--celeste); color: #fff; }
         .btn-rojo { background: var(--rojo); color: #fff; }
@@ -44,7 +44,7 @@
     <div class="container">
         <div id="wrapper-cam" class="card">
             <div id="reader"></div>
-            <p id="scan-info" style="text-align:center; font-size:12px; margin-top:5px; font-weight:bold; color:var(--celeste);"></p>
+            <button class="btn btn-celeste" style="margin-top: 10px;" onclick="abrirVentaManual()">➕ VENTA MANUAL (SIN CÓDIGO)</button>
         </div>
 
         <div id="sec-venta">
@@ -102,6 +102,17 @@
         </div>
     </div>
 
+    <div id="modal-manual" class="modal-overlay">
+        <div class="card" style="width:100%;">
+            <h2 style="text-align:center;">Venta Manual</h2>
+            <input type="text" id="vm-nom" placeholder="Nombre del producto">
+            <input type="number" id="vm-pre" placeholder="Precio $">
+            <input type="number" id="vm-cant" value="1" placeholder="Cantidad">
+            <button class="btn btn-verde" onclick="agregarManual()">AGREGAR AL CARRITO</button>
+            <button class="btn" onclick="cerrarModalManual()">CANCELAR</button>
+        </div>
+    </div>
+
     <div id="modal-cant" class="modal-overlay">
         <div class="card" style="width:100%;">
             <h2 id="n-prod" style="text-align:center;"></h2>
@@ -129,11 +140,11 @@
     </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('p_v18_db')) || {};
-    let vent = JSON.parse(localStorage.getItem('p_v18_v')) || [];
-    let gst = JSON.parse(localStorage.getItem('p_v18_g')) || [];
-    let fia = JSON.parse(localStorage.getItem('p_v18_f')) || {};
-    let nTienda = localStorage.getItem('p_v18_nom') || "MI TIENDA";
+    let db = JSON.parse(localStorage.getItem('p_v19_db')) || {};
+    let vent = JSON.parse(localStorage.getItem('p_v19_v')) || [];
+    let gst = JSON.parse(localStorage.getItem('p_v19_g')) || [];
+    let fia = JSON.parse(localStorage.getItem('p_v19_f')) || {};
+    let nTienda = localStorage.getItem('p_v19_nom') || "MI TIENDA";
     let carr = []; let tot = 0; let sc; let temp; let modo = 'venta'; let esc = false;
 
     function sonarBip() {
@@ -173,6 +184,21 @@
         }).catch(e=>console.log(e));
     }
 
+    function abrirVentaManual() { document.getElementById('modal-manual').style.display = 'flex'; }
+    function cerrarModalManual() { document.getElementById('modal-manual').style.display = 'none'; }
+    
+    function agregarManual() {
+        let n = document.getElementById('vm-nom').value;
+        let p = parseFloat(document.getElementById('vm-pre').value);
+        let c = parseInt(document.getElementById('vm-cant').value);
+        if(n && p) {
+            for(let i=0; i<c; i++) { carr.push({nombre: n, precio: p, code: 'manual'}); }
+            hablar("Agregado " + n);
+            rCarr(); cerrarModalManual();
+            document.getElementById('vm-nom').value=''; document.getElementById('vm-pre').value='';
+        }
+    }
+
     function abrirModalCant(t) {
         temp = {...db[t], code: t};
         document.getElementById('n-prod').innerText = temp.nombre;
@@ -192,7 +218,11 @@
     function rCarr() {
         let l = document.getElementById('carrito-lista'); tot=0; l.innerHTML='';
         let agr = {};
-        carr.forEach(i => { if(!agr[i.code]) agr[i.code] = {n: i.nombre, p: i.precio, q: 0}; agr[i.code].q++; tot += i.precio; });
+        carr.forEach((i, idx) => {
+            let key = i.code === 'manual' ? 'manual_'+i.nombre : i.code;
+            if(!agr[key]) agr[key] = {n: i.nombre, p: i.precio, q: 0};
+            agr[key].q++; tot += i.precio;
+        });
         for(let k in agr) {
             l.innerHTML += `<div class="item-lista"><span>${agr[k].q}x ${agr[k].n}</span><b>$${(agr[k].p * agr[k].q).toFixed(2)}</b></div>`;
         }
@@ -208,12 +238,12 @@
         let cName = document.getElementById('m-cliente').value;
         if(m === 'fiado' && !cName) { alert("Pon el nombre del cliente"); return; }
         
-        carr.forEach(i => db[i.code].stock--);
-        if(m === 'fiado') { fia[cName] = (fia[cName] || 0) + tot; localStorage.setItem('p_v18_f', JSON.stringify(fia)); }
+        carr.forEach(i => { if(i.code !== 'manual') db[i.code].stock--; });
+        if(m === 'fiado') { fia[cName] = (fia[cName] || 0) + tot; localStorage.setItem('p_v19_f', JSON.stringify(fia)); }
         
         vent.push({t: tot, m: m, f: new Date().toLocaleString()});
-        localStorage.setItem('p_v18_db', JSON.stringify(db));
-        localStorage.setItem('p_v18_v', JSON.stringify(vent));
+        localStorage.setItem('p_v19_db', JSON.stringify(db));
+        localStorage.setItem('p_v19_v', JSON.stringify(vent));
         carr=[]; rCarr(); cerrarModalCobro(); alert("Venta Exitosa");
     }
 
@@ -221,12 +251,12 @@
         let h=''; for(let n in fia) h+=`<tr><td>${n}</td><td>$${fia[n].toFixed(2)}</td><td><button class="btn btn-verde" style="padding:5px; margin:0;" onclick="pagarFiado('${n}')">Pagar</button></td></tr>`;
         document.getElementById('l-fiados').innerHTML = h;
     }
-    function pagarFiado(n) { if(confirm("¿Liquidar deuda de "+n+"?")) { delete fia[n]; localStorage.setItem('p_v18_f', JSON.stringify(fia)); rFia(); } }
+    function pagarFiado(n) { if(confirm("¿Liquidar deuda de "+n+"?")) { delete fia[n]; localStorage.setItem('p_v19_f', JSON.stringify(fia)); rFia(); } }
 
     function rInv() { let h=''; for(let k in db) h+=`<tr><td>${db[k].nombre}</td><td>${db[k].stock}</td><td>$${db[k].precio}</td></tr>`; document.getElementById('l-inv').innerHTML=h; }
-    function guardarProd() { let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value); if(c&&n){ db[c]={nombre:n, precio:p, stock:(db[c]?.stock||0)+s}; localStorage.setItem('p_v18_db', JSON.stringify(db)); rInv(); alert("Stock Guardado"); } }
-    function guardarNombre() { let n=document.getElementById('config-nombre').value; if(n){localStorage.setItem('p_v18_nom', n); document.getElementById('display-nombre').innerText=n;} }
-    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gst.push({desc:d, monto:m}); localStorage.setItem('p_v18_g', JSON.stringify(gst)); rGst(); } }
+    function guardarProd() { let c=document.getElementById('in-code').value, n=document.getElementById('in-nom').value, p=parseFloat(document.getElementById('in-pre').value), s=parseInt(document.getElementById('in-stock').value); if(c&&n){ db[c]={nombre:n, precio:p, stock:(db[c]?.stock||0)+s}; localStorage.setItem('p_v19_db', JSON.stringify(db)); rInv(); alert("Stock Guardado"); } }
+    function guardarNombre() { let n=document.getElementById('config-nombre').value; if(n){localStorage.setItem('p_v19_nom', n); document.getElementById('display-nombre').innerText=n;} }
+    function guardarGasto() { let d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d&&m){ gst.push({desc:d, monto:m}); localStorage.setItem('p_v19_g', JSON.stringify(gst)); rGst(); } }
     function rGst() { let h=''; gst.forEach(g=>h+=`<tr><td>${g.desc}</td><td>$${g.monto}</td></tr>`); document.getElementById('l-gastos').innerHTML=h; }
     
     function rCorte() {
@@ -244,7 +274,7 @@
     function cerrarModalCant() { document.getElementById('modal-cant').style.display='none'; }
     function cerrarModalCobro() { document.getElementById('modal-cobro').style.display='none'; }
     function exportarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(nTienda + " - CORTE", 10, 20); doc.text("Efectivo: "+document.getElementById('c-efe').innerText, 10, 40); doc.save("Corte.pdf"); }
-    function limp() { if(confirm("¿Cerrar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v18_v', JSON.stringify(vent)); localStorage.setItem('p_v18_g', JSON.stringify(gst)); rCorte(); } }
+    function limp() { if(confirm("¿Cerrar día?")){ vent=[]; gst=[]; localStorage.setItem('p_v19_v', JSON.stringify(vent)); localStorage.setItem('p_v19_g', JSON.stringify(gst)); rCorte(); } }
     
     window.onload = () => { document.getElementById('display-nombre').innerText = nTienda; init(); };
 </script>
