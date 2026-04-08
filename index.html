@@ -7,7 +7,6 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -19,12 +18,6 @@
             --text-main: #000000;
             --border-color: #eee;
         }
-        .dark-mode {
-            --bg-body: #121212;
-            --bg-card: #1e1e1e;
-            --text-main: #ffffff;
-            --border-color: #333;
-        }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; }
 
@@ -34,7 +27,6 @@
             border-bottom: 2px solid var(--accent); position: sticky; top: 0; z-index: 1000;
         }
         .top-bar-brand { display: flex; align-items: center; gap: 10px; }
-        #bar-logo-img { height: 35px; width: 35px; border-radius: 8px; object-fit: cover; }
         .bar-name { font-weight: 300; font-size: 1.4em; letter-spacing: -1px; }
         .bar-name span { color: var(--accent); font-weight: 600; }
 
@@ -48,113 +40,208 @@
 
         .card { background: var(--bg-card); border-radius: 18px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid var(--border-color); }
         .input-style { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 15px; outline: none; background: rgba(128,128,128,0.05); color: var(--text-main); }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #000; color: white; font-weight: 600; cursor: pointer; }
-        .dark-mode .btn-main { background: var(--accent); color: #000; }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #000; color: white; font-weight: 600; cursor: pointer; margin-bottom: 5px; }
         
         .total-box { background: #000; color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); }
         .total-box h2 { font-size: 3em; margin: 0; color: var(--accent); }
 
-        .accordion { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--border-color); }
-        .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .accordion-content { display: none; padding: 12px; border-top: 1px solid var(--border-color); }
-        .accordion-content.open { display: block; }
+        /* ESTILO TICKET */
+        #ticket-view { 
+            display: none; background: #fff; color: #000; padding: 20px; 
+            font-family: 'Courier New', Courier, monospace; border: 1px solid #ddd;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-radius: 4px; margin-top: 15px;
+        }
+        .ticket-header { text-align: center; border-bottom: 1px dashed #000; margin-bottom: 10px; padding-bottom: 10px; }
+        .ticket-row { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; }
 
-        .thumb { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; margin-right: 10px; }
-        .prod-img { width: 100%; border-radius: 10px; margin-bottom: 8px; max-height: 180px; object-fit: contain; }
-
-        #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 15px; border: 2px solid var(--accent); }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-card); width: 90%; max-width: 380px; padding: 25px; border-radius: 25px; text-align: center; }
     </style>
 </head>
 <body onload="initApp()">
 
     <div class="top-bar">
-        <div class="top-bar-brand">
-            <img id="bar-logo-img" style="display:none;">
-            <div class="bar-name" id="bar-display">nex<span>vent</span></div>
-        </div>
-        <small id="top-slogan" style="font-size: 9px; color: #888;"></small>
+        <div class="top-bar-brand"><div class="bar-name" id="bar-display">nex<span>vent</span></div></div>
     </div>
 
     <div class="navbar">
         <button class="nav-btn active" onclick="showSec('pos', this)">caja</button>
         <button class="nav-btn" onclick="showSec('stock', this)">stock</button>
-        <button class="nav-btn" onclick="showSec('fiados', this)">fiados</button>
-        <button class="nav-btn" onclick="showSec('gastos', this)">gastos</button>
         <button class="nav-btn" onclick="showSec('corte', this)">corte</button>
         <button class="nav-btn" onclick="showSec('vip', this)">vip</button>
     </div>
 
     <div class="main-content">
         <div id="pos" class="section active">
-            <input type="text" id="sku-in" class="input-style" placeholder="escanear o sku..." onkeypress="handleSKU(event)">
-            <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="margin-bottom:10px; background:#222;">📷 cámara</button>
+            <input type="text" id="sku-in" class="input-style" placeholder="Escanea o escribe SKU..." onkeypress="handleSKU(event)">
+            <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="background:#222;">📷 Abrir Cámara</button>
             <div id="reader-pos"></div>
-            <div class="card"><table><thead><tr><th>producto</th><th>cant</th><th>total</th></tr></thead><tbody id="cart-body"></tbody></table></div>
-            <div class="total-box"><small>TOTAL</small><h2 id="total-val">$0.00</h2></div>
-            <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000;">cobrar</button>
-            <div id="ticket-text" style="display:none; background:#fff; color:#000; padding:15px; font-family:monospace; margin-top:10px; font-size:11px; white-space:pre-wrap;"></div>
-            <button id="btn-wa" class="btn-main" style="display:none; background:#25D366; margin-top:5px;" onclick="shareWA()">whatsapp</button>
+            
+            <div class="card" id="cart-container">
+                <table style="width:100%;">
+                    <thead><tr style="text-align:left; font-size:10px; color:#888;"><th>PROD</th><th>CANT</th><th>TOTAL</th><th></th></tr></thead>
+                    <tbody id="cart-body"></tbody>
+                </table>
+            </div>
+
+            <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val">$0.00</h2></div>
+            
+            <div id="pos-actions">
+                <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000;">Finalizar y Cobrar</button>
+            </div>
+
+            <div id="ticket-view">
+                <div class="ticket-header">
+                    <h3 id="t-store-name">NEXVENT</h3>
+                    <small id="t-date"></small>
+                </div>
+                <div id="t-items"></div>
+                <div style="border-top: 1px dashed #000; margin-top: 10px; padding-top: 10px;">
+                    <div class="ticket-row"><b>TOTAL:</b> <b id="t-total"></b></div>
+                </div>
+                <p style="text-align:center; font-size: 0.8em; margin-top: 15px;">¡Gracias por su compra!</p>
+            </div>
+            
+            <button id="btn-wa" class="btn-main" style="display:none; background:#25D366;" onclick="sendWhatsApp()">📤 Enviar por WhatsApp</button>
+            <button id="btn-next" class="btn-main" style="display:none; background:#888;" onclick="resetPos()">Nueva Venta</button>
         </div>
 
         <div id="stock" class="section">
-            <div class="card" style="background:#000; color:white; display:flex; justify-content:space-between; border: 1px solid var(--accent);">
-                <div><small style="color:#666">INVERSIÓN REAL</small><br><b id="inv-val" style="color:var(--accent); font-size:1.3em;">$0.00</b></div>
-                <div style="text-align:right;"><small style="color:#666">PIEZAS TOTALES</small><br><b id="inv-qty" style="font-size:1.3em;">0</b></div>
-            </div>
-            
-            <button onclick="toggleCam('reader-stock', 'add')" class="btn-main" style="margin-bottom:10px; background:var(--success); color:#000;">📷 escanear para surtir</button>
-            <div id="reader-stock"></div>
-
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">registrar / surtir manual <span>+</span></div>
-                <div class="accordion-content open">
-                    <input type="text" id="s-sku" class="input-style" placeholder="sku">
-                    <input type="text" id="s-nom" class="input-style" placeholder="nombre">
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="s-buy" class="input-style" placeholder="compra $">
-                        <input type="number" id="s-sell" class="input-style" placeholder="venta $">
-                    </div>
-                    <input type="number" id="s-sto" class="input-style" placeholder="cantidad">
-                    <input type="file" id="s-img" accept="image/*" class="input-style">
-                    <button class="btn-main" onclick="addInv()">guardar en inventario</button>
-                </div>
+            <div class="card">
+                <input type="text" id="s-sku" class="input-style" placeholder="SKU">
+                <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
+                <input type="number" id="s-buy" class="input-style" placeholder="Costo Compra">
+                <input type="number" id="s-sell" class="input-style" placeholder="Precio Venta">
+                <input type="number" id="s-sto" class="input-style" placeholder="Cantidad">
+                <button class="btn-main" onclick="addInv()">Guardar Inventario</button>
             </div>
             <div id="inv-list-container"></div>
         </div>
 
-        <div id="fiados" class="section"><div class="card"><input type="text" id="f-search" class="input-style" placeholder="buscar..." oninput="renderFiados()"><div id="fiados-list"></div></div></div>
-        <div id="gastos" class="section"><div class="card"><input type="text" id="g-desc" class="input-style" placeholder="motivo"><input type="number" id="g-monto" class="input-style" placeholder="$"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">restar</button></div><div id="gastos-list"></div></div>
-        <div id="corte" class="section"><div class="card" style="text-align:center;"><small>GANANCIA REAL</small><h1 id="c-profit" style="color:var(--success); font-size:3em;">$0.00</h1><p>en caja: <b id="c-balance">$0.00</b></p><button class="btn-main" onclick="resetCorte()">cerrar caja</button></div></div>
-        <div id="vip" class="section"><div class="card"><h3>personalización</h3><input type="text" id="set-name" class="input-style" placeholder="nombre" oninput="updateVIP('name', this.value)"><input type="file" accept="image/*" class="input-style" onchange="updateVIP('logo', this)"></div></div>
+        <div id="corte" class="section">
+            <div class="card" style="text-align:center;">
+                <small>GANANCIA REAL</small>
+                <h1 id="c-profit" style="color:var(--success); font-size:3em;">$0.00</h1>
+                <p>Caja: <b id="c-balance">$0.00</b></p>
+                <button class="btn-main" onclick="resetCorte()">Cerrar Caja</button>
+            </div>
+        </div>
+
+        <div id="vip" class="section">
+            <div class="card">
+                <h3>Configuración</h3>
+                <input type="text" id="set-name" class="input-style" placeholder="Nombre de tu negocio" oninput="updateVIP('name', this.value)">
+                <input type="number" id="set-scan-wait" class="input-style" placeholder="Segundos entre escaneo" oninput="updateVIP('scanWait', this.value)">
+            </div>
+        </div>
     </div>
 
-    <div id="payment-modal" class="modal"><div class="modal-content"><h2 id="m-total">total: $0.00</h2><select id="p-method" class="input-style" onchange="togglePayUI()"><option value="efectivo">efectivo</option><option value="fiado">fiado</option></select><div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="recibido" oninput="calcChange()"><h2 id="change-text">$0.00</h2></div><div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="nombre"></div><button class="btn-main" onclick="confirmPayment()">confirmar</button></div></div>
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="m-total">Total: $0.00</h2>
+            <input type="number" id="cash-rec" class="input-style" placeholder="Efectivo recibido" oninput="calcChange()">
+            <h2 id="change-text">$0.00 cambio</h2>
+            <button class="btn-main" onclick="confirmPayment()">Confirmar Pago</button>
+            <button class="btn-main" style="background:transparent; color:#888;" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
 
 <script>
-    let db;
-    let isScanning = false;
-    let scanner;
-    let cart = [];
+    let db, scanner, cart = [], lastScanTime = 0;
 
     function initApp() {
         db = {
             inv: JSON.parse(localStorage.getItem('n_inv')) || [],
-            fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
-            gastos: JSON.parse(localStorage.getItem('n_gas')) || [],
             vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
             ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
-            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', slogan: 'tu punto de venta', theme: 'light', logo: '' }
+            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'NEXVENT', scanWait: 2 }
         };
-        applyVIP(); renderInv();
+        document.getElementById('set-name').value = db.cfg.name;
+        document.getElementById('set-scan-wait').value = db.cfg.scanWait;
+        renderInv(); applyVIP();
     }
 
     function save() {
         localStorage.setItem('n_inv', JSON.stringify(db.inv));
-        localStorage.setItem('n_fia', JSON.stringify(db.fiados));
-        localStorage.setItem('n_gas', JSON.stringify(db.gastos));
         localStorage.setItem('n_v_e', db.vEfe);
         localStorage.setItem('n_gan', db.ganancia);
         localStorage.setItem('n_cfg', JSON.stringify(db.cfg));
+    }
+
+    function process(code, mode = 'sale') {
+        const now = Date.now();
+        if (now - lastScanTime < (db.cfg.scanWait * 1000)) return;
+        lastScanTime = now;
+
+        const p = db.inv.find(x => x.sku === code);
+        if(p) {
+            if(mode === 'sale') {
+                const i = cart.find(x => x.sku === code);
+                if(i) i.q++; else cart.push({...p, q: 1});
+                renderCart();
+            } else {
+                document.getElementById('s-sku').value = code;
+                showSec('stock', document.querySelector('[onclick*="stock"]'));
+            }
+        } else {
+            document.getElementById('s-sku').value = code;
+            showSec('stock', document.querySelector('[onclick*="stock"]'));
+        }
+    }
+
+    function renderCart() {
+        let t = 0;
+        document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
+            t += (i.sell * i.q);
+            return `<tr><td>${i.name}</td><td>${i.q}</td><td>$${(i.sell*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
+        }).join('');
+        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
+    }
+
+    function confirmPayment() {
+        const total = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
+        let gain = 0;
+        let itemsHtml = "";
+        
+        cart.forEach(i => {
+            gain += (i.sell - i.buy) * i.q;
+            itemsHtml += `<div class="ticket-row"><span>${i.q}x ${i.name}</span><span>$${(i.sell*i.q).toFixed(2)}</span></div>`;
+            const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
+        });
+
+        db.vEfe += total; db.ganancia += gain; save();
+
+        // MOSTRAR TICKET
+        document.getElementById('t-date').innerText = new Date().toLocaleString();
+        document.getElementById('t-items').innerHTML = itemsHtml;
+        document.getElementById('t-total').innerText = `$${total.toFixed(2)}`;
+        document.getElementById('t-store-name').innerText = db.cfg.name.toUpperCase();
+        
+        document.getElementById('ticket-view').style.display = 'block';
+        document.getElementById('btn-wa').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'block';
+        document.getElementById('cart-container').style.display = 'none';
+        document.getElementById('pos-actions').style.display = 'none';
+        
+        closeModal();
+    }
+
+    function sendWhatsApp() {
+        const total = document.getElementById('t-total').innerText;
+        let text = `*${db.cfg.name}*\n_Recibo de compra_\n\n`;
+        cart.forEach(i => { text += `• ${i.q} ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`; });
+        text += `\n*TOTAL: ${total}*\n¡Gracias por su preferencia!`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function resetPos() {
+        cart = []; renderCart();
+        document.getElementById('ticket-view').style.display = 'none';
+        document.getElementById('btn-wa').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'none';
+        document.getElementById('cart-container').style.display = 'block';
+        document.getElementById('pos-actions').style.display = 'block';
+        document.getElementById('sku-in').value = '';
     }
 
     function addInv() {
@@ -163,101 +250,27 @@
         const buy = parseFloat(document.getElementById('s-buy').value) || 0;
         const sell = parseFloat(document.getElementById('s-sell').value) || 0;
         const sto = parseInt(document.getElementById('s-sto').value) || 0;
-        const imgIn = document.getElementById('s-img');
-
-        if(!sku) return alert("ingresa sku");
-
-        const updateData = (img = '') => {
-            const ex = db.inv.find(x => x.sku === sku);
-            if(ex) {
-                ex.stock += sto;
-                if(nom) ex.name = nom;
-                if(buy > 0) ex.buy = buy;
-                if(sell > 0) ex.sell = sell;
-                if(img) ex.img = img;
-            } else {
-                db.inv.push({sku, name: nom || 'Producto Nuevo', buy, sell, stock: sto, img});
-            }
-            save(); renderInv();
-            document.getElementById('s-sku').value = '';
-            document.getElementById('s-nom').value = '';
-            alert("guardado con éxito");
-        };
-
-        if(imgIn.files[0]) {
-            const r = new FileReader(); r.onload = (e) => updateData(e.target.result); r.readAsDataURL(imgIn.files[0]);
-        } else { updateData(); }
+        const ex = db.inv.find(x => x.sku === sku);
+        if(ex) { ex.stock += sto; ex.buy = buy; ex.sell = sell; if(nom) ex.name = nom; }
+        else db.inv.push({sku, name: nom || 'Producto', buy, sell, stock: sto});
+        save(); renderInv(); alert("Guardado");
     }
 
     function renderInv() {
-        let totalVal = 0; let totalQty = 0;
-        document.getElementById('inv-list-container').innerHTML = db.inv.map((p, idx) => {
-            const b = p.buy || 0; const s = p.sell || 0; const st = p.stock || 0;
-            totalVal += (b * st); totalQty += st;
-            return `<div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <div style="display:flex;align-items:center;">
-                        ${p.img ? `<img src="${p.img}" class="thumb">` : '<div class="thumb" style="background:#444"></div>'}
-                        <b>${p.name}</b>
-                    </div>
-                    <span>$${s}</span>
-                </div>
-                <div class="accordion-content">
-                    <p>SKU: ${p.sku} | Queda: ${st}</p>
-                    <p>Costo: $${b} | Venta: $${s}</p>
-                    <button class="btn-main" style="background:var(--danger);padding:5px;font-size:10px;" onclick="if(confirm('borrar?')){db.inv.splice(${idx},1);save();renderInv()}">borrar</button>
-                </div>
-            </div>`;
-        }).join('');
-        document.getElementById('inv-val').innerText = `$${totalVal.toFixed(2)}`;
-        document.getElementById('inv-qty').innerText = totalQty;
+        document.getElementById('inv-list-container').innerHTML = db.inv.map(p => 
+            `<div class="card"><b>${p.name}</b><br><small>Stock: ${p.stock} | SKU: ${p.sku}</small></div>`
+        ).join('');
     }
 
-    function process(code, mode = 'sale') {
-        const p = db.inv.find(x => x.sku === code);
-        if(p) {
-            if(mode === 'sale') {
-                const i = cart.find(x => x.sku === code);
-                if(i) i.q++; else cart.push({...p, q: 1});
-                renderCart();
-            } else {
-                const add = parseInt(prompt(`surtir ${p.name}. ¿cuántos sumas?`)) || 0;
-                p.stock += add; save(); renderInv();
-            }
-        } else {
-            document.getElementById('s-sku').value = code;
-            showSec('stock', document.querySelector('[onclick*="stock"]'));
-            alert("producto nuevo, favor de completar datos");
-        }
-    }
-
-    function renderCart() {
-        let t = 0;
-        document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
-            t += (i.sell * i.q);
-            return `<tr><td>${i.name}</td><td>${i.q}</td><td>$${(i.sell * i.q).toFixed(2)}</td></tr>`;
-        }).join('');
-        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
-    }
-
-    // Funciones de apoyo (VIP, Nav, Scanner, etc.)
-    function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.replace('vent', '<span>vent</span>'); if(db.cfg.logo) { document.getElementById('bar-logo-img').src = db.cfg.logo; document.getElementById('bar-logo-img').style.display = 'block'; } }
-    function updateVIP(type, val) { if(type === 'name') db.cfg.name = val; if(type === 'logo' && val.files[0]) { const r = new FileReader(); r.onload = (e) => { db.cfg.logo = e.target.result; applyVIP(); save(); }; r.readAsDataURL(val.files[0]); } applyVIP(); save(); }
+    function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.replace('vent', '<span>vent</span>'); }
+    function updateVIP(t, v) { db.cfg[t] = v; applyVIP(); save(); }
     function showSec(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); if(id==='corte'){ document.getElementById('c-balance').innerText=`$${db.vEfe.toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; } }
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ if(scanner) scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, m)); } }
-    function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    function openPaymentModal() { if(cart.length) document.getElementById('payment-modal').style.display='flex'; }
+    function openPaymentModal() { if(cart.length) { document.getElementById('m-total').innerText = `Total: ${document.getElementById('total-val').innerText}`; document.getElementById('payment-modal').style.display='flex'; } }
     function closeModal() { document.getElementById('payment-modal').style.display='none'; }
-    function confirmPayment() {
-        const total = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
-        let gain = 0;
-        cart.forEach(i => {
-            gain += (i.sell - i.buy) * i.q;
-            const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
-        });
-        db.vEfe += total; db.ganancia += gain; save(); cart = []; renderCart(); closeModal(); alert("cobrado");
-    }
+    function calcChange() { const t = parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r = parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText = `$${(r-t).toFixed(2)} cambio`; }
+    function resetCorte() { if(confirm("¿Cerrar caja?")){ db.vEfe=0; db.ganancia=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
 </script>
 </body>
 </html>
