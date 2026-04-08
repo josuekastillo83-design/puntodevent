@@ -22,29 +22,28 @@
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; }
 
-        /* HEADER & NAV */
         .top-bar { background: #000; color: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--accent); position: sticky; top: 0; z-index: 1000; }
         .top-bar-brand { display: flex; align-items: center; gap: 10px; }
         #bar-logo-img { height: 35px; width: 35px; border-radius: 8px; object-fit: cover; border: 1px solid var(--accent); }
         .bar-name { font-weight: 300; font-size: 1.4em; letter-spacing: -1px; }
         .bar-name span { color: var(--accent); font-weight: 600; }
+
         .navbar { background: #111; display: flex; overflow-x: auto; border-bottom: 1px solid #333; position: sticky; top: 59px; z-index: 999; }
         .nav-btn { padding: 15px 18px; border: none; background: transparent; color: #666; font-size: 9px; text-transform: uppercase; flex-shrink: 0; }
         .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-        /* CONTENIDO */
         .main-content { flex-grow: 1; padding: 15px; padding-bottom: 100px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; }
+
         .card { background: var(--bg-card); border-radius: 18px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid var(--border-color); }
-        .input-style { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 15px; outline: none; background: rgba(128,128,128,0.05); color: var(--text-main); }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #000; color: white; font-weight: 600; cursor: pointer; }
+        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 16px; outline: none; background: rgba(128,128,128,0.05); color: var(--text-main); }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 15px; background: #000; color: white; font-weight: 600; cursor: pointer; }
         .dark-mode .btn-main { background: var(--accent); color: #000; }
         
         .total-box { background: #000; color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); }
         .total-box h2 { font-size: 3em; margin: 0; color: var(--accent); }
 
-        /* ACORDEÓN / PESTAÑAS COLAPSABLES */
         .accordion { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--border-color); }
         .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
         .accordion-content { display: none; padding: 12px; border-top: 1px solid var(--border-color); }
@@ -56,7 +55,6 @@
         .thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; margin-right: 12px; }
         .prod-img { width: 100%; border-radius: 12px; margin-bottom: 10px; max-height: 200px; object-fit: contain; background: #f0f0f0; }
 
-        /* MODALES */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--bg-card); width: 100%; max-width: 380px; padding: 25px; border-radius: 25px; text-align: center; border: 1px solid var(--accent); }
         .pay-option { display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
@@ -97,7 +95,6 @@
             <button onclick="toggleCam('reader-stock', 'add')" class="btn-main" style="margin-bottom:10px; background:var(--success); color:#000;">📷 Escanear Surtido</button>
             <div id="reader-stock"></div>
             <div class="card">
-                <h3>Registrar Producto</h3>
                 <input type="text" id="s-sku" class="input-style" placeholder="SKU">
                 <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
                 <div style="display:flex; gap:10px;"><input type="number" id="s-buy" class="input-style" placeholder="Compra $"><input type="number" id="s-sell" class="input-style" placeholder="Venta $"></div>
@@ -108,33 +105,39 @@
             <div id="inv-list-container"></div>
         </div>
 
+        <div id="fiados" class="section">
+            <div class="card"><input type="text" id="f-search" class="input-style" placeholder="Buscar deudor..." oninput="renderFiados()"></div>
+            <div id="fiados-list"></div>
+        </div>
+
         <div id="corte" class="section">
             <div class="card" style="text-align:center;">
-                <small>GANANCIA REAL (UTILIDAD)</small>
+                <small>GANANCIA REAL HOY</small>
                 <h1 id="c-profit" style="color:var(--success); font-size:3em; margin:5px 0;">$0.00</h1>
                 <p>Efectivo en Caja: <b id="c-balance">$0.00</b></p>
-                <p>Ventas Tarjeta: <b id="c-tarjeta" style="color:var(--accent)">$0.00</b></p>
-                <button class="btn-main" onclick="generatePDF()">PDF</button>
-                <button class="btn-main" style="background:#444; margin-top:10px;" onclick="showNxConfirm('¿Cerrar caja diaria?', resetCorteAction)">CERRAR DÍA</button>
+                <p>Tarjeta: <b id="c-tarjeta" style="color:var(--accent)">$0.00</b></p>
+                <p style="font-size:12px; color:#888;">Abonos de hoy: <b id="c-abonos" style="color:var(--success)">$0.00</b></p>
+                <button class="btn-main" onclick="generatePDF()">DESCARGAR PDF</button>
+                <button class="btn-main" style="background:#444; margin-top:10px;" onclick="showNxConfirm('¿Cerrar caja diaria? (Mantiene fiados)', resetCorteAction)">CERRAR DÍA</button>
             </div>
         </div>
 
         <div id="vip" class="section">
             <div class="card">
-                <h3>Configuración Visual</h3>
                 <div style="display:flex; gap:10px;"><button class="btn-main" style="background:#eee; color:#000;" onclick="setTheme('light')">CLARO</button><button class="btn-main" style="background:#222; color:#fff;" onclick="setTheme('dark')">OSCURO</button></div>
             </div>
             <div class="card">
-                <h3>Personalizar Negocio</h3>
-                <input type="text" id="set-name" class="input-style" placeholder="Nombre del Negocio">
+                <input type="text" id="set-name" class="input-style" placeholder="Nombre Negocio">
                 <input type="text" id="set-slogan" class="input-style" placeholder="Slogan">
-                <p>Cambiar Logo:</p><input type="file" id="set-logo" accept="image/*" class="input-style">
-                <button class="btn-main" style="margin-top:10px; background:var(--accent); color:#000;" onclick="saveVIPManual()">APLICAR CAMBIOS</button>
+                <input type="file" id="set-logo" accept="image/*" class="input-style">
+                <button class="btn-main" style="background:var(--accent); color:#000;" onclick="saveVIPManual()">APLICAR</button>
             </div>
         </div>
     </div>
 
     <div id="nx-confirm-modal" class="modal"><div class="modal-content"><h2 style="color: var(--accent);">NEXVENT</h2><p id="nx-confirm-message"></p><div style="display: flex; gap: 10px; margin-top:20px;"><button class="btn-main" id="nx-confirm-accept">Aceptar</button><button class="btn-main" style="background: transparent; color: inherit; border: 1px solid #444;" id="nx-confirm-cancel">Cancelar</button></div></div></div>
+
+    <div id="nx-abono-modal" class="modal"><div class="modal-content"><h2 style="color: var(--accent);">REGISTRAR ABONO</h2><input type="number" id="abono-monto" class="input-style" placeholder="¿Cuánto paga?"><div style="display: flex; gap: 10px; margin-top:20px;"><button class="btn-main" id="abono-confirm">ABONAR</button><button class="btn-main" style="background: transparent; color: inherit; border: 1px solid #444;" onclick="document.getElementById('nx-abono-modal').style.display='none'">CANCELAR</button></div></div></div>
 
     <div id="payment-modal" class="modal"><div class="modal-content"><h2 id="m-total">Total: $0.00</h2><div id="method-selector"><div class="pay-option selected" onclick="selectPayMethod('efectivo', this)"><span>Efectivo</span></div><div class="pay-option" onclick="selectPayMethod('tarjeta', this)"><span>Tarjeta</span></div><div class="pay-option" onclick="selectPayMethod('fiado', this)"><span>Fiado</span></div></div><div id="cash-ui" style="margin-top:15px;"><input type="number" id="cash-rec" class="input-style" placeholder="¿Recibido?" oninput="calcChange()"><h2 id="change-text">$0.00 cambio</h2></div><div id="debt-ui" style="display:none; margin-top:15px;"><input type="text" id="debt-cust" class="input-style" placeholder="Nombre deudor"></div><button class="btn-main" style="margin-top:20px;" onclick="confirmPayment()">CONFIRMAR</button><button class="btn-main" style="background:transparent; color:inherit; margin-top:10px;" onclick="closeModal()">VOLVER</button></div></div>
 
@@ -147,166 +150,105 @@
             fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
             vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
             vTar: parseFloat(localStorage.getItem('n_v_t')) || 0,
+            abHoy: parseFloat(localStorage.getItem('n_ab_h')) || 0,
             ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
-            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', slogan: 'tu punto de venta', theme: 'dark', logo: '' }
+            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', theme: 'dark' }
         };
-        document.getElementById('set-name').value = db.cfg.name;
-        document.getElementById('set-slogan').value = db.cfg.slogan;
         applyVIP(); renderInv();
     }
 
     function save() { 
         localStorage.setItem('n_inv', JSON.stringify(db.inv));
+        localStorage.setItem('n_fia', JSON.stringify(db.fiados));
         localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar);
-        localStorage.setItem('n_gan', db.ganancia); localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); 
+        localStorage.setItem('n_ab_h', db.abHoy); localStorage.setItem('n_gan', db.ganancia); 
+        localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); 
     }
 
-    function showNxConfirm(message, action) {
-        const modal = document.getElementById('nx-confirm-modal');
-        document.getElementById('nx-confirm-message').innerText = message;
-        modal.style.display = 'flex';
-        document.getElementById('nx-confirm-accept').onclick = () => { action(); modal.style.display = 'none'; };
-        document.getElementById('nx-confirm-cancel').onclick = () => { modal.style.display = 'none'; };
-    }
-
-    function applyVIP() {
-        document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>');
-        document.getElementById('top-slogan').innerText = db.cfg.slogan;
-        if(db.cfg.logo) { document.getElementById('bar-logo-img').src = db.cfg.logo; document.getElementById('bar-logo-img').style.display = 'block'; }
-        setTheme(db.cfg.theme);
-    }
-
-    function saveVIPManual() {
-        const name = document.getElementById('set-name').value;
-        const slogan = document.getElementById('set-slogan').value;
-        const logoIn = document.getElementById('set-logo');
-
-        db.cfg.name = name;
-        db.cfg.slogan = slogan;
-
-        if(logoIn.files[0]) {
-            const r = new FileReader();
-            r.onload = (e) => { db.cfg.logo = e.target.result; applyVIP(); save(); showNxConfirm("¡Configuración guardada!", () => {}); };
-            r.readAsDataURL(logoIn.files[0]);
-        } else {
-            applyVIP(); save(); showNxConfirm("¡Configuración guardada!", () => {});
-        }
-    }
-
-    function setTheme(t) { db.cfg.theme = t; document.body.classList.toggle('dark-mode', t === 'dark'); save(); }
-
-    function addInv() {
-        const sku = document.getElementById('s-sku').value;
-        const nom = document.getElementById('s-nom').value;
-        const buy = parseFloat(document.getElementById('s-buy').value) || 0;
-        const sell = parseFloat(document.getElementById('s-sell').value) || 0;
-        const sto = parseInt(document.getElementById('s-sto').value) || 0;
-        const imgIn = document.getElementById('s-img');
-
-        if(!sku) return;
-
-        const saveP = (img = '') => {
-            const ex = db.inv.find(x => x.sku === sku);
-            if(ex){
-                ex.stock += sto; ex.buy = buy; ex.sell = sell;
-                if(nom) ex.name = nom; if(img) ex.img = img;
-            } else {
-                db.inv.push({sku, name: nom || 'Producto', buy, sell, stock: sto, img});
-            }
-            save(); renderInv();
-            document.getElementById('s-sku').value = ''; document.getElementById('s-nom').value = '';
-            document.getElementById('s-buy').value = ''; document.getElementById('s-sell').value = '';
-            document.getElementById('s-sto').value = '';
-            showNxConfirm("Producto registrado", () => {});
-        };
-
-        if(imgIn.files[0]) {
-            const r = new FileReader(); r.onload = (e) => saveP(e.target.result); r.readAsDataURL(imgIn.files[0]);
-        } else saveP();
-    }
-
-    function renderInv() {
-        let v = 0; let q = 0;
-        document.getElementById('inv-list-container').innerHTML = db.inv.map((p, idx) => {
-            v += (p.buy * p.stock); q += p.stock;
-            return `
+    // --- RENDERIZADO DE FIADOS CON ABONOS ---
+    function renderFiados() {
+        const query = document.getElementById('f-search').value.toLowerCase();
+        document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(query)).map((f, i) => `
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <div style="display:flex; align-items:center;">
-                        ${p.img ? `<img src="${p.img}" class="thumb">` : `<div class="thumb" style="background:#444"></div>`}
-                        <span>${p.name}</span>
-                    </div>
-                    <span>$${p.sell.toFixed(2)}</span>
+                    <span>${f.n}</span>
+                    <span style="color:var(--danger)">$${f.m.toFixed(2)}</span>
                 </div>
                 <div class="accordion-content">
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        ${p.img ? `<img src="${p.img}" class="prod-img">` : ''}
-                        <p><b>SKU:</b> ${p.sku}</p>
-                        <p><b>Stock:</b> ${p.stock} piezas</p>
-                        <p><b>Costo:</b> $${p.buy.toFixed(2)} | <b>Inversión:</b> $${(p.buy*p.stock).toFixed(2)}</p>
-                        <button class="btn-main" style="background:var(--danger); color:white; padding:10px;" onclick="showNxConfirm('¿Borrar de inventario?', () => {db.inv.splice(${idx},1);save();renderInv();})">ELIMINAR PRODUCTO</button>
+                    <p style="font-size:12px; color:#888;"><b>Fecha:</b> ${f.fecha}</p>
+                    <p style="font-size:12px; color:#888;"><b>Detalle:</b><br>${f.detalles}</p>
+                    <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button class="btn-main" style="background:var(--accent); color:#000; padding:10px; font-size:12px;" onclick="openAbonoModal(${i})">ABONAR</button>
+                        <button class="btn-main" style="background:var(--success); color:#000; padding:10px; font-size:12px;" onclick="payFiado(${i})">LIQUIDAR</button>
                     </div>
                 </div>
-            </div>`;
-        }).join('');
-        document.getElementById('inv-val').innerText = `$${v.toFixed(2)}`;
-        document.getElementById('inv-qty').innerText = q;
+            </div>`).join('');
     }
 
-    function toggleAccordion(h) {
-        const content = h.nextElementSibling;
-        const isOpen = content.classList.contains('open');
-        document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open'));
-        if(!isOpen) content.classList.add('open');
+    function openAbonoModal(idx) {
+        const modal = document.getElementById('nx-abono-modal');
+        const input = document.getElementById('abono-monto');
+        input.value = "";
+        modal.style.display = 'flex';
+        document.getElementById('abono-confirm').onclick = () => {
+            const monto = parseFloat(input.value);
+            if(monto > 0 && monto <= db.fiados[idx].m) {
+                db.vEfe += monto;
+                db.abHoy += monto;
+                db.fiados[idx].m -= monto;
+                if(db.fiados[idx].m <= 0) db.fiados.splice(idx, 1);
+                save(); renderFiados();
+                modal.style.display = 'none';
+                showNxConfirm("Abono registrado con éxito", ()=>{});
+            } else {
+                showNxConfirm("Monto inválido o mayor a la deuda", ()=>{});
+            }
+        };
     }
 
-    function showSec(id, b) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        b.classList.add('active');
-        if(id === 'corte') {
-            document.getElementById('c-balance').innerText = `$${db.vEfe.toFixed(2)}`;
-            document.getElementById('c-tarjeta').innerText = `$${db.vTar.toFixed(2)}`;
-            document.getElementById('c-profit').innerText = `$${db.ganancia.toFixed(2)}`;
-        }
+    function payFiado(idx) {
+        const m = db.fiados[idx].m;
+        db.vEfe += m; db.abHoy += m; db.fiados.splice(idx, 1);
+        save(); renderFiados(); showNxConfirm("Deuda liquidada", ()=>{});
     }
 
-    // Funciones de Lógica Base (Scanner, Pago, etc)
-    function selectPayMethod(method, element) {
-        selectedMethod = method;
-        document.querySelectorAll('.pay-option').forEach(el => el.classList.remove('selected'));
-        element.classList.add('selected');
-        document.getElementById('cash-ui').style.display = method === 'efectivo' ? 'block' : 'none';
-        document.getElementById('debt-ui').style.display = method === 'fiado' ? 'block' : 'none';
-    }
-
+    // --- FUNCIONES MANTENIDAS ---
     function confirmPayment() {
         const total = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
         let gain = 0;
-        cart.forEach(i => gain += (i.sell - i.buy) * i.q);
+        let listaNombres = cart.map(item => `${item.q}x ${item.name}`).join(", ");
+        cart.forEach(i => {
+            gain += (i.sell - i.buy) * i.q;
+            const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
+        });
         if (selectedMethod === 'efectivo') db.vEfe += total;
         else if (selectedMethod === 'tarjeta') db.vTar += total;
-        else { const c = document.getElementById('debt-cust').value || "Cliente"; db.fiados.unshift({n: c, m: total}); }
+        else {
+            db.fiados.unshift({n: document.getElementById('debt-cust').value || "Cliente", m: total, fecha: new Date().toLocaleString(), detalles: listaNombres});
+        }
         db.ganancia += gain; save(); cart = []; renderCart(); closeModal();
-        showNxConfirm("Venta procesada con éxito", () => {});
+        showNxConfirm("Venta procesada", ()=>{});
     }
 
+    function resetCorteAction() { db.vEfe=0; db.vTar=0; db.ganancia=0; db.abHoy=0; save(); showSec('corte'); }
+    function renderInv() { let v = 0; let q = 0; document.getElementById('inv-list-container').innerHTML = db.inv.map((p, idx) => { v += (p.buy * p.stock); q += p.stock; return `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)"><div>${p.img?`<img src="${p.img}" class="thumb">`:`<div class="thumb" style="background:#444"></div>`}<span>${p.name}</span></div><span>$${p.sell.toFixed(2)}</span></div><div class="accordion-content">${p.img?`<img src="${p.img}" class="prod-img">`:''}<p>Stock: ${p.stock} | Inversión: $${(p.buy*p.stock).toFixed(2)}</p><button class="btn-main" style="background:var(--danger); font-size:12px;" onclick="showNxConfirm('¿Borrar?', ()=>{db.inv.splice(${idx},1);save();renderInv();})">BORRAR</button></div></div>`; }).join(''); document.getElementById('inv-val').innerText = `$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText = q; }
+    function toggleAccordion(h) { const c = h.nextElementSibling; const open = c.classList.contains('open'); document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open')); if(!open) c.classList.add('open'); }
+    function showSec(id, b) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); if(b) b.classList.add('active'); if(id==='fiados') renderFiados(); if(id==='corte') { document.getElementById('c-balance').innerText = `$${(db.vEfe+db.abHoy).toFixed(2)}`; document.getElementById('c-tarjeta').innerText=`$${db.vTar.toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; document.getElementById('c-abonos').innerText=`$${db.abHoy.toFixed(2)}`; } }
+    function showNxConfirm(m, a) { const mod = document.getElementById('nx-confirm-modal'); document.getElementById('nx-confirm-message').innerText = m; mod.style.display = 'flex'; document.getElementById('nx-confirm-accept').onclick = () => { a(); mod.style.display = 'none'; }; document.getElementById('nx-confirm-cancel').onclick = () => { mod.style.display = 'none'; }; }
+    function addInv() { const sku = document.getElementById('s-sku').value; const nom = document.getElementById('s-nom').value; const b = parseFloat(document.getElementById('s-buy').value) || 0; const s = parseFloat(document.getElementById('s-sell').value) || 0; const st = parseInt(document.getElementById('s-sto').value) || 0; const imgIn = document.getElementById('s-img'); if(!sku) return; const saveP = (img = '') => { const ex = db.inv.find(x => x.sku === sku); if(ex){ ex.stock += st; ex.buy = b; ex.sell = s; if(nom) ex.name = nom; if(img) ex.img = img; } else { db.inv.push({sku, name: nom || 'Prod', buy: b, sell: s, stock: st, img}); } save(); renderInv(); document.getElementById('s-sku').value=''; document.getElementById('s-nom').value=''; document.getElementById('s-buy').value=''; document.getElementById('s-sell').value=''; document.getElementById('s-sto').value=''; document.getElementById('s-img').value=''; showNxConfirm("Guardado", ()=>{}); }; if(imgIn.files[0]) { const r = new FileReader(); r.onload = (e) => saveP(e.target.result); r.readAsDataURL(imgIn.files[0]); } else saveP(); }
+    function selectPayMethod(m, e) { selectedMethod = m; document.querySelectorAll('.pay-option').forEach(el => el.classList.remove('selected')); e.classList.add('selected'); document.getElementById('cash-ui').style.display = m === 'efectivo' ? 'block' : 'none'; document.getElementById('debt-ui').style.display = m === 'fiado' ? 'block' : 'none'; }
+    function renderCart() { let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => { t += (i.sell * i.q); return `<tr style="border-bottom:1px solid var(--border-color);"><td style="padding:10px;"><b>${i.name}</b></td><td><div class="qty-ctrl"><button class="btn-qty" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="btn-qty" onclick="updateQty(${idx},1)">+</button></div></td><td style="text-align:right;">$${(i.sell*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()" style="color:var(--danger); padding:10px;">❌</td></tr>`; }).join(''); document.getElementById('total-val').innerText = `$${t.toFixed(2)}`; }
+    function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>'); if(db.cfg.logo) { document.getElementById('bar-logo-img').src = db.cfg.logo; document.getElementById('bar-logo-img').style.display = 'block'; } setTheme(db.cfg.theme); }
+    function saveVIPManual() { db.cfg.name = document.getElementById('set-name').value; db.cfg.slogan = document.getElementById('set-slogan').value; const logoIn = document.getElementById('set-logo'); if(logoIn.files[0]) { const r = new FileReader(); r.onload = (e) => { db.cfg.logo = e.target.result; applyVIP(); save(); showNxConfirm("Cambios guardados", ()=>{}); }; r.readAsDataURL(logoIn.files[0]); } else { applyVIP(); save(); showNxConfirm("Cambios guardados", ()=>{}); } }
+    function setTheme(t) { db.cfg.theme = t; document.body.classList.toggle('dark-mode', t === 'dark'); save(); }
     function openPaymentModal() { if(cart.length) { document.getElementById('m-total').innerText = "Total: " + document.getElementById('total-val').innerText; document.getElementById('payment-modal').style.display = 'flex'; } }
     function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
-    function renderCart() {
-        let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
-            t += (i.sell * i.q);
-            return `<tr style="border-bottom:1px solid var(--border-color);"><td style="padding:10px;"><b>${i.name}</b><br><small>$${i.sell}</small></td><td><div class="qty-ctrl"><button class="btn-qty" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="btn-qty" onclick="updateQty(${idx},1)">+</button></div></td><td style="text-align:right;">$${(i.sell*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()" style="color:var(--danger); padding:10px;">❌</td></tr>`;
-        }).join('');
-        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
-    }
     function updateQty(idx, d) { cart[idx].q += d; if(cart[idx].q <= 0) cart.splice(idx,1); renderCart(); }
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ if(scanner) scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, m)); } }
-    function process(code, mode = 'sale') { const p = db.inv.find(x => x.sku === code); if(p) { if(mode === 'sale') { const i = cart.find(x => x.sku === code); if(i) i.q++; else cart.push({...p, q: 1}); renderCart(); } else { document.getElementById('s-sku').value = code; showSec('stock', document.querySelector('[onclick*="stock"]')); } } }
+    function process(code, mode = 'sale') { const p = db.inv.find(x => x.sku === code); if(p) { if(mode === 'sale') { const i = cart.find(x => x.sku === code); if(i) i.q++; else cart.push({...p, q: 1}); renderCart(); } else { document.getElementById('s-sku').value = code; showSec('stock'); } } }
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    function resetCorteAction() { db.vEfe=0; db.vTar=0; db.ganancia=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); }
-    function generatePDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("CORTE CAJA NEXVENT", 10, 10); doc.text(`Efectivo: $${db.vEfe}`, 10, 20); doc.text(`Tarjeta: $${db.vTar}`, 10, 30); doc.text(`Utilidad: $${db.ganancia}`, 10, 40); doc.save("corte.pdf"); }
+    function generatePDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("CORTE CAJA NEXVENT", 10, 10); doc.text(`Efectivo: $${db.vEfe}`, 10, 20); doc.text(`Tarjeta: $${db.vTar}`, 10, 30); doc.save("corte.pdf"); }
     function calcChange() { const t = parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r = parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText = `$${(r-t).toFixed(2)} cambio`; }
 </script>
 </body>
