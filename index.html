@@ -3,173 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite POS Pro - Josué Castillo Rubio</title>
+    <title>nexvent - Tu punto de venta todo en 1</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
             --accent: #00f2fe;
-            --bg-dark: #111;
             --success: #2ed573;
             --danger: #ff4757;
         }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
+        body { margin: 0; background: #f8f9fa; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-        /* BIENVENIDA */
+        /* BIENVENIDA NEXVENT */
         #welcome-screen {
             position: fixed; top:0; left:0; width:100%; height:100%;
-            background: var(--bg-dark); display: flex; flex-direction: column;
+            background: #000; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 2000;
-            color: white; text-align: center; padding: 20px;
+            color: white; text-align: center;
         }
-        .welcome-logo { font-family: 'Grand Hotel', cursive; font-size: 5em; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+        .brand-name { font-weight: 300; font-size: 4.5em; letter-spacing: -2px; margin: 0; color: #fff; }
+        .brand-name span { color: var(--accent); font-weight: 600; }
+        .brand-slogan { font-weight: 300; font-size: 0.9em; letter-spacing: 2px; color: #888; margin-bottom: 40px; text-transform: lowercase; }
 
         /* NAVEGACIÓN */
         #main-app { display: none; flex-direction: column; min-height: 100vh; }
-        .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; border-bottom: 2px solid var(--accent); position: sticky; top: 0; z-index: 100; }
-        .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
-        .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
+        .navbar { background: #000; color: white; display: flex; overflow-x: auto; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        .nav-btn { padding: 18px 20px; border: none; background: transparent; color: #666; font-weight: 400; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+        .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-        .main-content { flex-grow: 1; padding: 12px; padding-bottom: 100px; }
+        .main-content { flex-grow: 1; padding: 15px; padding-bottom: 100px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; }
 
-        /* TARJETAS */
-        .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; outline: none; }
-        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-
-        /* ACORDEONES */
-        .accordion { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid #eee; }
-        .accordion-header { background: #f8f9fa; padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .accordion-content { display: none; padding: 10px; border-top: 1px solid #eee; }
-        .accordion-content.open { display: block; }
-
-        /* IMAGENES */
-        .thumb-img { width: 40px; height: 40px; object-fit: cover; border-radius: 5px; margin-right: 10px; border: 1px solid #ddd; }
-        .prod-img-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 10px; margin-bottom: 10px; }
-
-        /* TABLAS */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #7f8c8d; padding: 8px; font-size: 10px; border-bottom: 2px solid #f0f0f0; }
-        td { padding: 10px 8px; border-bottom: 1px solid #f8f9fa; font-size: 12px; }
-
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 95%; max-width: 420px; padding: 25px; border-radius: 20px; text-align: center; }
+        /* COMPONENTES */
+        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 15px; }
+        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #eee; font-size: 16px; outline: none; background: #fafafa; }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 15px; background: #000; color: white; font-weight: 600; cursor: pointer; transition: 0.3s; }
         
-        #ticket-text { background: #fff; padding: 15px; border: 1px dashed #000; font-family: monospace; display: none; text-align: left; margin-top: 10px; white-space: pre-wrap; font-size: 11px; }
-        #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
+        /* TABLA CAJA CON MODIFICADOR */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: #aaa; padding: 10px; font-size: 10px; text-transform: uppercase; }
+        td { padding: 15px 10px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
+        .qty-ctrl { display: flex; align-items: center; gap: 12px; }
+        .btn-qty { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; }
+
+        .total-box { background: #000; color: white; padding: 30px; border-radius: 25px; text-align: center; margin-bottom: 20px; }
+        .total-box h2 { font-size: 3.5em; margin: 0; font-weight: 600; color: var(--accent); }
+
+        .accordion { background: #fff; border-radius: 15px; overflow: hidden; margin-bottom: 10px; border: 1px solid #eee; }
+        .accordion-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .accordion-content { display: none; padding: 15px; border-top: 1px solid #f8f9fa; }
+        .accordion-content.open { display: block; }
+        
+        #ticket-text { background: #fff; padding: 20px; border: 1px dashed #ccc; font-family: monospace; display: none; margin-top: 15px; white-space: pre-wrap; font-size: 12px; }
+        #reader-pos, #reader-stock { width: 100%; border-radius: 20px; overflow: hidden; display: none; margin-bottom: 15px; border: 2px solid var(--accent); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 30px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="welcome-screen">
-        <h1 class="welcome-logo" id="wel-name">Elite POS</h1>
-        <p>SISTEMA PROFESIONAL VIP</p>
-        <button class="btn-main" style="width: 250px; margin-top: 20px;" onclick="startApp()">INGRESAR</button>
+        <h1 class="brand-name">nex<span>vent</span></h1>
+        <p class="brand-slogan">tu punto de venta todo en 1</p>
+        <button class="btn-main" style="width: 220px; background: transparent; border: 1px solid #444;" onclick="startApp()">comenzar</button>
     </div>
 
     <div id="main-app">
         <div class="navbar">
-            <button class="nav-btn active" onclick="showSec('pos', this)">🛒 Caja</button>
-            <button class="nav-btn" onclick="showSec('stock', this)">📦 Stock</button>
-            <button class="nav-btn" onclick="showSec('fiados', this)">👥 Fiados</button>
-            <button class="nav-btn" onclick="showSec('gastos', this)">💸 Gastos</button>
-            <button class="nav-btn" onclick="showSec('corte', this)">📊 Corte</button>
-            <button class="nav-btn" onclick="showSec('vip', this)">💎 VIP</button>
+            <button class="nav-btn active" onclick="showSec('pos', this)">caja</button>
+            <button class="nav-btn" onclick="showSec('stock', this)">stock</button>
+            <button class="nav-btn" onclick="showSec('fiados', this)">fiados</button>
+            <button class="nav-btn" onclick="showSec('corte', this)">corte</button>
         </div>
 
         <div class="main-content">
             <div id="pos" class="section active">
-                <input type="text" id="sku-in" class="input-style" placeholder="Escanea o SKU..." onkeypress="handleSKU(event)">
-                <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="background:#444; padding:10px;">📷 ESCANEAR CÁMARA</button>
+                <input type="text" id="sku-in" class="input-style" placeholder="escanear o sku..." onkeypress="handleSKU(event)">
+                <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="margin-bottom:15px; background:#222;">📷 abrir cámara</button>
                 <div id="reader-pos"></div>
-                <div class="card"><table><thead><tr><th>Prod</th><th>Cant</th><th>Sub</th><th></th></tr></thead><tbody id="cart-body"></tbody></table></div>
-                <div class="total-box"><small>TOTAL VENTA</small><h2 id="total-val">$0.00</h2></div>
-                <button class="btn-main" onclick="openPaymentModal()">COBRAR VENTA</button>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>producto</th><th>cant</th><th>total</th><th></th></tr></thead>
+                        <tbody id="cart-body"></tbody>
+                    </table>
+                </div>
+                <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val">$0.00</h2></div>
+                <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000;">finalizar cobro</button>
                 <div id="ticket-text"></div>
-                <button id="btn-wa" class="btn-main" style="display:none; background:#25D366;" onclick="shareWA()">📲 WHATSAPP</button>
+                <button id="btn-wa" class="btn-main" style="display:none; background:#25D366;" onclick="shareWA()">enviar a whatsapp</button>
             </div>
 
             <div id="stock" class="section">
-                <div class="card" style="background:#111; color:white; display:flex; justify-content:space-between;">
-                    <div><small>INVERSIÓN TOTAL</small><br><b id="inv-val" style="color:var(--accent)">$0.00</b></div>
-                    <div><small>PIEZAS</small><br><b id="inv-qty">0</b></div>
+                <div class="card" style="background:#000; color:white; display:flex; justify-content:space-between; align-items:center;">
+                    <div><small style="color:#666">INVERSIÓN</small><br><b id="inv-val" style="color:var(--accent); font-size:1.5em;">$0.00</b></div>
+                    <div style="text-align:right;"><small style="color:#666">PIEZAS</small><br><b id="inv-qty" style="font-size:1.5em;">0</b></div>
                 </div>
-                <button class="btn-main" onclick="toggleCam('reader-stock', 'add')" style="background:var(--success)">➕ ESCANEAR SURTIDO</button>
-                <div id="reader-stock"></div>
                 <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">NUEVO / RESURTIR MANUAL <span>▼</span></div>
+                    <div class="accordion-header" onclick="toggleAccordion(this)">registrar / surtir producto <span>+</span></div>
                     <div class="accordion-content">
-                        <input type="text" id="s-sku" class="input-style" placeholder="SKU">
-                        <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
+                        <input type="text" id="s-sku" class="input-style" placeholder="sku">
+                        <input type="text" id="s-nom" class="input-style" placeholder="nombre">
                         <div style="display:flex; gap:10px;">
-                            <input type="number" id="s-buy" class="input-style" placeholder="Compra $">
-                            <input type="number" id="s-sell" class="input-style" placeholder="Venta $">
+                            <input type="number" id="s-buy" class="input-style" placeholder="compra $">
+                            <input type="number" id="s-sell" class="input-style" placeholder="venta $">
                         </div>
-                        <input type="number" id="s-sto" class="input-style" placeholder="Cantidad">
+                        <input type="number" id="s-sto" class="input-style" placeholder="cantidad">
                         <input type="file" id="s-img" accept="image/*" class="input-style">
-                        <button class="btn-main" onclick="addInv()">GUARDAR</button>
+                        <button class="btn-main" onclick="addInv()">guardar en inventario</button>
                     </div>
                 </div>
                 <div id="inv-list-container"></div>
             </div>
 
             <div id="fiados" class="section">
-                <div class="card"><input type="text" id="f-search" class="input-style" placeholder="🔎 Buscar cliente..." oninput="renderFiados()"><div id="fiados-list"></div></div>
-            </div>
-
-            <div id="gastos" class="section">
-                <div class="card"><input type="text" id="g-desc" class="input-style" placeholder="Motivo"><input type="number" id="g-monto" class="input-style" placeholder="Monto $"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">RESTAR</button></div>
-                <div id="gastos-list"></div>
+                <div class="card"><input type="text" id="f-search" class="input-style" placeholder="buscar cliente..." oninput="renderFiados()"><div id="fiados-list"></div></div>
             </div>
 
             <div id="corte" class="section">
                 <div class="card" style="text-align:center;">
-                    <h1 id="c-balance" style="color:var(--success); font-size:3.5em;">$0.00</h1>
-                    <p>Ganancia Real: <b id="c-profit" style="color:var(--accent)">$0.00</b></p>
-                    <button class="btn-main" onclick="generateTicketPDF()">📥 PDF</button>
-                    <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
+                    <small>GANANCIA REAL HOY</small>
+                    <h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
+                    <p>efectivo en caja: <b id="c-balance">$0.00</b></p>
+                    <button class="btn-main" style="background:#888" onclick="resetCorte()">cerrar caja diaria</button>
                 </div>
             </div>
-
-            <div id="vip" class="section"><div class="card"><input type="text" id="set-name" class="input-style" placeholder="Nombre Negocio" oninput="updateVIP('name', this.value)"></div></div>
         </div>
     </div>
 
     <div id="payment-modal" class="modal"><div class="modal-content">
-        <h2 id="m-total">Total: $0.00</h2>
+        <h2 id="m-total">total: $0.00</h2>
         <select id="p-method" class="input-style" onchange="togglePayUI()">
-            <option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="fiado">Fiado</option>
+            <option value="efectivo">efectivo</option><option value="tarjeta">tarjeta</option><option value="fiado">fiado</option>
         </select>
-        <div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="¿Recibido?" oninput="calcChange()"><h2 id="change-text">$0.00</h2></div>
-        <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="Nombre Cliente"></div>
-        <button class="btn-main" onclick="confirmPayment()">FINALIZAR</button>
-        <button class="btn-main" style="background:#ccc;" onclick="closeModal()">VOLVER</button>
+        <div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="¿cuánto recibes?" oninput="calcChange()"><h2 id="change-text">$0.00</h2></div>
+        <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="nombre del cliente"></div>
+        <button class="btn-main" onclick="confirmPayment()">confirmar</button>
+        <button class="btn-main" style="background:transparent; color:#000;" onclick="closeModal()">cancelar</button>
     </div></div>
 
 <script>
     let db = {
-        inv: JSON.parse(localStorage.getItem('e_inv')) || [],
-        fiados: JSON.parse(localStorage.getItem('e_fia')) || [],
-        gastos: JSON.parse(localStorage.getItem('e_gas')) || [],
-        vEfe: parseFloat(localStorage.getItem('e_v_e')) || 0,
-        vTar: parseFloat(localStorage.getItem('e_v_t')) || 0,
-        abHoy: parseFloat(localStorage.getItem('e_ab')) || 0,
-        ganancia: parseFloat(localStorage.getItem('e_gan')) || 0,
-        cfg: JSON.parse(localStorage.getItem('e_cfg')) || { name: 'Elite POS', theme: 'linear-gradient(135deg, #667eea, #764ba2)' }
+        inv: JSON.parse(localStorage.getItem('n_inv')) || [],
+        fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
+        vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
+        vTar: parseFloat(localStorage.getItem('n_v_t')) || 0,
+        ganancia: parseFloat(localStorage.getItem('n_gan')) || 0
     };
     let cart = []; let isScanning = false; let scanner;
 
-    function startApp() { document.getElementById('welcome-screen').style.display='none'; document.getElementById('main-app').style.display='flex'; applyVIP(); renderInv(); }
-    function save() { localStorage.setItem('e_inv', JSON.stringify(db.inv)); localStorage.setItem('e_fia', JSON.stringify(db.fiados)); localStorage.setItem('e_gas', JSON.stringify(db.gastos)); localStorage.setItem('e_v_e', db.vEfe); localStorage.setItem('e_v_t', db.vTar); localStorage.setItem('e_ab', db.abHoy); localStorage.setItem('e_gan', db.ganancia); localStorage.setItem('e_cfg', JSON.stringify(db.cfg)); }
-    function applyVIP() { document.documentElement.style.setProperty('--gradient', db.cfg.theme); document.getElementById('wel-name').innerText = db.cfg.name; }
-    function updateVIP(t, v) { if(t==='name') db.cfg.name=v; applyVIP(); save(); }
+    function startApp() { document.getElementById('welcome-screen').style.display='none'; document.getElementById('main-app').style.display='flex'; renderInv(); }
+    function save() { localStorage.setItem('n_inv', JSON.stringify(db.inv)); localStorage.setItem('n_fia', JSON.stringify(db.fiados)); localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar); localStorage.setItem('n_gan', db.ganancia); }
 
     function notify(text) {
         const msg = new SpeechSynthesisUtterance(text); msg.lang = 'es-MX'; window.speechSynthesis.speak(msg);
@@ -188,49 +177,56 @@
                 if(i) i.q++; else cart.push({...p, q: 1});
                 notify(`${p.name}, ${p.sell} pesos`); renderCart();
             } else {
-                p.stock += (parseInt(prompt(`Surtir ${p.name}:`)) || 0); save(); renderInv();
+                p.stock += (parseInt(prompt(`surtir ${p.name}:`)) || 0); save(); renderInv();
             }
         } else {
-            const n = prompt("Nombre:"); if(n) {
-                const b = parseFloat(prompt("Compra:")); const s = parseFloat(prompt("Venta:"));
+            const n = prompt("nombre del producto:"); if(n) {
+                const b = parseFloat(prompt("costo compra:")); const s = parseFloat(prompt("precio venta:"));
                 db.inv.push({sku: code, name: n, buy: b, sell: s, stock: 1, img: ''}); save(); renderInv();
             }
         }
     }
 
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
+
+    /* FUNCIÓN CLAVE: MODIFICAR CANTIDAD EN CAJA */
     function renderCart() {
         let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += (i.sell * i.q);
-            return `<tr><td>${i.name}</td><td>${i.q}</td><td>$${(i.sell * i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
+            return `<tr>
+                <td><b>${i.name}</b><br><small>$${i.sell}</small></td>
+                <td>
+                    <div class="qty-ctrl">
+                        <button class="btn-qty" onclick="updateQty(${idx},-1)">-</button>
+                        <span>${i.q}</span>
+                        <button class="btn-qty" onclick="updateQty(${idx},1)">+</button>
+                    </div>
+                </td>
+                <td>$${(i.sell * i.q).toFixed(2)}</td>
+                <td onclick="cart.splice(${idx},1);renderCart()">❌</td>
+            </tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
+    }
+    function updateQty(idx, d) { 
+        const p = db.inv.find(x => x.sku === cart[idx].sku);
+        if(cart[idx].q + d > p.stock) return alert("no hay más stock");
+        cart[idx].q += d; if(cart[idx].q <= 0) cart.splice(idx,1); renderCart(); 
     }
 
     function confirmPayment() {
         const t = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
         const m = document.getElementById('p-method').value;
-        let g = 0; let txt = `*${db.cfg.name}*\n${new Date().toLocaleString()}\n`;
+        let g = 0; let txt = `*nexvent ticket*\n${new Date().toLocaleString()}\n`;
         cart.forEach(i => {
             g += (i.sell - i.buy) * i.q; txt += `${i.q}x ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`;
             const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
         });
-        txt += `TOTAL: $${t.toFixed(2)}`;
+        txt += `TOTAL: $${t.toFixed(2)}\ngracias por su preferencia.`;
         if(m==='efectivo') db.vEfe+=t; else if(m==='tarjeta') db.vTar+=t;
-        else { const c=document.getElementById('debt-cust').value; const ex=db.fiados.find(f=>f.n.toLowerCase()===c.toLowerCase()); if(ex){ ex.m+=t; ex.h.unshift({fecha:new Date().toLocaleString(), desc:txt, m:t}); } else { db.fiados.unshift({n:c, m:t, h:[{fecha:new Date().toLocaleString(), desc:txt, m:t}]}); }}
-        db.ganancia += g; save(); document.getElementById('ticket-text').innerText = txt; document.getElementById('ticket-text').style.display='block'; document.getElementById('btn-wa').style.display='block'; cart=[]; renderCart(); closeModal();
-    }
-
-    function addInv() {
-        const sku=document.getElementById('s-sku').value; const nom=document.getElementById('s-nom').value;
-        const b=parseFloat(document.getElementById('s-buy').value)||0; const s=parseFloat(document.getElementById('s-sell').value)||0;
-        const st=parseInt(document.getElementById('s-sto').value)||0; const imgIn=document.getElementById('s-img');
-        const saveP = (dat = '') => {
-            const ex=db.inv.find(x=>x.sku===sku);
-            if(ex){ ex.stock+=st; ex.buy=b; ex.sell=s; if(nom)ex.name=nom; if(dat)ex.img=dat; } else { db.inv.push({sku, name:nom, buy:b, sell:s, stock:st, img:dat}); }
-            save(); renderInv(); alert("Listo");
-        };
-        if(imgIn.files[0]) { const r = new FileReader(); r.onload=(e)=>saveP(e.target.result); r.readAsDataURL(imgIn.files[0]); } else saveP();
+        else { const c=document.getElementById('debt-cust').value; db.fiados.unshift({n:c, m:t, h:[{fecha:new Date().toLocaleString(), d:txt, m:t}]}); }
+        db.ganancia += g; save(); document.getElementById('ticket-text').innerText = txt; document.getElementById('ticket-text').style.display='block'; document.getElementById('btn-wa').style.display='block';
+        cart=[]; renderCart(); closeModal();
     }
 
     function renderInv() {
@@ -238,31 +234,35 @@
         document.getElementById('inv-list-container').innerHTML = db.inv.map((p, idx) => {
             v += (p.buy * p.stock); q += p.stock;
             return `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)">
-            <div style="display:flex;align-items:center;">${p.img?`<img src="${p.img}" class="thumb-img">`:'<div class="thumb-img" style="background:#eee"></div>'}<b>${p.name}</b></div><span>▼</span></div>
-            <div class="accordion-content">${p.img?`<img src="${p.img}" class="prod-img-preview">`:''}<p>Venta: $${p.sell || 0} | Stock: ${p.stock || 0}</p>
-            <button class="btn-main" style="background:var(--danger);padding:5px;font-size:10px;" onclick="db.inv.splice(${idx},1);save();renderInv()">Borrar</button></div></div>`;
+                <div style="display:flex;align-items:center;">${p.img?`<img src="${p.img}" style="width:30px;height:30px;border-radius:5px;margin-right:10px;">`:'<div style="width:30px;height:30px;background:#eee;margin-right:10px;border-radius:5px;"></div>'}<b>${p.name}</b></div><span>$${p.sell}</span></div>
+                <div class="accordion-content">${p.img?`<img src="${p.img}" style="width:100%;border-radius:10px;margin-bottom:10px;">`:''}<p>stock: ${p.stock} | inversión: $${(p.buy*p.stock).toFixed(2)}</p>
+                <button class="btn-main" style="background:#eee;color:#000;padding:5px;font-size:10px;" onclick="db.inv.splice(${idx},1);save();renderInv()">borrar</button></div></div>`;
         }).join('');
         document.getElementById('inv-val').innerText = `$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText = q;
     }
 
-    function renderFiados() {
-        const q = document.getElementById('f-search').value.toLowerCase();
-        document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map((f, i) => `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)">${f.n} - $${f.m.toFixed(2)}</div><div class="accordion-content"><table>${f.h.map(h=>`<tr><td>${h.fecha}</td><td>${h.desc}</td><td>$${h.m}</td></tr>`).join('')}</table><button class="btn-main" style="background:var(--success)" onclick="addAbono(${i})">ABONAR</button></div></div>`).join('');
+    function addInv() {
+        const sku=document.getElementById('s-sku').value; const nom=document.getElementById('s-nom').value;
+        const b=parseFloat(document.getElementById('s-buy').value); const s=parseFloat(document.getElementById('s-sell').value);
+        const st=parseInt(document.getElementById('s-sto').value)||0; const imgIn=document.getElementById('s-img');
+        const saveP = (dat = '') => {
+            const ex=db.inv.find(x=>x.sku===sku);
+            if(ex){ ex.stock+=st; ex.buy=b; ex.sell=s; if(nom)ex.name=nom; if(dat)ex.img=dat; } else { db.inv.push({sku, name:nom, buy:b, sell:s, stock:st, img:dat}); }
+            save(); renderInv(); alert("inventario actualizado");
+        };
+        if(imgIn.files[0]) { const r = new FileReader(); r.onload=(e)=>saveP(e.target.result); r.readAsDataURL(imgIn.files[0]); } else saveP();
     }
 
-    function addAbono(idx) { const c=db.fiados[idx]; const m=parseFloat(prompt("Monto:")); if(m>0){ c.m-=m; db.abHoy+=m; c.h.unshift({fecha:new Date().toLocaleString(), desc:"ABONO", m:-m}); if(c.m<=0)db.fiados.splice(idx,1); save(); renderFiados(); } }
-    function addGasto() { const d=document.getElementById('g-desc').value; const m=parseFloat(document.getElementById('g-monto').value); if(d && m>0){ db.gastos.unshift({d, m}); save(); renderGastos(); } }
-    function renderGastos() { document.getElementById('gastos-list').innerHTML = db.gastos.map(g => `<div class="card">${g.d}: $${g.m}</div>`).join(''); }
-    function generateTicketPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'mm', format:[80, 150]}); doc.text("CORTE", 40, 10, {align:'center'}); doc.save("corte.pdf"); }
-    function showSec(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); if(id==='stock')renderInv(); if(id==='fiados')renderFiados(); if(id==='gastos')renderGastos(); if(id==='corte'){ let g=db.gastos.reduce((a,b)=>a+b.m,0); document.getElementById('c-balance').innerText=`$${(db.vEfe+db.vTar+db.abHoy-g).toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; } }
-    function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('ticket-text').innerText)}`); }
+    function showSec(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); if(id==='corte'){ document.getElementById('c-balance').innerText=`$${(db.vEfe+db.vTar).toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; } if(id==='stock')renderInv(); }
+    function renderFiados() { const q = document.getElementById('f-search').value.toLowerCase(); document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map((f, i) => `<div class="card"><b>${f.n}</b> - $${f.m.toFixed(2)} <button class="btn-qty" style="float:right" onclick="db.fiados.splice(${i},1);save();renderFiados()">✅</button></div>`).join(''); }
     function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, m)); } }
-    function openPaymentModal() { document.getElementById('m-total').innerText="Total: "+document.getElementById('total-val').innerText; document.getElementById('payment-modal').style.display='flex'; }
+    function openPaymentModal() { document.getElementById('m-total').innerText="total: "+document.getElementById('total-val').innerText; document.getElementById('payment-modal').style.display='flex'; }
     function closeModal() { document.getElementById('payment-modal').style.display='none'; }
     function togglePayUI() { const m=document.getElementById('p-method').value; document.getElementById('cash-ui').style.display=m==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display=m==='fiado'?'block':'none'; }
-    function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} Cambio`; }
-    function resetCorte() { if(confirm("Cerrar?")){ db.vEfe=0; db.vTar=0; db.abHoy=0; db.ganancia=0; db.gastos=[]; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
+    function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} cambio`; }
+    function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('ticket-text').innerText)}`); }
+    function resetCorte() { if(confirm("¿cerrar caja?")){ db.vEfe=0; db.vTar=0; db.ganancia=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
 </script>
 </body>
 </html>
