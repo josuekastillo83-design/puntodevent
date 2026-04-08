@@ -9,15 +9,26 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <style>
+    <style id="theme-style">
         :root {
             --accent: #00f2fe;
             --success: #2ed573;
             --danger: #ff4757;
             --bg-body: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-main: #000000;
+            --nav-bg: #000000;
+            --border-color: #eee;
+        }
+        .dark-mode {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #ffffff;
+            --nav-bg: #000000;
+            --border-color: #333;
         }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg-body); min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
+        body { margin: 0; background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; transition: 0.3s; }
 
         /* BIENVENIDA */
         #welcome-screen {
@@ -25,14 +36,15 @@
             background: #000; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 2000; color: white;
         }
-        .brand-name { font-weight: 300; font-size: 4.5em; letter-spacing: -2px; margin: 0; }
+        #wel-logo-img { max-width: 100px; margin-bottom: 15px; border-radius: 15px; }
+        .brand-name { font-weight: 300; font-size: 4em; letter-spacing: -2px; margin: 0; }
         .brand-name span { color: var(--accent); font-weight: 600; }
-        .brand-slogan { font-weight: 300; font-size: 0.9em; letter-spacing: 2px; color: #888; text-transform: lowercase; margin-bottom: 30px; }
+        .brand-slogan { font-weight: 300; font-size: 0.8em; letter-spacing: 2px; color: #888; text-transform: lowercase; margin-bottom: 30px; }
 
         /* NAVEGACIÓN */
         #main-app { display: none; flex-direction: column; min-height: 100vh; }
-        .navbar { background: #000; color: white; display: flex; overflow-x: auto; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
-        .nav-btn { padding: 18px 20px; border: none; background: transparent; color: #666; font-weight: 400; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+        .navbar { background: var(--nav-bg); color: white; display: flex; overflow-x: auto; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        .nav-btn { padding: 18px 20px; border: none; background: transparent; color: #666; font-weight: 400; font-size: 10px; text-transform: uppercase; flex-shrink: 0; }
         .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
         .main-content { flex-grow: 1; padding: 15px; padding-bottom: 100px; }
@@ -40,40 +52,38 @@
         .section.active { display: block; }
 
         /* COMPONENTES */
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 15px; }
-        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #eee; font-size: 16px; outline: none; background: #fafafa; }
+        .card { background: var(--bg-card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 15px; border: 1px solid var(--border-color); }
+        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 16px; outline: none; background: rgba(128,128,128,0.05); color: var(--text-main); }
         .btn-main { width: 100%; padding: 18px; border: none; border-radius: 15px; background: #000; color: white; font-weight: 600; cursor: pointer; }
+        .dark-mode .btn-main { background: var(--accent); color: #000; }
         
-        .total-box { background: #000; color: white; padding: 30px; border-radius: 25px; text-align: center; margin-bottom: 20px; }
+        .total-box { background: #000; color: white; padding: 30px; border-radius: 25px; text-align: center; margin-bottom: 20px; border: 1px solid var(--accent); }
         .total-box h2 { font-size: 3.5em; margin: 0; color: var(--accent); }
 
-        /* ACORDEONES */
-        .accordion { background: #fff; border-radius: 15px; overflow: hidden; margin-bottom: 10px; border: 1px solid #eee; }
-        .accordion-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; background: #fff; }
-        .accordion-content { display: none; padding: 15px; border-top: 1px solid #f8f9fa; }
+        /* ACORDEÓN */
+        .accordion { background: var(--bg-card); border-radius: 15px; overflow: hidden; margin-bottom: 10px; border: 1px solid var(--border-color); }
+        .accordion-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .accordion-content { display: none; padding: 15px; border-top: 1px solid var(--border-color); }
         .accordion-content.open { display: block; }
 
-        /* TABLAS Y CANTIDADES */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #aaa; padding: 10px; font-size: 10px; text-transform: uppercase; }
-        td { padding: 15px 10px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
         .qty-ctrl { display: flex; align-items: center; gap: 10px; }
-        .btn-qty { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-weight: bold; }
+        .btn-qty { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-main); font-weight: bold; }
 
-        .prod-img { width: 100%; border-radius: 12px; margin-bottom: 10px; max-height: 200px; object-fit: contain; background: #f9f9f9; }
+        .prod-img { width: 100%; border-radius: 12px; margin-bottom: 10px; max-height: 200px; object-fit: contain; }
         .thumb { width: 35px; height: 35px; border-radius: 6px; object-fit: cover; margin-right: 10px; }
 
-        #ticket-text { background: #fff; padding: 20px; border: 1px dashed #ccc; font-family: monospace; display: none; margin-top: 15px; white-space: pre-wrap; font-size: 12px; }
+        #ticket-text { background: #fff; padding: 20px; border: 1px dashed #ccc; font-family: monospace; display: none; margin-top: 15px; white-space: pre-wrap; font-size: 12px; color: #000; }
         #reader-pos, #reader-stock { width: 100%; border-radius: 20px; overflow: hidden; display: none; margin-bottom: 15px; border: 2px solid var(--accent); }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 30px; text-align: center; }
+        .modal-content { background: var(--bg-card); width: 90%; max-width: 400px; padding: 30px; border-radius: 30px; text-align: center; }
     </style>
 </head>
-<body>
+<body onload="initApp()">
 
     <div id="welcome-screen">
-        <h1 class="brand-name">nex<span>vent</span></h1>
-        <p class="brand-slogan">tu punto de venta todo en 1</p>
+        <img id="wel-logo-img" style="display:none;">
+        <h1 class="brand-name" id="brand-display">nex<span>vent</span></h1>
+        <p class="brand-slogan" id="wel-slogan-txt">tu punto de venta todo en 1</p>
         <button class="btn-main" style="width: 220px; background: transparent; border: 1px solid #444;" onclick="startApp()">comenzar</button>
     </div>
 
@@ -90,27 +100,27 @@
         <div class="main-content">
             <div id="pos" class="section active">
                 <input type="text" id="sku-in" class="input-style" placeholder="escanear o sku..." onkeypress="handleSKU(event)">
-                <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="background:#222; margin-bottom:15px;">📷 abrir cámara</button>
+                <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="margin-bottom:15px; background:#222;">📷 cámara</button>
                 <div id="reader-pos"></div>
                 <div class="card"><table><thead><tr><th>producto</th><th>cant</th><th>total</th><th></th></tr></thead><tbody id="cart-body"></tbody></table></div>
                 <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val">$0.00</h2></div>
-                <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000;">finalizar cobro</button>
+                <button class="btn-main" onclick="openPaymentModal()">finalizar cobro</button>
                 <div id="ticket-text"></div>
-                <button id="btn-wa" class="btn-main" style="display:none; background:#25D366; margin-top:10px;" onclick="shareWA()">enviar ticket whatsapp</button>
+                <button id="btn-wa" class="btn-main" style="display:none; background:#25D366; margin-top:10px;" onclick="shareWA()">enviar whatsapp</button>
             </div>
 
             <div id="stock" class="section">
-                <div class="card" style="background:#000; color:white; display:flex; justify-content:space-between;">
+                <div class="card" style="background:#000; color:white; display:flex; justify-content:space-between; border: 1px solid var(--accent);">
                     <div><small style="color:#666">INVERSIÓN</small><br><b id="inv-val" style="color:var(--accent); font-size:1.5em;">$0.00</b></div>
                     <div style="text-align:right;"><small style="color:#666">PIEZAS</small><br><b id="inv-qty" style="font-size:1.5em;">0</b></div>
                 </div>
                 <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">registrar nuevo producto <span>+</span></div>
+                    <div class="accordion-header" onclick="toggleAccordion(this)">registrar / surtir producto <span>+</span></div>
                     <div class="accordion-content">
                         <input type="text" id="s-sku" class="input-style" placeholder="sku">
                         <input type="text" id="s-nom" class="input-style" placeholder="nombre">
                         <div style="display:flex; gap:10px;"><input type="number" id="s-buy" class="input-style" placeholder="compra $"><input type="number" id="s-sell" class="input-style" placeholder="venta $"></div>
-                        <input type="number" id="s-sto" class="input-style" placeholder="cantidad inicial">
+                        <input type="number" id="s-sto" class="input-style" placeholder="cantidad">
                         <input type="file" id="s-img" accept="image/*" class="input-style">
                         <button class="btn-main" onclick="addInv()">guardar</button>
                     </div>
@@ -118,59 +128,88 @@
                 <div id="inv-list-container"></div>
             </div>
 
-            <div id="fiados" class="section">
-                <div class="card"><input type="text" id="f-search" class="input-style" placeholder="buscar cliente..." oninput="renderFiados()"><div id="fiados-list"></div></div>
-            </div>
+            <div id="fiados" class="section"><div class="card"><input type="text" id="f-search" class="input-style" placeholder="buscar cliente..." oninput="renderFiados()"><div id="fiados-list"></div></div></div>
+            <div id="gastos" class="section"><div class="card"><input type="text" id="g-desc" class="input-style" placeholder="motivo"><input type="number" id="g-monto" class="input-style" placeholder="monto $"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">restar</button></div><div id="gastos-list"></div></div>
+            <div id="corte" class="section"><div class="card" style="text-align:center;"><small>GANANCIA HOY</small><h1 id="c-profit" style="color:var(--success); font-size:3.5em;">$0.00</h1><p>caja: <b id="c-balance">$0.00</b></p><button class="btn-main" onclick="generatePDF()">pdf</button><button class="btn-main" style="background:#444; margin-top:10px;" onclick="resetCorte()">cerrar día</button></div></div>
 
-            <div id="gastos" class="section">
-                <div class="card"><input type="text" id="g-desc" class="input-style" placeholder="motivo gasto"><input type="number" id="g-monto" class="input-style" placeholder="monto $"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">registrar gasto</button></div>
-                <div id="gastos-list"></div>
-            </div>
-
-            <div id="corte" class="section">
-                <div class="card" style="text-align:center;">
-                    <small>GANANCIA NETA HOY</small>
-                    <h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
-                    <p>efectivo en caja: <b id="c-balance">$0.00</b></p>
-                    <button class="btn-main" onclick="generatePDF()">descargar corte pdf</button>
-                    <button class="btn-main" style="background:#888; margin-top:10px;" onclick="resetCorte()">cerrar caja</button>
+            <div id="vip" class="section">
+                <div class="card">
+                    <h3>apariencia</h3>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-main" style="background:#eee; color:#000;" onclick="setTheme('light')">claro</button>
+                        <button class="btn-main" style="background:#222; color:#fff;" onclick="setTheme('dark')">oscuro</button>
+                    </div>
+                </div>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">personalización avanzada <span>▼</span></div>
+                    <div class="accordion-content">
+                        <input type="text" id="set-name" class="input-style" placeholder="nombre negocio" oninput="updateVIP('name', this.value)">
+                        <input type="text" id="set-slogan" class="input-style" placeholder="slogan" oninput="updateVIP('slogan', this.value)">
+                        <p>logo:</p><input type="file" accept="image/*" class="input-style" onchange="updateVIP('logo', this)">
+                    </div>
                 </div>
             </div>
-
-            <div id="vip" class="section"><div class="card"><h3>personalización</h3><input type="text" id="set-name" class="input-style" placeholder="nombre negocio" oninput="updateVIP('name', this.value)"></div></div>
         </div>
     </div>
 
     <div id="payment-modal" class="modal"><div class="modal-content">
         <h2 id="m-total">total: $0.00</h2>
         <select id="p-method" class="input-style" onchange="togglePayUI()"><option value="efectivo">efectivo</option><option value="tarjeta">tarjeta</option><option value="fiado">fiado</option></select>
-        <div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="¿recibido?" oninput="calcChange()"><h2 id="change-text">$0.00 cambio</h2></div>
-        <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="nombre cliente"></div>
+        <div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="¿cuánto?" oninput="calcChange()"><h2 id="change-text">$0.00</h2></div>
+        <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="nombre"></div>
         <button class="btn-main" onclick="confirmPayment()">confirmar</button>
-        <button class="btn-main" style="background:transparent; color:#000;" onclick="closeModal()">cancelar</button>
+        <button class="btn-main" style="background:transparent; color:var(--text-main);" onclick="closeModal()">cancelar</button>
     </div></div>
 
 <script>
-    let db = {
-        inv: JSON.parse(localStorage.getItem('n_inv')) || [],
-        fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
-        gastos: JSON.parse(localStorage.getItem('n_gas')) || [],
-        vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
-        vTar: parseFloat(localStorage.getItem('n_v_t')) || 0,
-        abHoy: parseFloat(localStorage.getItem('n_ab')) || 0,
-        ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
-        cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent' }
-    };
-    let cart = []; let isScanning = false; let scanner;
+    let db;
 
-    function startApp() { document.getElementById('welcome-screen').style.display='none'; document.getElementById('main-app').style.display='flex'; renderInv(); }
-    function save() { localStorage.setItem('n_inv', JSON.stringify(db.inv)); localStorage.setItem('n_fia', JSON.stringify(db.fiados)); localStorage.setItem('n_gas', JSON.stringify(db.gastos)); localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar); localStorage.setItem('n_ab', db.abHoy); localStorage.setItem('n_gan', db.ganancia); localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); }
+    function initApp() {
+        // Restauración garantizada de LocalStorage
+        db = {
+            inv: JSON.parse(localStorage.getItem('n_inv')) || [],
+            fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
+            gastos: JSON.parse(localStorage.getItem('n_gas')) || [],
+            vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
+            vTar: parseFloat(localStorage.getItem('n_v_t')) || 0,
+            abHoy: parseFloat(localStorage.getItem('n_ab')) || 0,
+            ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
+            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', slogan: 'tu punto de venta todo en 1', theme: 'light', logo: '' }
+        };
+        applyVIP();
+        renderInv();
+    }
 
-    function notify(t) {
-        const msg = new SpeechSynthesisUtterance(t); msg.lang = 'es-MX'; window.speechSynthesis.speak(msg);
-        const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination); o.frequency.value = 850; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-        o.start(); o.stop(ctx.currentTime + 0.1);
+    function save() {
+        localStorage.setItem('n_inv', JSON.stringify(db.inv));
+        localStorage.setItem('n_fia', JSON.stringify(db.fiados));
+        localStorage.setItem('n_gas', JSON.stringify(db.gastos));
+        localStorage.setItem('n_v_e', db.vEfe.toString());
+        localStorage.setItem('n_v_t', db.vTar.toString());
+        localStorage.setItem('n_ab', db.abHoy.toString());
+        localStorage.setItem('n_gan', db.ganancia.toString());
+        localStorage.setItem('n_cfg', JSON.stringify(db.cfg));
+    }
+
+    function startApp() { document.getElementById('welcome-screen').style.display='none'; document.getElementById('main-app').style.display='flex'; }
+
+    function applyVIP() {
+        const nameParsed = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>');
+        document.getElementById('brand-display').innerHTML = nameParsed;
+        document.getElementById('wel-slogan-txt').innerText = db.cfg.slogan;
+        if(db.cfg.logo) { document.getElementById('wel-logo-img').src = db.cfg.logo; document.getElementById('wel-logo-img').style.display = 'block'; }
+        setTheme(db.cfg.theme);
+    }
+
+    function setTheme(t) { db.cfg.theme = t; document.body.classList.toggle('dark-mode', t === 'dark'); save(); }
+
+    function updateVIP(type, val) {
+        if(type === 'name') db.cfg.name = val;
+        if(type === 'slogan') db.cfg.slogan = val;
+        if(type === 'logo' && val.files[0]) {
+            const r = new FileReader(); r.onload = (e) => { db.cfg.logo = e.target.result; applyVIP(); save(); }; r.readAsDataURL(val.files[0]);
+        }
+        applyVIP(); save();
     }
 
     function process(code, mode = 'sale') {
@@ -185,14 +224,12 @@
             } else { p.stock += (parseInt(prompt(`surtir ${p.name}:`)) || 0); save(); renderInv(); }
         } else {
             const n = prompt("nombre:"); if(n) {
-                const b = parseFloat(prompt("compra:")); const s = parseFloat(prompt("venta:"));
+                const b = parseFloat(prompt("compra:")) || 0; const s = parseFloat(prompt("venta:")) || 0;
                 db.inv.push({sku: code, name: n, buy: b, sell: s, stock: 1, img: ''}); save(); renderInv();
             }
         }
     }
 
-    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    
     function renderCart() {
         let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += (i.sell * i.q);
@@ -205,37 +242,34 @@
     function confirmPayment() {
         const t = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
         const m = document.getElementById('p-method').value;
-        let g = 0; let txt = `*${db.cfg.name}*\n${new Date().toLocaleString()}\n`;
+        let g = 0; let txt = `*${db.cfg.name.toUpperCase()}*\n${new Date().toLocaleString()}\n`;
         cart.forEach(i => {
-            g += (i.sell - i.buy) * i.q; txt += `${i.q}x ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`;
+            g += (i.sell - (i.buy || 0)) * i.q; txt += `${i.q}x ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`;
             const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
         });
         txt += `TOTAL: $${t.toFixed(2)}`;
         if(m==='efectivo') db.vEfe+=t; else if(m==='tarjeta') db.vTar+=t;
-        else {
-            const c=document.getElementById('debt-cust').value; const ex=db.fiados.find(f=>f.n.toLowerCase()===c.toLowerCase());
-            const h={fecha:new Date().toLocaleString(), desc:cart.map(i=>`${i.q}x ${i.name}`).join(','), m:t};
-            if(ex){ ex.m+=t; ex.h.unshift(h); } else { db.fiados.unshift({n:c,m:t,h:[h]}); }
-        }
-        db.ganancia += g; save(); document.getElementById('ticket-text').innerText = txt; document.getElementById('ticket-text').style.display='block'; document.getElementById('btn-wa').style.display='block';
-        cart=[]; renderCart(); closeModal();
+        else { const c=document.getElementById('debt-cust').value; const ex=db.fiados.find(f=>f.n.toLowerCase()===c.toLowerCase()); if(ex){ ex.m+=t; ex.h.unshift({fecha:new Date().toLocaleString(), desc:txt, m:t}); } else { db.fiados.unshift({n:c, m:t, h:[{fecha:new Date().toLocaleString(), desc:txt, m:t}]}); }}
+        db.ganancia += g; save(); document.getElementById('ticket-text').innerText = txt; document.getElementById('ticket-text').style.display='block'; document.getElementById('btn-wa').style.display='block'; cart=[]; renderCart(); closeModal();
     }
 
     function renderInv() {
         let v=0; let q=0;
         document.getElementById('inv-list-container').innerHTML = db.inv.map((p, idx) => {
-            v += (p.buy * p.stock); q += p.stock;
-            return `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)"><div style="display:flex;align-items:center;">${p.img?`<img src="${p.img}" class="thumb">`:'<div class="thumb" style="background:#eee"></div>'}<b>${p.name}</b></div><span>$${p.sell}</span></div><div class="accordion-content">${p.img?`<img src="${p.img}" class="prod-img">`:''}<p>stock: ${p.stock} | inversión: $${(p.buy*p.stock).toFixed(2)}</p><button class="btn-qty" style="width:auto;padding:0 10px" onclick="db.inv.splice(${idx},1);save();renderInv()">borrar</button></div></div>`;
+            const b = p.buy || 0; const s = p.sell || 0; const st = p.stock || 0;
+            v += (b * st); q += st;
+            return `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)"><div style="display:flex;align-items:center;">${p.img?`<img src="${p.img}" class="thumb">`:'<div class="thumb" style="background:#444"></div>'}<b>${p.name}</b></div><span>$${s}</span></div><div class="accordion-content">${p.img?`<img src="${p.img}" class="prod-img">`:''}<p>stock: ${st} | inversión: $${(b*st).toFixed(2)}</p><button class="btn-qty" style="width:auto;padding:0 10px" onclick="db.inv.splice(${idx},1);save();renderInv()">borrar</button></div></div>`;
         }).join('');
         document.getElementById('inv-val').innerText = `$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText = q;
     }
 
     function addInv() {
         const sku=document.getElementById('s-sku').value; const nom=document.getElementById('s-nom').value;
-        const b=parseFloat(document.getElementById('s-buy').value); const s=parseFloat(document.getElementById('s-sell').value);
+        const b=parseFloat(document.getElementById('s-buy').value) || 0; const s=parseFloat(document.getElementById('s-sell').value) || 0;
         const st=parseInt(document.getElementById('s-sto').value)||0; const imgIn=document.getElementById('s-img');
+        if(!sku) return alert("ingresa sku");
         const saveP = (dat = '') => {
-            const ex=db.inv.find(x=>x.sku===sku);
+            const ex=db.inv.find(x=>x.sku === sku);
             if(ex){ ex.stock+=st; ex.buy=b; ex.sell=s; if(nom)ex.name=nom; if(dat)ex.img=dat; } else { db.inv.push({sku, name:nom, buy:b, sell:s, stock:st, img:dat}); }
             save(); renderInv(); alert("listo");
         };
@@ -243,25 +277,25 @@
     }
 
     function renderFiados() {
-        const q = document.getElementById('f-search').value.toLowerCase();
-        document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map((f, i) => `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)">${f.n} - $${f.m.toFixed(2)}</div><div class="accordion-content"><table>${f.h.map(h=>`<tr><td>${h.fecha}</td><td>${h.desc}</td><td>$${h.m}</td></tr>`).join('')}</table><button class="btn-main" style="background:var(--success);padding:10px" onclick="addAbono(${i})">abonar</button></div></div>`).join('');
+        const query = document.getElementById('f-search').value.toLowerCase();
+        document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(query)).map((f, i) => `<div class="accordion"><div class="accordion-header" onclick="toggleAccordion(this)">${f.n} - $${f.m.toFixed(2)}</div><div class="accordion-content"><table>${f.h.map(h=>`<tr><td>${h.fecha}</td><td>${h.desc}</td><td>$${h.m}</td></tr>`).join('')}</table><button class="btn-main" onclick="addAbono(${i})">abonar</button></div></div>`).join('');
     }
 
-    function addAbono(idx) { const c=db.fiados[idx]; const m=parseFloat(prompt("abono:")); if(m>0){ c.m-=m; db.abHoy+=m; c.h.unshift({fecha:new Date().toLocaleString(), desc:"ABONO", m:-m}); if(c.m<=0)db.fiados.splice(idx,1); save(); renderFiados(); } }
+    function addAbono(idx) { const c=db.fiados[idx]; const m=parseFloat(prompt("monto:")); if(m>0){ c.m-=m; db.abHoy+=m; c.h.unshift({fecha:new Date().toLocaleString(), desc:"ABONO", m:-m}); if(c.m<=0)db.fiados.splice(idx,1); save(); renderFiados(); } }
     function addGasto() { const d=document.getElementById('g-desc').value; const m=parseFloat(document.getElementById('g-monto').value); if(d && m>0){ db.gastos.unshift({d, m}); save(); renderGastos(); } }
     function renderGastos() { document.getElementById('gastos-list').innerHTML = db.gastos.map(g => `<div class="card">${g.d}: $${g.m}</div>`).join(''); }
-
-    function generatePDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'mm', format:[80, 150]}); doc.text("CORTE CAJA", 40, 10, {align:'center'}); doc.text(`Balance: $${(db.vEfe + db.vTar + db.abHoy - db.gastos.reduce((a,b)=>a+b.m,0)).toFixed(2)}`, 10, 20); doc.save("corte.pdf"); }
-    function showSec(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); if(id==='stock')renderInv(); if(id==='fiados')renderFiados(); if(id==='gastos')renderGastos(); if(id==='corte'){ let g=db.gastos.reduce((a,b)=>a+b.m,0); document.getElementById('c-balance').innerText=`$${(db.vEfe+db.vTar+db.abHoy-g).toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; } }
+    function notify(t) { const msg = new SpeechSynthesisUtterance(t); msg.lang = 'es-MX'; window.speechSynthesis.speak(msg); }
+    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
     function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
+    function showSec(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); if(id==='stock')renderInv(); if(id==='fiados')renderFiados(); if(id==='gastos')renderGastos(); if(id==='corte'){ let g=db.gastos.reduce((a,b)=>a+b.m,0); document.getElementById('c-balance').innerText=`$${(db.vEfe+db.vTar+db.abHoy-g).toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; } }
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, m)); } }
     function openPaymentModal() { document.getElementById('m-total').innerText="total: "+document.getElementById('total-val').innerText; document.getElementById('payment-modal').style.display='flex'; }
     function closeModal() { document.getElementById('payment-modal').style.display='none'; }
     function togglePayUI() { const m=document.getElementById('p-method').value; document.getElementById('cash-ui').style.display=m==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display=m==='fiado'?'block':'none'; }
     function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} cambio`; }
     function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('ticket-text').innerText)}`); }
-    function updateVIP(t, v) { if(t==='name') db.cfg.name=v; save(); }
-    function resetCorte() { if(confirm("¿cerrar caja?")){ db.vEfe=0; db.vTar=0; db.ganancia=0; db.abHoy=0; db.gastos=[]; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
+    function generatePDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'mm', format:[80, 150]}); doc.text("CORTE CAJA", 40, 10, {align:'center'}); doc.save("corte.pdf"); }
+    function resetCorte() { if(confirm("¿cerrar día?")){ db.vEfe=0; db.vTar=0; db.ganancia=0; db.abHoy=0; db.gastos=[]; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
 </script>
 </body>
 </html>
