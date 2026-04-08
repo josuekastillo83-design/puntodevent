@@ -7,6 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -21,7 +22,6 @@
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-        /* BARRA SUPERIOR (TU IDENTIDAD) */
         .top-bar {
             background: #000; color: white; padding: 15px 20px;
             display: flex; align-items: center; justify-content: space-between;
@@ -32,7 +32,6 @@
         .bar-name { font-weight: 300; font-size: 1.5em; letter-spacing: -1px; }
         .bar-name span { color: var(--accent); font-weight: 600; }
 
-        /* NAVEGACIÓN TIPO APP */
         .navbar { background: #111; display: flex; overflow-x: auto; border-bottom: 1px solid #222; position: sticky; top: 72px; z-index: 999; }
         .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
         .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; }
@@ -41,18 +40,17 @@
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; }
 
-        /* COMPONENTES INTELIGENTES */
         .card { background: var(--bg-card); border-radius: 20px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 15px; border: 1px solid var(--border-color); }
         .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 16px; outline: none; background: #222; color: white; }
         .btn-main { width: 100%; padding: 18px; border: none; border-radius: 15px; background: var(--accent); color: #000; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
         
-        .total-box { background: #000; color: white; padding: 30px; border-radius: 25px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); box-shadow: 0 0 20px rgba(0,242,254,0.2); }
-        .total-box h2 { font-size: 3.5em; margin: 0; font-weight: 600; color: var(--accent); }
+        .total-box { background: #000; color: white; padding: 30px; border-radius: 25px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); }
+        .total-box h2 { font-size: 3.5em; margin: 0; color: var(--accent); }
 
         /* TICKET VISUAL */
         #ticket-view { 
             display: none; background: #fff; color: #000; padding: 25px; 
-            font-family: 'Courier New', monospace; border-radius: 10px; margin-top: 15px;
+            font-family: 'Courier New', monospace; border-radius: 5px; margin-top: 15px;
         }
         .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 15px; margin-bottom: 15px; }
         .ticket-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
@@ -72,101 +70,87 @@
             <img id="bar-logo-img" style="display:none;">
             <div class="bar-name" id="bar-display">nex<span>vent</span></div>
         </div>
-        <small id="top-slogan" style="font-size: 10px; color: #666; font-weight: 300;"></small>
+        <small id="top-slogan" style="font-size: 10px; color: #666;"></small>
     </div>
 
     <div class="navbar">
         <button class="nav-btn active" onclick="showSec('pos', this)">🛒 vender</button>
         <button class="nav-btn" onclick="showSec('stock', this)">📦 stock</button>
+        <button class="nav-btn" onclick="showSec('fiados', this)">👥 fiados</button>
         <button class="nav-btn" onclick="showSec('corte', this)">💰 corte</button>
         <button class="nav-btn" onclick="showSec('vip', this)">💎 vip</button>
     </div>
 
     <div class="main-content">
         <div id="pos" class="section active">
-            <input type="text" id="sku-in" class="input-style" placeholder="Escanear o escribir código..." onkeypress="handleSKU(event)">
+            <input type="text" id="sku-in" class="input-style" placeholder="Escanear o SKU..." onkeypress="handleSKU(event)">
             <button onclick="toggleCam('reader-pos', 'sale')" class="btn-main" style="background:#222; color:white;">📷 cámara</button>
             <div id="reader-pos"></div>
             
             <div class="card" id="cart-container">
-                <table style="width:100%; border-collapse: collapse;">
-                    <thead><tr style="text-align:left; font-size:10px; color:#555;"><th>PROD</th><th>CANT</th><th>TOTAL</th><th></th></tr></thead>
+                <table style="width:100%;">
                     <tbody id="cart-body"></tbody>
                 </table>
             </div>
 
-            <div class="total-box"><small>TOTAL VENTA</small><h2 id="total-val">$0.00</h2></div>
-            
-            <div id="pos-actions">
-                <button class="btn-main" onclick="openPaymentModal()">finalizar cobro</button>
-            </div>
+            <div class="total-box"><small>TOTAL</small><h2 id="total-val">$0.00</h2></div>
+            <button class="btn-main" id="btn-cobrar" onclick="openPaymentModal()">finalizar cobro</button>
 
             <div id="ticket-view">
-                <div class="ticket-header">
-                    <h2 id="t-store-name">NEXVENT</h2>
-                    <p id="t-date" style="font-size:12px;"></p>
-                </div>
+                <div class="ticket-header"><h2 id="t-store">NEXVENT</h2><p id="t-date"></p></div>
                 <div id="t-items"></div>
-                <div style="border-top: 2px solid #000; margin-top: 15px; padding-top: 10px;">
-                    <div class="ticket-row" style="font-size:18px;"><b>TOTAL:</b> <b id="t-total"></b></div>
-                </div>
-                <p style="text-align:center; font-size: 11px; margin-top: 20px;">¡gracias por su preferencia!</p>
+                <div class="ticket-row" style="border-top:1px solid #000; padding-top:10px;"><b>TOTAL:</b> <b id="t-total"></b></div>
             </div>
             
-            <button id="btn-wa" class="btn-main" style="display:none; background:#25D366; color:white;" onclick="sendWhatsApp()">📲 enviar por whatsapp</button>
+            <button id="btn-wa" class="btn-main" style="display:none; background:#25D366; color:white;" onclick="sendWhatsApp()">📲 enviar whatsapp</button>
             <button id="btn-next" class="btn-main" style="display:none; background:#444; color:white;" onclick="resetPos()">nueva venta</button>
         </div>
 
         <div id="stock" class="section">
-            <div class="card" style="background:#000; display:flex; justify-content:space-between; border-color:var(--accent);">
-                <div><small style="color:#666">INVERSIÓN REAL</small><br><b id="inv-val" style="color:var(--accent); font-size:1.5em;">$0.00</b></div>
-                <div style="text-align:right;"><small style="color:#666">PIEZAS</small><br><b id="inv-qty" style="font-size:1.5em;">0</b></div>
+            <div class="card" style="background:#000; border-color:var(--accent);">
+                <small>INVERSIÓN REAL EN STOCK</small><br><b id="inv-val" style="color:var(--accent); font-size:1.5em;">$0.00</b>
             </div>
             <div class="card">
-                <h3>surtir producto</h3>
-                <input type="text" id="s-sku" class="input-style" placeholder="código sku">
-                <input type="text" id="s-nom" class="input-style" placeholder="nombre">
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="s-buy" class="input-style" placeholder="costo compra $">
-                    <input type="number" id="s-sell" class="input-style" placeholder="precio venta $">
-                </div>
-                <input type="number" id="s-sto" class="input-style" placeholder="cantidad">
+                <input type="text" id="s-sku" class="input-style" placeholder="SKU">
+                <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
+                <input type="number" id="s-buy" class="input-style" placeholder="Costo Compra $">
+                <input type="number" id="s-sell" class="input-style" placeholder="Venta $">
+                <input type="number" id="s-sto" class="input-style" placeholder="Cantidad">
                 <button class="btn-main" onclick="addInv()">guardar en stock</button>
             </div>
             <div id="inv-list-container"></div>
         </div>
 
+        <div id="fiados" class="section">
+            <div class="card">
+                <h3>Historial de Fiados</h3>
+                <div id="fiados-list"></div>
+            </div>
+        </div>
+
         <div id="corte" class="section">
             <div class="card" style="text-align:center;">
-                <small>GANANCIA NETA (HOY)</small>
-                <h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
-                <p>efectivo en caja: <b id="c-balance">$0.00</b></p>
-                <button class="btn-main" style="background:#444; color:white;" onclick="resetCorte()">cerrar caja diaria</button>
+                <small>GANANCIA NETA HOY</small>
+                <h1 id="c-profit" style="color:var(--success); font-size:3em;">$0.00</h1>
+                <p>Efectivo en Caja: <b id="c-balance">$0.00</b></p>
+                <button class="btn-main" onclick="generateCortePDF()">📥 descargar corte pdf</button>
+                <button class="btn-main" style="background:#444;" onclick="resetCorte()">cerrar caja</button>
             </div>
         </div>
 
-        <div id="vip" class="section">
-            <div class="card">
-                <h3>identidad del negocio</h3>
-                <input type="text" id="set-name" class="input-style" placeholder="nombre de tu negocio" oninput="updateVIP('name', this.value)">
-                <input type="text" id="set-slogan" class="input-style" placeholder="slogan (ej. tu punto de venta)" oninput="updateVIP('slogan', this.value)">
-                <p>subir logo:</p>
-                <input type="file" id="set-logo" accept="image/*" class="input-style" onchange="updateVIP('logo', this)">
-                <p>espera entre escaneos (segundos):</p>
-                <input type="number" id="set-scan-wait" class="input-style" value="2" oninput="updateVIP('scanWait', this.value)">
-            </div>
-        </div>
+        <div id="vip" class="section"><div class="card"><input type="text" id="set-name" class="input-style" placeholder="Nombre Negocio" oninput="updateVIP('name', this.value)"></div></div>
     </div>
 
-    <div id="payment-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="m-total">Total: $0.00</h2>
-            <input type="number" id="cash-rec" class="input-style" placeholder="¿cuánto recibes?" oninput="calcChange()">
-            <h2 id="change-text">$0.00 cambio</h2>
-            <button class="btn-main" onclick="confirmPayment()">confirmar cobro</button>
-            <button class="btn-main" style="background:transparent; color:#888;" onclick="closeModal()">cancelar</button>
-        </div>
-    </div>
+    <div id="payment-modal" class="modal"><div class="modal-content">
+        <h2 id="m-total">Total: $0.00</h2>
+        <select id="p-method" class="input-style" onchange="togglePayUI()">
+            <option value="efectivo">Efectivo</option>
+            <option value="fiado">Fiado (A deudor)</option>
+        </select>
+        <div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="¿Cuánto recibes?" oninput="calcChange()"><h2 id="change-text">$0.00 cambio</h2></div>
+        <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="Nombre del cliente"></div>
+        <button class="btn-main" onclick="confirmPayment()">confirmar</button>
+    </div></div>
 
 <script>
     let db, scanner, cart = [], lastScanTime = 0;
@@ -174,18 +158,17 @@
     function initApp() {
         db = {
             inv: JSON.parse(localStorage.getItem('n_inv')) || [],
+            fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
             vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
             ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
-            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'NEXVENTA', slogan: 'tu punto de venta inteligente', scanWait: 2, logo: '' }
+            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'NEXVENTA', logo: '', scanWait: 2 }
         };
-        document.getElementById('set-name').value = db.cfg.name;
-        document.getElementById('set-slogan').value = db.cfg.slogan;
-        document.getElementById('set-scan-wait').value = db.cfg.scanWait;
-        renderInv(); applyVIP();
+        applyVIP(); renderInv(); renderFiados();
     }
 
     function save() {
         localStorage.setItem('n_inv', JSON.stringify(db.inv));
+        localStorage.setItem('n_fia', JSON.stringify(db.fiados));
         localStorage.setItem('n_v_e', db.vEfe);
         localStorage.setItem('n_gan', db.ganancia);
         localStorage.setItem('n_cfg', JSON.stringify(db.cfg));
@@ -195,33 +178,24 @@
         const now = Date.now();
         if (now - lastScanTime < (db.cfg.scanWait * 1000)) return;
         lastScanTime = now;
-
         const p = db.inv.find(x => x.sku === code);
         if(p) {
             if(mode === 'sale') {
                 const i = cart.find(x => x.sku === code);
                 if(i) i.q++; else cart.push({...p, q: 1});
                 renderCart();
-            } else {
-                document.getElementById('s-sku').value = code;
-                document.getElementById('s-nom').value = p.name;
-                showSec('stock', document.querySelector('[onclick*="stock"]'));
             }
-        } else {
-            document.getElementById('s-sku').value = code;
-            showSec('stock', document.querySelector('[onclick*="stock"]'));
         }
     }
 
     function renderCart() {
         let t = 0;
         document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
-            const sub = i.sell * i.q; t += sub;
-            return `<tr style="border-bottom: 1px solid #222;">
-                <td style="padding:10px;">${i.name}</td>
-                <td><div class="qty-ctrl"><button class="btn-qty" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="btn-qty" onclick="updateQty(${idx},1)">+</button></div></td>
-                <td>$${sub.toFixed(2)}</td>
-                <td onclick="cart.splice(${idx},1);renderCart()">❌</td>
+            t += (i.sell * i.q);
+            return `<tr class="card" style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <td>${i.name}</td>
+                <td class="qty-ctrl"><button class="btn-qty" onclick="updateQty(${idx},-1)">-</button>${i.q}<button class="btn-qty" onclick="updateQty(${idx},1)">+</button></td>
+                <td>$${(i.sell*i.q).toFixed(2)}</td>
             </tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
@@ -231,6 +205,7 @@
 
     function confirmPayment() {
         const total = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
+        const method = document.getElementById('p-method').value;
         let gain = 0;
         let itemsHtml = "";
         
@@ -240,90 +215,93 @@
             const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
         });
 
-        db.vEfe += total; db.ganancia += gain; save();
+        if(method === 'efectivo') { db.vEfe += total; } 
+        else {
+            const cust = document.getElementById('debt-cust').value || "Cliente General";
+            db.fiados.push({cliente: cust, total: total, fecha: new Date().toLocaleString(), productos: cart.map(c=>c.name).join(', ')});
+        }
 
-        // TICKET VISUAL
+        db.ganancia += gain; save();
+
+        // TICKET IMAGEN
         document.getElementById('t-date').innerText = new Date().toLocaleString();
         document.getElementById('t-items').innerHTML = itemsHtml;
         document.getElementById('t-total').innerText = `$${total.toFixed(2)}`;
-        document.getElementById('t-store-name').innerText = db.cfg.name.toUpperCase();
+        document.getElementById('t-store').innerText = db.cfg.name.toUpperCase();
         
         document.getElementById('ticket-view').style.display = 'block';
         document.getElementById('btn-wa').style.display = 'block';
         document.getElementById('btn-next').style.display = 'block';
         document.getElementById('cart-container').style.display = 'none';
-        document.getElementById('pos-actions').style.display = 'none';
-        
+        document.getElementById('btn-cobrar').style.display = 'none';
         closeModal();
     }
 
-    function sendWhatsApp() {
-        const total = document.getElementById('t-total').innerText;
-        let text = `*${db.cfg.name}*\n_Tu recibo digital_\n\n`;
-        cart.forEach(i => { text += `• ${i.q} ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`; });
-        text += `\n*TOTAL: ${total}*\n¡Gracias por tu compra!`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    function generateCortePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(20); doc.text(db.cfg.name, 10, 20);
+        doc.setFontSize(12); doc.text("REPORTE DE CORTE DIARIO", 10, 30);
+        doc.text("------------------------------------------", 10, 35);
+        doc.text(`Efectivo en Caja: $${db.vEfe.toFixed(2)}`, 10, 45);
+        doc.text(`Ganancia Real (Utilidad): $${db.ganancia.toFixed(2)}`, 10, 55);
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 10, 65);
+        doc.save(`corte_${new Date().toLocaleDateString()}.pdf`);
     }
 
-    function resetPos() {
-        cart = []; renderCart();
-        document.getElementById('ticket-view').style.display = 'none';
-        document.getElementById('btn-wa').style.display = 'none';
-        document.getElementById('btn-next').style.display = 'none';
-        document.getElementById('cart-container').style.display = 'block';
-        document.getElementById('pos-actions').style.display = 'block';
+    function renderFiados() {
+        document.getElementById('fiados-list').innerHTML = db.fiados.map((f, idx) => `
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <b>${f.cliente}</b> - $${f.total.toFixed(2)}<br>
+                <small>${f.fecha} | ${f.productos}</small><br>
+                <button onclick="db.fiados.splice(${idx},1);save();renderFiados()" style="background:var(--success); color:#000; border:none; border-radius:5px; margin-top:5px; padding:5px 10px;">Pagar / Eliminar</button>
+            </div>
+        `).join('');
     }
 
     function addInv() {
         const sku = document.getElementById('s-sku').value;
-        const nom = document.getElementById('s-nom').value;
         const buy = parseFloat(document.getElementById('s-buy').value) || 0;
         const sell = parseFloat(document.getElementById('s-sell').value) || 0;
         const sto = parseInt(document.getElementById('s-sto').value) || 0;
-        const ex = db.inv.find(x => x.sku === sku);
-        if(ex) { ex.stock += sto; ex.buy = buy; ex.sell = sell; if(nom) ex.name = nom; }
-        else db.inv.push({sku, name: nom || 'Prod', buy, sell, stock: sto});
-        save(); renderInv(); alert("Stock guardado");
+        const nom = document.getElementById('s-nom').value;
+        db.inv.push({sku, name: nom, buy, sell, stock: sto});
+        save(); renderInv(); alert("Agregado");
     }
 
     function renderInv() {
-        let totalVal=0; let totalPieces=0;
-        document.getElementById('inv-list-container').innerHTML = db.inv.map((p, idx) => {
-            const buy = p.buy || 0; totalVal += (buy * p.stock); totalPieces += p.stock;
-            return `<div class="card"><b>${p.name}</b><br><small>Stock: ${p.stock} | Compra: $${buy}</small><br><button style="background:none; border:none; color:red; font-size:10px; padding:0;" onclick="db.inv.splice(${idx},1);save();renderInv()">borrar</button></div>`;
+        let invTotal = 0;
+        document.getElementById('inv-list-container').innerHTML = db.inv.map(p => {
+            invTotal += (p.buy * p.stock);
+            return `<div class="card"><b>${p.name}</b><br><small>SKU: ${p.sku} | Stock: ${p.stock}</small></div>`;
         }).join('');
-        document.getElementById('inv-val').innerText = `$${totalVal.toFixed(2)}`;
-        document.getElementById('inv-qty').innerText = totalPieces;
+        document.getElementById('inv-val').innerText = `$${invTotal.toFixed(2)}`;
     }
 
-    function applyVIP() {
-        document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('venta', '<span>venta</span>');
-        document.getElementById('top-slogan').innerText = db.cfg.slogan;
-        if(db.cfg.logo) { document.getElementById('bar-logo-img').src = db.cfg.logo; document.getElementById('bar-logo-img').style.display = 'block'; }
+    function sendWhatsApp() {
+        const total = document.getElementById('t-total').innerText;
+        let msg = `*${db.cfg.name}*\n_Recibo_\n`;
+        cart.forEach(i => { msg += `• ${i.q}x ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`; });
+        msg += `\n*TOTAL: ${total}*`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
     }
 
-    function updateVIP(type, val) {
-        if(type === 'name') db.cfg.name = val;
-        if(type === 'slogan') db.cfg.slogan = val;
-        if(type === 'scanWait') db.cfg.scanWait = val;
-        if(type === 'logo' && val.files[0]) {
-            const r = new FileReader(); r.onload = (e) => { db.cfg.logo = e.target.result; applyVIP(); save(); }; r.readAsDataURL(val.files[0]);
-        }
-        applyVIP(); save();
-    }
-
+    function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('venta', '<span>venta</span>'); }
+    function updateVIP(t, v) { db.cfg[t] = v; applyVIP(); save(); }
     function showSec(id, b) { 
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
-        document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); 
-        document.getElementById(id).classList.add('active'); b.classList.add('active'); 
-        if(id==='corte'){ document.getElementById('c-balance').innerText=`$${db.vEfe.toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; } 
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+        document.getElementById(id).classList.add('active'); b.classList.add('active');
+        if(id==='corte'){ document.getElementById('c-balance').innerText=`$${db.vEfe.toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; }
+        if(id==='fiados') renderFiados();
     }
-
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ if(scanner) scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, m)); } }
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    function openPaymentModal() { if(cart.length) { document.getElementById('m-total').innerText = `Total: ${document.getElementById('total-val').innerText}`; document.getElementById('payment-modal').style.display='flex'; } }
+    function openPaymentModal() { if(cart.length) document.getElementById('payment-modal').style.display='flex'; document.getElementById('m-total').innerText="Total: "+document.getElementById('total-val').innerText; }
     function closeModal() { document.getElementById('payment-modal').style.display='none'; }
-    function calcChange() { const t = parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r = parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText = `$${(r-t).toFixed(2)} cambio`; }
+    function togglePayUI() { const m=document.getElementById('p-method').value; document.getElementById('cash-ui').style.display=m==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display=m==='fiado'?'block':'none'; }
+    function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} cambio`; }
+    function resetPos() { cart = []; renderCart(); document.getElementById('ticket-view').style.display='none'; document.getElementById('btn-wa').style.display='none'; document.getElementById('btn-next').style.display='none'; document.getElementById('cart-container').style.display='block'; document.getElementById('btn-cobrar').style.display='block'; }
     function resetCorte() { if(confirm("¿Cerrar caja?")){ db.vEfe=0; db.ganancia=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
 </script>
 </body>
