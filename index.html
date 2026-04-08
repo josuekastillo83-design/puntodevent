@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>nexvent - tu punto de venta inteligente</title>
+    <title>NEXVENT - Punto de Venta Inteligente</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -37,30 +37,28 @@
         .section.active { display: block; }
 
         .card { background: var(--bg-card); border-radius: 18px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid var(--border-color); }
-        .input-style { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 15px; outline: none; background: rgba(128,128,128,0.05); color: var(--text-main); }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #000; color: white; font-weight: 600; cursor: pointer; }
+        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 16px; outline: none; background: rgba(128,128,128,0.05); color: var(--text-main); }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 15px; background: #000; color: white; font-weight: 600; cursor: pointer; }
         .dark-mode .btn-main { background: var(--accent); color: #000; }
         
         .total-box { background: #000; color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); }
         .total-box h2 { font-size: 3em; margin: 0; color: var(--accent); }
 
-        .accordion { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--border-color); }
-        .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .accordion-content { display: none; padding: 12px; border-top: 1px solid var(--border-color); }
-        .accordion-content.open { display: block; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--bg-card); width: 100%; max-width: 380px; padding: 25px; border-radius: 25px; text-align: center; border: 1px solid var(--accent); }
+        
+        .pay-option { display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+        .pay-option.selected { border-color: var(--accent); background: rgba(0,242,254,0.1); }
 
         .qty-ctrl { display: flex; align-items: center; gap: 8px; justify-content: center; }
         .btn-qty { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color); background: #eee; color: #000; font-weight: bold; }
         .dark-mode .btn-qty { background: #333; color: white; }
-
-        .thumb { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; margin-right: 10px; }
-        .prod-img { width: 100%; border-radius: 10px; margin-bottom: 8px; max-height: 180px; object-fit: contain; background: #eee; }
-
-        #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 15px; border: 2px solid var(--accent); }
         
-        /* MODALES */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: var(--bg-card); width: 100%; max-width: 380px; padding: 25px; border-radius: 25px; text-align: center; border: 1px solid var(--accent); }
+        .accordion { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--border-color); }
+        .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .accordion-content { display: none; padding: 12px; border-top: 1px solid var(--border-color); }
+        .accordion-content.open { display: block; }
+        .thumb { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; margin-right: 10px; }
     </style>
 </head>
 <body onload="initApp()">
@@ -87,8 +85,6 @@
             <div class="card"><table style="width:100%; border-collapse: collapse;"><tbody id="cart-body"></tbody></table></div>
             <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val">$0.00</h2></div>
             <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000;">COBRAR</button>
-            <div id="ticket-text" style="display:none; background:#fff; color:#000; padding:15px; font-family:monospace; margin-top:10px; font-size:11px; white-space:pre-wrap;"></div>
-            <button id="btn-wa" class="btn-main" style="display:none; background:#25D366; margin-top:5px;" onclick="shareWA()">ENVIAR WHATSAPP</button>
         </div>
 
         <div id="stock" class="section">
@@ -112,130 +108,98 @@
             <div id="inv-list-container"></div>
         </div>
 
-        <div id="fiados" class="section"><div class="card"><input type="text" id="f-search" class="input-style" placeholder="Buscar cliente..." oninput="renderFiados()"><div id="fiados-list"></div></div></div>
-        <div id="gastos" class="section"><div class="card"><input type="text" id="g-desc" class="input-style" placeholder="Motivo"><input type="number" id="g-monto" class="input-style" placeholder="$"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">RESTAR</button></div><div id="gastos-list"></div></div>
-        
         <div id="corte" class="section">
             <div class="card" style="text-align:center;">
                 <small>GANANCIA REAL (UTILIDAD)</small>
                 <h1 id="c-profit" style="color:var(--success); font-size:3em; margin:5px 0;">$0.00</h1>
                 <p>Efectivo en Caja: <b id="c-balance">$0.00</b></p>
-                <p style="font-size:12px; color:#888;">Abonos hoy: <b id="c-abonos" style="color:var(--accent)">$0.00</b></p>
-                <button class="btn-main" onclick="generatePDF()">PDF</button>
-                <button class="btn-main" style="background:#444; margin-top:10px;" onclick="showNxConfirm('¿Cerrar caja y limpiar registros del día?', resetCorteAction)">CERRAR DÍA</button>
+                <p>Ventas Tarjeta: <b id="c-tarjeta" style="color:var(--accent)">$0.00</b></p>
+                <button class="btn-main" onclick="generatePDF()">DESCARGAR PDF</button>
+                <button class="btn-main" style="background:#444; margin-top:10px;" onclick="showNxConfirm('¿Cerrar caja diaria?', resetCorteAction)">CERRAR DÍA</button>
             </div>
         </div>
 
         <div id="vip" class="section">
             <div class="card">
+                <h3>APARIENCIA</h3>
+                <div style="display:flex; gap:10px;"><button class="btn-main" style="background:#eee; color:#000;" onclick="setTheme('light')">CLARO</button><button class="btn-main" style="background:#222; color:#fff;" onclick="setTheme('dark')">OSCURO</button></div>
+            </div>
+            <div class="card">
+                <h3>IDENTIDAD</h3>
                 <input type="text" id="set-name" class="input-style" placeholder="Nombre Negocio" oninput="updateVIP('name', this.value)">
-                <input type="text" id="set-slogan" class="input-style" placeholder="Slogan" oninput="updateVIP('slogan', this.value)">
                 <p>Logo:</p><input type="file" accept="image/*" class="input-style" onchange="updateVIP('logo', this)">
-                <p>Modo de escaneo:</p>
-                <select id="set-scan-mode" class="input-style" onchange="updateVIP('scanMode', this.value)"><option value="auto">Automático (+1)</option><option value="manual">Manual (Pedir cantidad)</option></select>
             </div>
         </div>
     </div>
 
-    <div id="nx-confirm-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="color: var(--accent); margin: 0 0 10px 0;">NEXVENT</h2>
-            <p id="nx-confirm-message" style="margin-bottom: 25px;"></p>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-main" id="nx-confirm-accept">Aceptar</button>
-                <button class="btn-main" style="background: transparent; color: inherit; border: 1px solid #444;" id="nx-confirm-cancel">Cancelar</button>
-            </div>
-        </div>
-    </div>
+    <div id="nx-confirm-modal" class="modal"><div class="modal-content"><h2 style="color: var(--accent);">NEXVENT</h2><p id="nx-confirm-message"></p><div style="display: flex; gap: 10px; margin-top:20px;"><button class="btn-main" id="nx-confirm-accept">Aceptar</button><button class="btn-main" style="background: transparent; color: inherit; border: 1px solid #444;" id="nx-confirm-cancel">Cancelar</button></div></div></div>
 
-    <div id="payment-modal" class="modal"><div class="modal-content"><h2 id="m-total">Total: $0.00</h2><select id="p-method" class="input-style" onchange="togglePayUI()"><option value="efectivo">Efectivo</option><option value="fiado">Fiado</option></select><div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="¿Recibido?" oninput="calcChange()"><h2 id="change-text">$0.00 cambio</h2></div><div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="Nombre deudor"></div><button class="btn-main" onclick="confirmPayment()">CONFIRMAR</button><button class="btn-main" style="background:transparent; color:inherit;" onclick="closeModal()">VOLVER</button></div></div>
+    <div id="payment-modal" class="modal"><div class="modal-content"><h2 id="m-total" style="margin-bottom:20px;">Total: $0.00</h2><div id="method-selector"><div class="pay-option selected" onclick="selectPayMethod('efectivo', this)"><span>Efectivo</span></div><div class="pay-option" onclick="selectPayMethod('tarjeta', this)"><span>Tarjeta</span></div><div class="pay-option" onclick="selectPayMethod('fiado', this)"><span>Fiado</span></div></div><div id="cash-ui" style="margin-top:15px;"><input type="number" id="cash-rec" class="input-style" placeholder="¿Recibido?" oninput="calcChange()"><h2 id="change-text">$0.00 cambio</h2></div><div id="debt-ui" style="display:none; margin-top:15px;"><input type="text" id="debt-cust" class="input-style" placeholder="Nombre deudor"></div><button class="btn-main" style="margin-top:20px;" onclick="confirmPayment()">CONFIRMAR</button><button class="btn-main" style="background:transparent; color:inherit; margin-top:10px;" onclick="closeModal()">VOLVER</button></div></div>
 
 <script>
-    let db; let scanner; let cart = []; let lastScan = 0;
+    let db; let cart = []; let selectedMethod = 'efectivo';
 
     function initApp() {
         db = {
             inv: JSON.parse(localStorage.getItem('n_inv')) || [],
             fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
-            gastos: JSON.parse(localStorage.getItem('n_gas')) || [],
             vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
-            abHoy: parseFloat(localStorage.getItem('n_ab_h')) || 0,
+            vTar: parseFloat(localStorage.getItem('n_v_t')) || 0,
             ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
-            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', slogan: 'tu punto de venta', theme: 'light', logo: '', scanWait: 2, scanMode: 'auto' }
+            cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', theme: 'dark' }
         };
         applyVIP(); renderInv();
     }
 
     function save() { 
-        localStorage.setItem('n_inv', JSON.stringify(db.inv)); localStorage.setItem('n_fia', JSON.stringify(db.fiados)); 
-        localStorage.setItem('n_gas', JSON.stringify(db.gastos)); localStorage.setItem('n_v_e', db.vEfe); 
-        localStorage.setItem('n_ab_h', db.abHoy); localStorage.setItem('n_gan', db.ganancia); 
-        localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); 
+        localStorage.setItem('n_inv', JSON.stringify(db.inv));
+        localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar);
+        localStorage.setItem('n_gan', db.ganancia); localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); 
     }
 
-    // DIÁLOGO PROFESIONAL NEXVENT
+    // FUNCIÓN DE STOCK REPARADA (LIMPIEZA DE CASILLAS)
+    function addInv() {
+        const sku = document.getElementById('s-sku').value;
+        const nom = document.getElementById('s-nom').value;
+        const buy = parseFloat(document.getElementById('s-buy').value) || 0;
+        const sell = parseFloat(document.getElementById('s-sell').value) || 0;
+        const sto = parseInt(document.getElementById('s-sto').value) || 0;
+        const imgIn = document.getElementById('s-img');
+
+        if(!sku) { showNxConfirm("Ingresa al menos el código SKU", () => {}); return; }
+
+        const saveP = (img = '') => {
+            const ex = db.inv.find(x => x.sku === sku);
+            if(ex){
+                ex.stock += sto; ex.buy = buy; ex.sell = sell;
+                if(nom) ex.name = nom; if(img) ex.img = img;
+            } else {
+                db.inv.push({sku, name: nom || 'Producto', buy, sell, stock: sto, img});
+            }
+            save(); renderInv();
+            
+            // LIMPIEZA DE CASILLAS
+            document.getElementById('s-sku').value = '';
+            document.getElementById('s-nom').value = '';
+            document.getElementById('s-buy').value = '';
+            document.getElementById('s-sell').value = '';
+            document.getElementById('s-sto').value = '';
+            document.getElementById('s-img').value = '';
+            
+            showNxConfirm("Producto guardado correctamente", () => {});
+        };
+
+        if(imgIn.files[0]) {
+            const r = new FileReader(); r.onload = (e) => saveP(e.target.result); r.readAsDataURL(imgIn.files[0]);
+        } else { saveP(); }
+    }
+
     function showNxConfirm(message, action) {
         const modal = document.getElementById('nx-confirm-modal');
         document.getElementById('nx-confirm-message').innerText = message;
         modal.style.display = 'flex';
         document.getElementById('nx-confirm-accept').onclick = () => { action(); modal.style.display = 'none'; };
         document.getElementById('nx-confirm-cancel').onclick = () => { modal.style.display = 'none'; };
-    }
-
-    function resetCorteAction() {
-        db.vEfe=0; db.ganancia=0; db.gastos=[]; db.abHoy=0; save(); 
-        showSec('corte', document.querySelector('[onclick*="corte"]'));
-    }
-
-    function beep() {
-        const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
-        o.start(); o.stop(ctx.currentTime + 0.2);
-        const m = new SpeechSynthesisUtterance("detectado"); m.lang = 'es-MX'; window.speechSynthesis.speak(m);
-    }
-
-    function process(code, mode = 'sale') {
-        const now = Date.now(); if(now - lastScan < (db.cfg.scanWait * 1000)) return; lastScan = now;
-        const p = db.inv.find(x => x.sku === code);
-        if(p) {
-            beep();
-            if(mode === 'sale') {
-                let q = 1; if(db.cfg.scanMode === 'manual') q = parseFloat(prompt(`Cantidad para ${p.name}:`)) || 0;
-                if(q > 0) { const i = cart.find(x => x.sku === code); if(i) i.q += q; else cart.push({...p, q: q}); renderCart(); }
-            } else { document.getElementById('s-sku').value = code; document.getElementById('s-nom').value = p.name; document.getElementById('s-buy').value = p.buy; document.getElementById('s-sell').value = p.sell; showSec('stock', document.querySelector('[onclick*="stock"]')); }
-        } else { beep(); document.getElementById('s-sku').value = code; showSec('stock', document.querySelector('[onclick*="stock"]')); }
-    }
-
-    function renderCart() {
-        let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
-            t += (i.sell * i.q);
-            return `<tr style="border-bottom:1px solid var(--border-color);"><td style="padding:10px;"><b>${i.name}</b><br><small>$${i.sell}</small></td><td><div class="qty-ctrl"><button class="btn-qty" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="btn-qty" onclick="updateQty(${idx},1)">+</button></div></td><td style="text-align:right; padding-right:10px;">$${(i.sell*i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()" style="color:var(--danger); padding:10px;">❌</td></tr>`;
-        }).join('');
-        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
-    }
-    function updateQty(idx, d) { cart[idx].q += d; if(cart[idx].q <= 0) cart.splice(idx,1); renderCart(); }
-
-    function confirmPayment() {
-        const total = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
-        const m = document.getElementById('p-method').value;
-        let gain = 0; let txt = `*${db.cfg.name.toUpperCase()}*\n${new Date().toLocaleString()}\n`;
-        cart.forEach(i => { gain += (i.sell - i.buy) * i.q; txt += `${i.q}x ${i.name} - $${(i.sell*i.q).toFixed(2)}\n`; const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q; });
-        txt += `TOTAL: $${total.toFixed(2)}`;
-        if(m === 'efectivo') db.vEfe += total; else { const c = document.getElementById('debt-cust').value; db.fiados.unshift({n: c, m: total, h: [{fecha: new Date().toLocaleString(), d: txt, m: total}]}); }
-        db.ganancia += gain; save(); document.getElementById('ticket-text').innerText = txt; document.getElementById('ticket-text').style.display='block'; document.getElementById('btn-wa').style.display='block'; cart = []; renderCart(); closeModal();
-    }
-
-    function addInv() {
-        const sku = document.getElementById('s-sku').value; const nom = document.getElementById('s-nom').value;
-        const b = parseFloat(document.getElementById('s-buy').value) || 0; const s = parseFloat(document.getElementById('s-sell').value) || 0;
-        const sto = parseInt(document.getElementById('s-sto').value) || 0; const imgIn = document.getElementById('s-img');
-        if(!sku) return;
-        const saveP = (img = '') => {
-            const ex = db.inv.find(x => x.sku === sku);
-            if(ex){ ex.stock += sto; ex.buy = b; ex.sell = s; if(nom) ex.name = nom; if(img) ex.img = img; } else { db.inv.push({sku, name: nom || 'Producto', buy: b, sell: s, stock: sto, img}); }
-            save(); renderInv();
-        };
-        if(imgIn.files[0]) { const r = new FileReader(); r.onload = (e) => saveP(e.target.result); r.readAsDataURL(imgIn.files[0]); } else saveP();
     }
 
     function renderInv() {
@@ -247,23 +211,22 @@
         document.getElementById('inv-val').innerText = `$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText = q;
     }
 
-    function renderFiados() { document.getElementById('fiados-list').innerHTML = db.fiados.map((f, i) => `<div class="card"><b>${f.n}</b> - $${f.m.toFixed(2)} <button class="btn-qty" style="float:right; background:var(--success); color:#000; width:auto; padding:0 10px;" onclick="payFiado(${i})">LIQUIDAR</button></div>`).join(''); }
-    function payFiado(idx) { const monto = db.fiados[idx].m; db.vEfe += monto; db.abHoy += monto; db.fiados.splice(idx, 1); save(); renderFiados(); }
-    function addGasto() { const d = document.getElementById('g-desc').value; const m = parseFloat(document.getElementById('g-monto').value); if(d && m > 0){ db.gastos.unshift({d, m}); save(); renderGastos(); } }
-    function renderGastos() { document.getElementById('gastos-list').innerHTML = db.gastos.map(g => `<div class="card">${g.d}: $${g.m}</div>`).join(''); }
-    function generatePDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("CORTE CAJA - " + db.cfg.name.toUpperCase(), 10, 10); doc.text(`Ventas Efectivo: $${db.vEfe}`, 10, 20); doc.text(`Abonos recibidos: $${db.abHoy}`, 10, 30); doc.text(`Gastos: $${db.gastos.reduce((a,b)=>a+b.m,0)}`, 10, 40); doc.text(`Ganancia: $${db.ganancia}`, 10, 50); doc.save("corte.pdf"); }
-    function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>'); document.getElementById('top-slogan').innerText = db.cfg.slogan; if(db.cfg.logo) { document.getElementById('bar-logo-img').src = db.cfg.logo; document.getElementById('bar-logo-img').style.display = 'block'; } setTheme(db.cfg.theme); }
+    function showSec(id, b) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'corte') {
+            document.getElementById('c-balance').innerText = `$${db.vEfe.toFixed(2)}`;
+            document.getElementById('c-tarjeta').innerText = `$${db.vTar.toFixed(2)}`;
+            document.getElementById('c-profit').innerText = `$${db.ganancia.toFixed(2)}`;
+        }
+    }
+    
+    function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>'); setTheme(db.cfg.theme); }
     function setTheme(t) { db.cfg.theme = t; document.body.classList.toggle('dark-mode', t === 'dark'); save(); }
-    function updateVIP(type, val) { if(type === 'name') db.cfg.name = val; if(type === 'slogan') db.cfg.slogan = val; if(type === 'scanMode') db.cfg.scanMode = val; if(type === 'logo' && val.files[0]) { const r = new FileReader(); r.onload = (e) => { db.cfg.logo = e.target.result; applyVIP(); save(); }; r.readAsDataURL(val.files[0]); } applyVIP(); save(); }
-    function showSec(id, b) { document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById(id).classList.add('active'); b.classList.add('active'); if(id==='stock')renderInv(); if(id==='fiados')renderFiados(); if(id==='gastos')renderGastos(); if(id==='corte'){ let g = db.gastos.reduce((a,b)=>a+b.m,0); document.getElementById('c-balance').innerText=`$${(db.vEfe + db.abHoy - g).toFixed(2)}`; document.getElementById('c-profit').innerText=`$${db.ganancia.toFixed(2)}`; document.getElementById('c-abonos').innerText=`$${db.abHoy.toFixed(2)}`; } }
-    function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ if(scanner) scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, m)); } }
     function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
-    function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-    function openPaymentModal() { if(cart.length) { document.getElementById('m-total').innerText = "Total: "+document.getElementById('total-val').innerText; document.getElementById('payment-modal').style.display='flex'; } }
-    function closeModal() { document.getElementById('payment-modal').style.display='none'; }
-    function togglePayUI() { const m=document.getElementById('p-method').value; document.getElementById('cash-ui').style.display=m==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display=m==='fiado'?'block':'none'; }
-    function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} cambio`; }
-    function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('ticket-text').innerText)}`); }
+    function openPaymentModal() { if(cart.length) document.getElementById('payment-modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
+    function resetCorteAction() { db.vEfe=0; db.vTar=0; db.ganancia=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); }
 </script>
 </body>
 </html>
