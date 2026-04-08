@@ -83,6 +83,7 @@
         <nav>
             <a href="javascript:void(0)" class="nav-link active" onclick="showSec('pos', this)">🛒 CAJA</a>
             <a href="javascript:void(0)" class="nav-link" onclick="showSec('stock', this)">📦 STOCK</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="showSec('providers', this)">🚚 PROVEEDORES</a>
             <a href="javascript:void(0)" class="nav-link" onclick="showSec('fiados', this)">👥 FIADOS</a>
             <a href="javascript:void(0)" class="nav-link" onclick="showSec('gastos', this)">💸 GASTOS</a>
             <a href="javascript:void(0)" class="nav-link" onclick="showSec('corte', this)">📊 CORTE</a>
@@ -126,22 +127,16 @@
             <div id="inv-list-container"></div>
         </div>
 
-        <div id="vip" class="section">
+        <div id="providers" class="section">
             <div class="card">
-                <h3>Identidad del Negocio</h3>
-                <input type="text" id="set-name" class="input-style" placeholder="Nombre del Negocio">
-                <input type="text" id="set-slogan" class="input-style" placeholder="Slogan o frase">
-                <p style="font-size:12px;">Logotipo:</p>
-                <input type="file" id="set-logo" accept="image/*" class="input-style">
-                <button class="btn-main" style="background:var(--accent); color:#000;" onclick="saveVIPManual()">APLICAR CAMBIOS</button>
+                <h3>Nuevo Proveedor</h3>
+                <input type="text" id="p-name" class="input-style" placeholder="Nombre del contacto">
+                <input type="text" id="p-comp" class="input-style" placeholder="Compañía (Ej: Coca-Cola)">
+                <input type="tel" id="p-phone" class="input-style" placeholder="Teléfono">
+                <input type="text" id="p-days" class="input-style" placeholder="Días de visita (Ej: Lunes y Jueves)">
+                <button class="btn-main" style="background:var(--accent); color:#000;" onclick="addProvider()">GUARDAR PROVEEDOR</button>
             </div>
-            <div class="card">
-                <h3>Apariencia</h3>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-main" style="background:#eee; color:#000;" onclick="setTheme('light')">MODO CLARO</button>
-                    <button class="btn-main" style="background:#222; color:#fff;" onclick="setTheme('dark')">MODO OSCURO</button>
-                </div>
-            </div>
+            <div id="providers-list"></div>
         </div>
 
         <div id="fiados" class="section">
@@ -149,17 +144,18 @@
             <div id="fiados-list"></div>
         </div>
 
-        <div id="gastos" class="section">
-            <div class="card"><input type="text" id="g-desc" class="input-style" placeholder="Concepto"><input type="number" id="g-monto" class="input-style" placeholder="$"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">REGISTRAR GASTO</button></div>
-            <div id="gastos-list"></div>
-        </div>
-
-        <div id="corte" class="section">
-            <div class="card" style="text-align:center;">
-                <small>GANANCIA HOY</small><h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
-                <p>Caja Efectivo: <b id="c-balance">$0.00</b></p>
-                <p>Caja Tarjeta: <b id="c-tarjeta">$0.00</b></p>
-                <button class="btn-main" onclick="showNxConfirm('¿Cerrar caja diaria?', resetCorteAction)" style="background:#444;">REINICIAR DÍA</button>
+        <div id="vip" class="section">
+            <div class="card">
+                <input type="text" id="set-name" class="input-style" placeholder="Nombre del Negocio">
+                <input type="text" id="set-slogan" class="input-style" placeholder="Slogan">
+                <input type="file" id="set-logo" accept="image/*" class="input-style">
+                <button class="btn-main" style="background:var(--accent); color:#000;" onclick="saveVIPManual()">APLICAR CAMBIOS</button>
+            </div>
+            <div class="card">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-main" style="background:#eee; color:#000;" onclick="setTheme('light')">CLARO</button>
+                    <button class="btn-main" style="background:#222; color:#fff;" onclick="setTheme('dark')">OSCURO</button>
+                </div>
             </div>
         </div>
     </div>
@@ -181,14 +177,12 @@
         db = {
             inv: JSON.parse(localStorage.getItem('n_inv')) || [],
             fiados: JSON.parse(localStorage.getItem('n_fia')) || [],
-            gastos: JSON.parse(localStorage.getItem('n_gas')) || [],
+            providers: JSON.parse(localStorage.getItem('n_prov')) || [],
             vEfe: parseFloat(localStorage.getItem('n_v_e')) || 0,
             vTar: parseFloat(localStorage.getItem('n_v_t')) || 0,
             ganancia: parseFloat(localStorage.getItem('n_gan')) || 0,
             cfg: JSON.parse(localStorage.getItem('n_cfg')) || { name: 'nexvent', slogan: 'pos inteligente', theme: 'dark' }
         };
-        document.getElementById('set-name').value = db.cfg.name;
-        document.getElementById('set-slogan').value = db.cfg.slogan;
         applyVIP();
     }
 
@@ -206,96 +200,113 @@
         if(btn) btn.classList.add('active');
         toggleSidebar();
         if(id === 'stock') renderInv();
+        if(id === 'providers') renderProviders();
         if(id === 'fiados') renderFiados();
-        if(id === 'gastos') renderGastos();
-        if(id === 'corte') {
-            document.getElementById('c-balance').innerText = `$${db.vEfe.toFixed(2)}`;
-            document.getElementById('c-tarjeta').innerText = `$${db.vTar.toFixed(2)}`;
-            document.getElementById('c-profit').innerText = `$${db.ganancia.toFixed(2)}`;
-        }
     }
 
-    function addInv() {
-        const sku = document.getElementById('s-sku').value;
-        const nom = document.getElementById('s-nom').value || 'Producto';
-        const b = parseFloat(document.getElementById('s-buy').value) || 0;
-        const s = parseFloat(document.getElementById('s-sell').value) || 0;
-        const st = parseInt(document.getElementById('s-sto').value) || 0;
-        const imgFile = document.getElementById('s-img').files[0];
-        if(!sku) return;
+    // --- LÓGICA DE STOCK Y AGOTADOS ---
+    function process(code, m) {
+        const now = Date.now(); if(now - lastScan < 2000) return; lastScan = now;
+        const p = db.inv.find(x => x.sku === code);
+        beep();
+        
+        if (m === 'add') {
+            document.getElementById('s-sku').value = code;
+            if(p){ document.getElementById('s-nom').value = p.name; document.getElementById('s-sell').value = p.sell; }
+            return;
+        }
 
-        const completeSave = (imgBase64 = '') => {
-            const ex = db.inv.find(x => x.sku === sku);
-            if(ex){
-                ex.stock += st; ex.buy = b; ex.sell = s; ex.name = nom;
-                if(imgBase64) ex.img = imgBase64;
-            } else {
-                db.inv.push({sku, name: nom, buy: b, sell: s, stock: st, img: imgBase64});
+        if (p) {
+            // VALIDACIÓN DE STOCK AGOTADO
+            if(p.stock <= 0) {
+                showNxConfirm(`⚠️ PRODUCTO AGOTADO: No hay existencias de ${p.name}.`, () => {});
+                return;
             }
-            save(); renderInv();
-            ['s-sku','s-nom','s-buy','s-sell','s-sto','s-img'].forEach(id => document.getElementById(id).value = '');
-            showNxConfirm("¡Guardado!", () => {});
-        };
 
-        if(imgFile) {
-            const reader = new FileReader();
-            reader.onload = (e) => completeSave(e.target.result);
-            reader.readAsDataURL(imgFile);
-        } else { completeSave(); }
-    }
-
-    function confirmPayment() {
-        if(isProcessing) return; isProcessing = true;
-        const total = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
-        const method = document.getElementById('p-method').value;
-        let gain = 0;
-        let details = cart.map(i => `${i.q}x ${i.name}`).join(', ');
-
-        cart.forEach(i => {
-            gain += (i.sell - i.buy) * i.q;
-            const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
-        });
-
-        if (method === 'efectivo') db.vEfe += total;
-        else if (method === 'tarjeta') db.vTar += total;
-        else {
-            const n = document.getElementById('debt-cust').value.trim() || "Cliente";
-            const exist = db.fiados.find(f => f.n.toLowerCase() === n.toLowerCase());
-            if(exist){ exist.m += total; exist.detalles += " | "+details; }
-            else { db.fiados.unshift({n, m: total, fecha: new Date().toLocaleString(), detalles: details}); }
+            const i = cart.find(x => x.sku === code);
+            if (i) {
+                // VALIDACIÓN DE TOPE DE STOCK EN CARRITO
+                if(i.q >= p.stock) {
+                    showNxConfirm(`Límite alcanzado: Solo hay ${p.stock} unidades en stock.`, () => {});
+                    return;
+                }
+                i.q++;
+            } else {
+                cart.push({...p, q: 1});
+            }
+            renderCart();
+        } else {
+            document.getElementById('s-sku').value = code;
+            showSec('stock', null);
         }
-
-        db.ganancia += gain; save();
-        document.getElementById('ticket-print-area').innerText = `${db.cfg.name.toUpperCase()}\nTOTAL: $${total}\n${new Date().toLocaleString()}\n${details}`;
-        document.getElementById('post-sale-actions').style.display = 'block';
-        cart = []; renderCart(); closeModal();
-        isProcessing = false;
-        showNxConfirm("Venta exitosa", () => { document.getElementById('sku-in').focus(); });
     }
 
-    // Lógica core
-    function save() { localStorage.setItem('n_inv', JSON.stringify(db.inv)); localStorage.setItem('n_fia', JSON.stringify(db.fiados)); localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar); localStorage.setItem('n_gan', db.ganancia); localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); }
-    function renderInv() { let v=0, q=0; document.getElementById('inv-list-container').innerHTML = db.inv.map(p => { v+=(p.buy*p.stock); q+=p.stock; return `<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><div>${p.img?`<img src='${p.img}' class='thumb'>`:`<div class='thumb'></div>`}<span>${p.name}</span></div><span>$${p.sell}</span></div><div class='accordion-content'>SKU: ${p.sku}<br>Stock: ${p.stock}<br>Inversión: $${(p.buy*p.stock).toFixed(2)}<br><button class='btn-main' style='background:red; padding:10px; font-size:10px;' onclick='showNxConfirm("¿Borrar?", ()=>{db.inv=db.inv.filter(x=>x.sku!="${p.sku}");save();renderInv();})'>BORRAR</button></div></div>`; }).join(''); document.getElementById('inv-val').innerText=`$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText=q; }
+    function updateQty(idx, d) {
+        const item = cart[idx];
+        const original = db.inv.find(x => x.sku === item.sku);
+        
+        if(d > 0 && item.q >= original.stock) {
+            showNxConfirm(`No puedes vender más de ${original.stock} unidades.`, () => {});
+            return;
+        }
+        
+        item.q += d;
+        if(item.q <= 0) cart.splice(idx,1);
+        renderCart();
+    }
+
+    // --- LÓGICA DE PROVEEDORES ---
+    function addProvider() {
+        const n = document.getElementById('p-name').value;
+        const c = document.getElementById('p-comp').value;
+        const p = document.getElementById('p-phone').value;
+        const d = document.getElementById('p-days').value;
+        if(!n || !c) return;
+        db.providers.unshift({n, c, p, d});
+        save(); renderProviders();
+        ['p-name','p-comp','p-phone','p-days'].forEach(id => document.getElementById(id).value = '');
+        showNxConfirm("Proveedor guardado", () => {});
+    }
+
+    function renderProviders() {
+        document.getElementById('providers-list').innerHTML = db.providers.map((prov, i) => `
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><b>${prov.c}</b> - ${prov.n}</span>
+                    <span>Visita: ${prov.d}</span>
+                </div>
+                <div class="accordion-content">
+                    <p>📞 Tel: ${prov.p}</p>
+                    <button class="btn-main" style="background:red; padding:10px; font-size:10px;" onclick="db.providers.splice(${i},1);save();renderProviders();">BORRAR PROVEEDOR</button>
+                </div>
+            </div>`).join('');
+    }
+
+    // --- CORE ---
+    function save() { 
+        localStorage.setItem('n_inv', JSON.stringify(db.inv)); 
+        localStorage.setItem('n_fia', JSON.stringify(db.fiados)); 
+        localStorage.setItem('n_prov', JSON.stringify(db.providers));
+        localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar); 
+        localStorage.setItem('n_gan', db.ganancia); localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); 
+    }
+
+    function renderInv() { let v=0, q=0; document.getElementById('inv-list-container').innerHTML = db.inv.map(p => { v+=(p.buy*p.stock); q+=p.stock; return `<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><div>${p.img?`<img src='${p.img}' class='thumb'>`:`<div class='thumb'></div>`}<span>${p.name}</span></div><span style="${p.stock <= 0 ? 'color:red' : ''}">${p.stock} pzas</span></div><div class='accordion-content'>SKU: ${p.sku}<br>Venta: $${p.sell}<br>Stock: ${p.stock}</div></div>`; }).join(''); document.getElementById('inv-val').innerText=`$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText=q; }
+    function addInv() { const sku = document.getElementById('s-sku').value; if(!sku) return; const handleSave = (img = '') => { const ex = db.inv.find(x => x.sku === sku); const sto = parseInt(document.getElementById('s-sto').value) || 0; if(ex){ ex.stock += sto; ex.buy = parseFloat(document.getElementById('s-buy').value); ex.sell = parseFloat(document.getElementById('s-sell').value); if(img) ex.img = img; } else { db.inv.push({sku, name: document.getElementById('s-nom').value, buy: parseFloat(document.getElementById('s-buy').value), sell: parseFloat(document.getElementById('s-sell').value), stock: sto, img}); } save(); renderInv(); ['s-sku','s-nom','s-buy','s-sell','s-sto','s-img'].forEach(id => document.getElementById(id).value = ''); showNxConfirm("Guardado", () => {}); }; const f = document.getElementById('s-img').files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>handleSave(e.target.result); r.readAsDataURL(f); } else handleSave(); }
     function renderFiados() { const q=document.getElementById('f-search').value.toLowerCase(); document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map(f=>`<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><span>${f.n}</span><span style='color:red'>$${f.m.toFixed(2)}</span></div><div class='accordion-content'>${f.detalles}</div></div>`).join(''); }
-    function renderGastos() { document.getElementById('gastos-list').innerHTML = db.gastos.map(g => `<div class='card'>${g.d}: $${g.m}</div>`).join(''); }
-    function addGasto() { const d=document.getElementById('g-desc').value, m=parseFloat(document.getElementById('g-monto').value); if(d && m>0){ db.gastos.unshift({d,m}); save(); renderGastos(); document.getElementById('g-desc').value=''; document.getElementById('g-monto').value=''; } }
     function toggleAccordion(h) { const c = h.nextElementSibling; c.classList.toggle('open'); }
     function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>'); document.getElementById('sidebar-slogan').innerText = db.cfg.slogan; if(db.cfg.logo){ document.getElementById('bar-logo-img').src=db.cfg.logo; document.getElementById('bar-logo-img').style.display='block'; } document.body.classList.toggle('dark-mode', db.cfg.theme==='dark'); }
-    function saveVIPManual() { db.cfg.name = document.getElementById('set-name').value; db.cfg.slogan = document.getElementById('set-slogan').value; const file = document.getElementById('set-logo').files[0]; if(file){ const r=new FileReader(); r.onload=(e)=>{ db.cfg.logo=e.target.result; save(); applyVIP(); showNxConfirm("Cambios guardados", ()=>{}); }; r.readAsDataURL(file); } else { save(); applyVIP(); showNxConfirm("Cambios guardados", ()=>{}); } }
     function setTheme(t) { db.cfg.theme = t; applyVIP(); save(); }
+    function saveVIPManual() { db.cfg.name = document.getElementById('set-name').value; db.cfg.slogan = document.getElementById('set-slogan').value; const f = document.getElementById('set-logo').files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>{ db.cfg.logo=e.target.result; save(); applyVIP(); showNxConfirm("Cambios guardados", ()=>{}); }; r.readAsDataURL(f); } else { save(); applyVIP(); showNxConfirm("Cambios guardados", ()=>{}); } }
     function renderCart() { let t=0; document.getElementById('cart-body').innerHTML = cart.map((i,idx)=> { t+=(i.sell*i.q); return `<tr><td style='padding:10px'>${i.name}</td><td><button class='btn-qty' onclick='updateQty(${idx},1)'>+</button> ${i.q} <button class='btn-qty' onclick='updateQty(${idx},-1)'>-</button></td><td style='text-align:right'>$${(i.sell*i.q).toFixed(2)}</td></tr>`; }).join(''); document.getElementById('total-val').innerText=`$${t.toFixed(2)}`; }
-    function updateQty(idx, d) { cart[idx].q += d; if(cart[idx].q <= 0) cart.splice(idx,1); renderCart(); }
     function openPaymentModal() { if(cart.length) document.getElementById('payment-modal').style.display='flex'; document.getElementById('m-total').innerText="Total: "+document.getElementById('total-val').innerText; }
     function closeModal() { document.getElementById('payment-modal').style.display='none'; }
     function togglePayUI() { const m=document.getElementById('p-method').value; document.getElementById('cash-ui').style.display=m==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display=m==='fiado'?'block':'none'; }
-    function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} cambio`; }
+    function confirmPayment() { if(isProcessing) return; isProcessing=true; const total=parseFloat(document.getElementById('total-val').innerText.replace('$','')), method=document.getElementById('p-method').value; cart.forEach(i=>{ const p=db.inv.find(x=>x.sku===i.sku); if(p) p.stock-=i.q; db.ganancia+=(i.sell-i.buy)*i.q; }); if(method==='efectivo') db.vEfe+=total; else if(method==='tarjeta') db.vTar+=total; else { db.fiados.unshift({n: document.getElementById('debt-cust').value, m: total, fecha: new Date().toLocaleString()}); } save(); location.reload(); }
     function showNxConfirm(m, a) { const mod=document.getElementById('nx-confirm-modal'); document.getElementById('nx-confirm-message').innerText=m; mod.style.display='flex'; document.getElementById('nx-confirm-accept').onclick=()=>{ a(); mod.style.display='none'; }; }
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ if(scanner) scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t,m)); } }
-    function process(code, m) { const now=Date.now(); if(now-lastScan < 2000) return; lastScan=now; const p=db.inv.find(x=>x.sku===code); beep(); if(m==='add'){ document.getElementById('s-sku').value=code; if(p){ document.getElementById('s-nom').value=p.name; document.getElementById('s-sell').value=p.sell; } return; } if(p){ const i=cart.find(x=>x.sku===code); if(i) i.q++; else cart.push({...p,q:1}); renderCart(); } else { document.getElementById('s-sku').value=code; showSec('stock',null); } }
-    function handleSKU(e) { if(e.key==='Enter'){ process(e.target.value,'sale'); e.target.value=''; } }
     function beep() { const ctx=new AudioContext(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=880; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.2); o.start(); o.stop(ctx.currentTime+0.2); }
-    function shareWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('ticket-print-area').innerText)}`); }
-    function resetCorteAction() { db.vEfe=0; db.vTar=0; db.ganancia=0; save(); location.reload(); }
+    function handleSKU(e) { if(e.key==='Enter'){ process(e.target.value,'sale'); e.target.value=''; } }
 </script>
 </body>
 </html>
