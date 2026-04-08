@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Elite POS Pro - Josué Castillo Rubio</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -13,221 +13,288 @@
         :root {
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --accent: #00f2fe;
+            --bg-dark: #111;
             --success: #2ed573;
             --danger: #ff4757;
-            --warning: #f1c40f;
         }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #f0f2f5; min-height: 100vh; overflow-y: auto; }
+        body { margin: 0; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-        .navbar { background: #111; color: white; display: flex; overflow-x: auto; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--accent); }
-        .nav-btn { padding: 15px; border: none; background: transparent; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; flex-shrink: 0; }
-        .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); }
+        /* BIENVENIDA */
+        #welcome-screen {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: var(--bg-dark); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 2000;
+            color: white; text-align: center; padding: 20px;
+        }
+        .welcome-logo { font-family: 'Grand Hotel', cursive; font-size: 5em; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
 
-        .main-content { padding: 12px; padding-bottom: 80px; }
+        /* NAVEGACIÓN */
+        #main-app { display: none; flex-direction: column; min-height: 100vh; }
+        .navbar { background: var(--bg-dark); color: white; display: flex; overflow-x: auto; border-bottom: 2px solid var(--accent); position: sticky; top: 0; z-index: 100; }
+        .nav-btn { padding: 15px 20px; border: none; background: transparent; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid transparent; flex-shrink: 0; }
+        .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
+
+        .main-content { flex-grow: 1; padding: 12px; padding-bottom: 100px; }
         .section { display: none; max-width: 800px; margin: 0 auto; }
         .section.active { display: block; }
 
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+        .input-style { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; outline: none; }
         
         .total-box { background: var(--gradient); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
-        
-        /* Tarjeta de Ganancia */
-        .profit-card { background: #fff; border-left: 5px solid var(--accent); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .total-box h2 { font-size: 2.8em; margin: 0; }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-bottom: 10px; }
 
-        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--gradient); color: white; font-weight: bold; cursor: pointer; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; font-size: 10px; color: #7f8c8d; border-bottom: 2px solid #f0f0f0; padding: 8px; }
-        td { padding: 10px 8px; border-bottom: 1px solid #f8f9fa; font-size: 13px; }
+        /* ACORDEÓN */
+        .accordion { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 1px solid #ddd; }
+        .accordion-header { background: #f8f9fa; padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
+        .accordion-content { display: none; padding: 10px; }
+        .accordion-content.open { display: block; }
 
-        /* Estilo Ticket Compartible */
-        #ticket-view { background: #fff; padding: 20px; border: 1px dashed #ccc; font-family: monospace; display: none; color: #000; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: #7f8c8d; padding: 10px; font-size: 10px; border-bottom: 2px solid #f0f0f0; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f8f9fa; font-size: 12px; }
+
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { background: #eee; border: none; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; }
         
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; overflow-y: auto; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; overflow-y: auto; padding: 20px 0; }
+        .modal-content { background: white; width: 95%; max-width: 420px; padding: 25px; border-radius: 20px; text-align: center; margin: auto; }
+        #reader-pos, #reader-stock { width: 100%; border-radius: 15px; overflow: hidden; display: none; margin-bottom: 10px; border: 2px solid var(--accent); }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <button class="nav-btn active" onclick="showSec('pos', this)">🛒 Caja</button>
-        <button class="nav-btn" onclick="showSec('stock', this)">📦 Stock</button>
-        <button class="nav-btn" onclick="showSec('corte', this)">📊 Ganancias</button>
+    <div id="welcome-screen">
+        <h1 class="welcome-logo" id="wel-name">Elite POS</h1>
+        <p>SISTEMA PROFESIONAL POR JOSUÉ CASTILLO</p>
+        <button class="btn-main" style="width: 250px; margin-top: 20px;" onclick="startApp()">ENTRAR AL NEGOCIO</button>
     </div>
 
-    <div class="main-content">
-        <div id="pos" class="section active">
-            <input type="text" id="sku-in" class="input-style" placeholder="Escanear o escribir..." onkeypress="handleSKU(event)">
-            <div class="card">
-                <table><thead><tr><th>Prod</th><th>Cant</th><th>Sub</th></tr></thead><tbody id="cart-body"></tbody></table>
-            </div>
-            <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val" style="font-size: 3em; margin:0;">$0.00</h2></div>
-            <button class="btn-main" onclick="openPaymentModal()">COBRAR VENTA</button>
-            
-            <div id="ticket-view" class="card" style="margin-top:20px;">
-                <center><b id="t-name">ELITE POS</b><br><small id="t-date"></small></center>
-                <hr>
-                <div id="t-items"></div>
-                <hr>
-                <b>TOTAL: <span id="t-total"></span></b>
-                <p style="font-size: 9px; text-align: center;">¡Gracias por su compra!</p>
-                <button class="btn-main" style="background:#eee; color:#333; padding:5px; font-size:10px;" onclick="copyTicket()">Copiar para WhatsApp</button>
-            </div>
+    <div id="main-app">
+        <div class="navbar">
+            <button class="nav-btn active" onclick="showSec('pos', this)">🛒 Caja</button>
+            <button class="nav-btn" onclick="showSec('stock', this)">📦 Stock</button>
+            <button class="nav-btn" onclick="showSec('fiados', this)">👥 Fiados</button>
+            <button class="nav-btn" onclick="showSec('corte', this)">📊 Corte</button>
+            <button class="nav-btn" onclick="showSec('vip', this)">💎 VIP</button>
         </div>
 
-        <div id="stock" class="section">
-            <div class="card">
-                <h3>Nuevo / Actualizar Producto</h3>
-                <input type="text" id="s-sku" class="input-style" placeholder="Código SKU">
-                <input type="text" id="s-nom" class="input-style" placeholder="Nombre del Producto">
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="s-buy" class="input-style" placeholder="Costo Compra $">
-                    <input type="number" id="s-sell" class="input-style" placeholder="Precio Venta $">
+        <div class="main-content">
+            <div id="pos" class="section active">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="sku-in" class="input-style" placeholder="Escanea o escribe SKU..." onkeypress="handleSKU(event)">
+                    <button onclick="toggleCam('reader-pos', 'sale')" style="height:52px; width:60px; border-radius:10px; border:none; background:var(--gradient); color:white; font-size:1.5em;">📷</button>
                 </div>
-                <input type="number" id="s-qty" class="input-style" placeholder="Stock a sumar">
-                <button class="btn-main" onclick="addInv()">GUARDAR PRODUCTO</button>
+                <div id="reader-pos"></div>
+                <div class="card"><table><thead><tr><th>Prod</th><th>Cant</th><th>Sub</th><th></th></tr></thead><tbody id="cart-body"></tbody></table></div>
+                <div class="total-box"><small>TOTAL VENTA</small><h2 id="total-val">$0.00</h2></div>
+                <button class="btn-main" onclick="openPaymentModal()">COBRAR VENTA</button>
             </div>
-            <div class="card">
-                <table><thead><tr><th>SKU</th><th>Nombre</th><th>Stock</th><th>Precio</th></tr></thead><tbody id="inv-list"></tbody></table>
-            </div>
-        </div>
 
-        <div id="corte" class="section">
-            <div class="card" style="text-align:center;">
-                <small>GANANCIA NETA DEL DÍA</small>
-                <h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:0;">$0.00</h1>
-                <p>Dinero en Caja: <b id="c-total-cash">$0.00</b></p>
+            <div id="stock" class="section">
+                <div class="card" style="background:var(--bg-dark); color:white; display:flex; justify-content:space-between;">
+                    <div><small>VALOR INV.</small><br><b id="st-val-total" style="color:var(--accent)">$0.00</b></div>
+                    <div><small>PIEZAS</small><br><b id="st-qty-total">0</b></div>
+                </div>
+                <button class="btn-main" onclick="toggleCam('reader-stock', 'add')" style="background:var(--success)">➕ ESCANEAR SURTIDO</button>
+                <div id="reader-stock"></div>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">NUEVO / RESURTIR MANUAL <span>▼</span></div>
+                    <div class="accordion-content">
+                        <input type="text" id="s-sku" class="input-style" placeholder="SKU">
+                        <input type="text" id="s-nom" class="input-style" placeholder="Nombre">
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="s-buy" class="input-style" placeholder="Costo Compra $">
+                            <input type="number" id="s-sell" class="input-style" placeholder="Venta $">
+                        </div>
+                        <input type="number" id="s-sto" class="input-style" placeholder="Cantidad a sumar">
+                        <button class="btn-main" onclick="addInv()">GUARDAR EN STOCK</button>
+                    </div>
+                </div>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">LISTA DE PRODUCTOS <span>▼</span></div>
+                    <div class="accordion-content open"><table><thead><tr><th>Nombre</th><th>Stock</th><th>Venta</th><th></th></tr></thead><tbody id="inv-list-body"></tbody></table></div>
+                </div>
             </div>
-            <div class="profit-card">
-                <span>Inversión en Stock:</span>
-                <b id="c-inv-val">$0.00</b>
+
+            <div id="fiados" class="section">
+                <div class="card">
+                    <input type="text" id="f-search" class="input-style" placeholder="🔎 Buscar cliente..." oninput="renderFiados()">
+                    <div id="fiados-list"></div>
+                </div>
             </div>
-            <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
+
+            <div id="corte" class="section">
+                <div class="card" style="text-align:center;">
+                    <h1 id="c-neto" style="color:var(--success); font-size:3.5em;">$0.00</h1>
+                    <p>Ganancia Real: <b id="c-ganancia" style="color:var(--accent)">$0.00</b></p>
+                    <button class="btn-main" onclick="generateTicketPDF()">📥 TICKET PDF</button>
+                    <button class="btn-main" style="background:#888" onclick="resetCorte()">CERRAR CAJA</button>
+                </div>
+            </div>
+
+            <div id="vip" class="section">
+                <div class="card">
+                    <input type="text" id="set-name" class="input-style" placeholder="Nombre Negocio" oninput="updateStyle('name', this.value)">
+                    <div id="swatches"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="payment-modal" class="modal"><div class="modal-content">
         <h2 id="m-total-text">Total: $0.00</h2>
-        <input type="number" id="cash-received" class="input-style" placeholder="¿Cuánto recibes?" oninput="calcChange()">
-        <h2 id="change-text" style="color:var(--success);">$0.00 Cambio</h2>
-        <button class="btn-main" onclick="confirmPayment()">FINALIZAR VENTA</button>
-        <button class="btn-main" style="background:#ccc; margin-top:10px;" onclick="closeModal()">VOLVER</button>
+        <select id="p-method" class="input-style" onchange="togglePaymentUI()">
+            <option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="fiado">Fiado</option>
+        </select>
+        <div id="cash-ui"><input type="number" id="cash-received" class="input-style" placeholder="Recibido" oninput="calcChange()"><h2 id="change-text" style="color:var(--success);">$0.00</h2></div>
+        <div id="debt-ui" style="display:none;"><input type="text" id="debt-customer" class="input-style" placeholder="Nombre Cliente"></div>
+        <button class="btn-main" onclick="confirmPayment()">FINALIZAR</button>
+        <button class="btn-main" style="background:#ccc;" onclick="closeModal()">VOLVER</button>
     </div></div>
 
 <script>
     let db = {
         inv: JSON.parse(localStorage.getItem('e_inv')) || [],
-        ventas: JSON.parse(localStorage.getItem('e_v_list')) || [],
+        fiados: JSON.parse(localStorage.getItem('e_fia_perma')) || [],
+        gastos: JSON.parse(localStorage.getItem('e_gas_hoy')) || [],
         vEfe: parseFloat(localStorage.getItem('e_v_e')) || 0,
-        profitHoy: parseFloat(localStorage.getItem('e_p_h')) || 0
+        vTar: parseFloat(localStorage.getItem('e_v_t')) || 0,
+        vFia: parseFloat(localStorage.getItem('e_v_f')) || 0,
+        gananciaHoy: parseFloat(localStorage.getItem('e_gan_hoy')) || 0,
+        cfg: JSON.parse(localStorage.getItem('e_cfg')) || { name: 'Elite POS', theme: 'linear-gradient(135deg, #667eea, #764ba2)' }
     };
-    let cart = [];
+    let cart = []; let isScanning = false; let scanner;
 
+    function startApp() { document.getElementById('welcome-screen').style.display='none'; document.getElementById('main-app').style.display='flex'; renderInv(); }
     function save() {
-        localStorage.setItem('e_inv', JSON.stringify(db.inv));
-        localStorage.setItem('e_v_list', JSON.stringify(db.ventas));
-        localStorage.setItem('e_v_e', db.vEfe);
-        localStorage.setItem('e_p_h', db.profitHoy);
+        localStorage.setItem('e_inv', JSON.stringify(db.inv)); localStorage.setItem('e_fia_perma', JSON.stringify(db.fiados));
+        localStorage.setItem('e_v_e', db.vEfe); localStorage.setItem('e_v_t', db.vTar); localStorage.setItem('e_v_f', db.vFia);
+        localStorage.setItem('e_gan_hoy', db.gananciaHoy); localStorage.setItem('e_cfg', JSON.stringify(db.cfg));
     }
 
-    function process(code) {
+    function notify(text) {
+        const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination); o.frequency.value = 850; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
+        o.start(); o.stop(ctx.currentTime + 0.1);
+        const msg = new SpeechSynthesisUtterance(text); msg.lang = 'es-MX'; window.speechSynthesis.speak(msg);
+    }
+
+    function process(code, mode = 'sale') {
+        if(isScanning) return;
         const p = db.inv.find(x => x.sku === code);
         if(p) {
-            const i = cart.find(x => x.sku === code);
-            if(i) i.q++; else cart.push({...p, q: 1});
-            renderCart();
+            isScanning = true; setTimeout(() => isScanning = false, 2000);
+            if(mode === 'sale') {
+                const i = cart.find(x => x.sku === code);
+                if(i) i.q++; else cart.push({...p, q: 1});
+                notify(`${p.name}, ${p.sell} pesos`); renderCart();
+            } else {
+                const add = parseInt(prompt(`Surtir ${p.name}:`)) || 0;
+                p.stock += add; save(); renderInv();
+            }
         } else {
-            alert("Producto no registrado");
+            const n = prompt("Nombre:"); if(n) {
+                const b = parseFloat(prompt("Costo Compra:")); const s = parseFloat(prompt("Precio Venta:"));
+                db.inv.push({sku: code, name: n, buy: b, sell: s, stock: 10}); save(); renderInv();
+            }
         }
     }
 
     function handleSKU(e) { if(e.key === 'Enter') { process(e.target.value); e.target.value = ''; } }
-
     function renderCart() {
-        let t = 0;
-        document.getElementById('cart-body').innerHTML = cart.map(i => {
+        let t = 0; document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
             t += (i.sell * i.q);
-            return `<tr><td>${i.name}</td><td>${i.q}</td><td>$${(i.sell * i.q).toFixed(2)}</td></tr>`;
+            return `<tr><td>${i.name}</td><td><div class="qty-controls"><button class="qty-btn" onclick="updateQty(${idx},-1)">-</button><span>${i.q}</span><button class="qty-btn" onclick="updateQty(${idx},1)">+</button></div></td><td>$${(i.sell * i.q).toFixed(2)}</td><td onclick="cart.splice(${idx},1);renderCart()">❌</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
+    function updateQty(idx, d) { cart[idx].q += d; if(cart[idx].q <= 0) cart.splice(idx,1); renderCart(); }
+
+    function openPaymentModal() { if(!cart.length) return; document.getElementById('m-total-text').innerText = "Total: " + document.getElementById('total-val').innerText; document.getElementById('payment-modal').style.display = 'flex'; }
+    function togglePaymentUI() { const m = document.getElementById('p-method').value; document.getElementById('cash-ui').style.display = m === 'efectivo' ? 'block' : 'none'; document.getElementById('debt-ui').style.display = m === 'fiado' ? 'block' : 'none'; }
+    function calcChange() { const t = parseFloat(document.getElementById('total-val').innerText.replace('$','')); const r = parseFloat(document.getElementById('cash-received').value) || 0; document.getElementById('change-text').innerText = `$${(r - t).toFixed(2)} Cambio`; }
 
     function confirmPayment() {
-        const t = cart.reduce((a, b) => a + (b.sell * b.q), 0);
-        let pTotal = 0;
+        const t = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
+        const m = document.getElementById('p-method').value;
+        let gVenta = 0;
         
-        // Generar Ticket Visual
-        document.getElementById('t-date').innerText = new Date().toLocaleString();
-        document.getElementById('t-items').innerHTML = cart.map(i => {
-            pTotal += (i.sell - i.buy) * i.q; // Cálculo de GANANCIA REAL
-            return `<div>${i.q}x ${i.name} .... $${(i.sell*i.q).toFixed(2)}</div>`;
-        }).join('');
-        document.getElementById('t-total').innerText = `$${t.toFixed(2)}`;
-        document.getElementById('ticket-view').style.display = 'block';
+        cart.forEach(i => {
+            gVenta += (i.sell - i.buy) * i.q;
+            const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
+        });
 
-        db.vEfe += t;
-        db.profitHoy += pTotal;
+        if(m === 'efectivo') db.vEfe += t;
+        else if(m === 'tarjeta') db.vTar += t;
+        else {
+            const c = document.getElementById('debt-customer').value;
+            const ex = db.fiados.find(f => f.n.toLowerCase() === c.toLowerCase());
+            const h = { fecha: new Date().toLocaleString(), desc: cart.map(i=>`${i.q}x ${i.name}`).join(','), monto: t };
+            if(ex) { ex.m += t; ex.h.unshift(h); } else { db.fiados.unshift({n: c, m: t, h: [h]}); }
+        }
         
-        // Descontar inventario
-        cart.forEach(c => { const p = db.inv.find(x => x.sku === c.sku); if(p) p.qty -= c.q; });
-        
-        save(); cart = []; renderCart(); closeModal();
+        db.gananciaHoy += gVenta; save(); cart = []; renderCart(); closeModal(); alert("¡Venta Finalizada!");
     }
 
     function addInv() {
-        const sku = document.getElementById('s-sku').value;
-        const nom = document.getElementById('s-nom').value;
-        const buy = parseFloat(document.getElementById('s-buy').value) || 0;
-        const sell = parseFloat(document.getElementById('s-sell').value) || 0;
-        const qty = parseInt(document.getElementById('s-qty').value) || 0;
-
+        const sku = document.getElementById('s-sku').value; const nom = document.getElementById('s-nom').value;
+        const b = parseFloat(document.getElementById('s-buy').value) || 0;
+        const s = parseFloat(document.getElementById('s-sell').value) || 0;
+        const st = parseInt(document.getElementById('s-sto').value) || 0;
         const ex = db.inv.find(x => x.sku === sku);
-        if(ex) {
-            ex.qty += qty; ex.sell = sell; ex.buy = buy;
-        } else {
-            db.inv.push({sku, name: nom, buy, sell, qty});
-        }
+        if(ex) { ex.stock += st; if(nom) ex.name=nom; ex.buy=b; ex.sell=s; }
+        else { db.inv.push({sku, name: nom, buy: b, sell: s, stock: st}); }
         save(); renderInv(); alert("Inventario Actualizado");
     }
 
     function renderInv() {
-        let invVal = 0;
-        document.getElementById('inv-list').innerHTML = db.inv.map(p => {
-            invVal += (p.buy * p.qty);
-            return `<tr><td>${p.sku}</td><td>${p.name}</td><td>${p.qty}</td><td>$${p.sell}</td></tr>`;
+        let vTotal = 0; let qTotal = 0;
+        document.getElementById('inv-list-body').innerHTML = db.inv.map(p => {
+            vTotal += (p.buy * p.stock); qTotal += p.stock;
+            return `<tr><td>${p.name}</td><td style="color:${p.stock<5?'red':'green'}">${p.stock}</td><td>$${p.sell}</td><td onclick="if(confirm('¿Borrar?')){db.inv=db.inv.filter(x=>x.sku!='${p.sku}');save();renderInv()}">🗑️</td></tr>`;
         }).join('');
-        document.getElementById('c-inv-val').innerText = `$${invVal.toFixed(2)}`;
+        document.getElementById('st-val-total').innerText = `$${vTotal.toFixed(2)}`;
+        document.getElementById('st-qty-total').innerText = qTotal;
     }
 
-    function renderProfit() {
-        document.getElementById('c-profit').innerText = `$${db.profitHoy.toFixed(2)}`;
-        document.getElementById('c-total-cash').innerText = `$${db.vEfe.toFixed(2)}`;
+    function renderFiados() {
+        const q = document.getElementById('f-search').value.toLowerCase();
+        document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map((f, i) => `
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)"><b>${f.n}</b> - $${f.m.toFixed(2)} <span>▼</span></div>
+                <div class="accordion-content">
+                    <table><thead><tr><th>Fecha</th><th>Desc</th><th>$</th></tr></thead><tbody>${f.h.map(h=>`<tr><td>${h.fecha}</td><td>${h.desc}</td><td>${h.monto}</td></tr>`).join('')}</tbody></table>
+                    <button class="btn-main" style="background:var(--success); margin-top:10px;" onclick="addAbono(${i})">ABONAR</button>
+                </div>
+            </div>`).join('');
     }
 
-    function copyTicket() {
-        const text = document.getElementById('ticket-view').innerText;
-        navigator.clipboard.writeText(text);
-        alert("Ticket copiado. Pégalo en WhatsApp");
+    function addAbono(idx) {
+        const c = db.fiados[idx]; const m = parseFloat(prompt(`Abono para ${c.n}:`)) || 0;
+        if(m > 0) { c.m -= m; db.vEfe += m; c.h.unshift({fecha: new Date().toLocaleString(), desc: "ABONO", monto: -m}); if(c.m <= 0) db.fiados.splice(idx,1); save(); renderFiados(); }
+    }
+
+    function generateTicketPDF() {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'mm', format:[80,150]});
+        doc.text("CORTE CAJA", 40, 10, {align:'center'});
+        doc.text(`Ventas: $${(db.vEfe + db.vTar).toFixed(2)}`, 10, 20);
+        doc.text(`Ganancia: $${db.gananciaHoy.toFixed(2)}`, 10, 30);
+        doc.save("corte.pdf");
     }
 
     function showSec(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active'); btn.classList.add('active');
-        if(id === 'stock') renderInv();
-        if(id === 'corte') { renderProfit(); renderInv(); }
+        if(id==='stock') renderInv(); if(id==='fiados') renderFiados(); if(id==='corte') { document.getElementById('c-neto').innerText = `$${(db.vEfe+db.vTar).toFixed(2)}`; document.getElementById('c-ganancia').innerText = `$${db.gananciaHoy.toFixed(2)}`; }
     }
-
-    function openPaymentModal() { if(cart.length) document.getElementById('payment-modal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('payment-modal').style.display = 'none'; }
-    function calcChange() { 
-        const t = parseFloat(document.getElementById('total-val').innerText.replace('$',''));
-        const r = parseFloat(document.getElementById('cash-received').value) || 0;
-        document.getElementById('change-text').innerText = `$${(r - t).toFixed(2)} Cambio`;
-    }
-    function resetCorte() { if(confirm("Cerrar caja?")) { db.vEfe = 0; db.profitHoy = 0; save(); renderProfit(); } }
+    function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
+    function closeModal() { document.getElementById('payment-modal').style.display='none'; }
+    function toggleCam(id, mode) { const r = document.getElementById(id); if(r.style.display==='block'){ scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner = new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t, mode)); } }
+    function resetCorte() { if(confirm("Cerrar?")){ db.vEfe=0; db.vTar=0; db.gananciaHoy=0; save(); showSec('corte', document.querySelector('[onclick*="corte"]')); } }
 </script>
 </body>
 </html>
