@@ -3,238 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cobranza Mueblería</title>
+    <title>Cobranza Mueblería Premium</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { 
-            --ml-yellow: #fff159; 
-            --ml-blue: #3483fa; 
-            --bg: #ebebeb; 
-            --brand-color: #2d3436; /* Color para el nombre de tu mueblería */
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        :root { --ml-yellow: #fff159; --ml-blue: #3483fa; --bg: #ebebeb; }
+        body { font-family: 'Helvetica Neue', Helvetica, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
         
-        /* Encabezado Personalizado */
-        header { 
-            background: var(--ml-yellow); 
-            padding: 20px; 
-            text-align: center; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .muebleria-nombre { 
-            font-size: 22px; 
-            font-weight: 800; 
-            color: var(--brand-color); 
-            text-transform: uppercase;
-            margin: 0;
-        }
+        /* Header y Logo */
+        header { background: var(--ml-yellow); padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #logo-preview { max-height: 60px; display: block; margin: 5px auto; border-radius: 4px; }
 
-        .container { max-width: 500px; margin: auto; padding: 10px; }
-        
+        .container { max-width: 600px; margin: auto; padding: 10px; }
         .box { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
-        /* Botón de Ruta */
-        .btn-gps {
-            background: #00b894;
-            color: white;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-blue { background: var(--ml-blue); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        h4 { margin: 0 0 10px 0; color: #333; border-bottom: 2px solid var(--ml-yellow); display: inline-block; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         
-        /* Tarjetas */
-        .card { background: white; border-radius: 8px; margin-bottom: 12px; overflow: hidden; border-left: 6px solid var(--ml-blue); }
-        .card-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .distancia-label { font-size: 11px; color: #636e72; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; }
-        .card-body { display: none; padding: 15px; border-top: 1px solid #eee; background: #fafafa; }
-        .card-body.active { display: block; }
+        .btn { border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        .btn-blue { background: var(--ml-blue); color: white; }
+        .btn-gps { background: #00b894; color: white; margin-bottom: 10px; }
+        .btn-maps { background: #e17055; color: white; font-size: 12px; padding: 5px; }
+
+        /* Acordeones */
+        .cliente-group { background: white; border-radius: 8px; margin-bottom: 10px; overflow: hidden; border: 1px solid #ddd; }
+        .cliente-header { background: #f8f9fa; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        
+        .articulo-card { margin: 10px; border: 1px solid #eee; border-radius: 6px; background: #fff; }
+        .articulo-header { padding: 10px; background: #f1f2f6; cursor: pointer; display: flex; justify-content: space-between; font-size: 14px; }
+        .articulo-body { display: none; padding: 15px; }
+        .active { display: block !important; }
 
         /* Historial */
-        .abono-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+        .historial-item { font-size: 12px; padding: 5px 0; border-bottom: 1px dotted #ccc; display: flex; justify-content: space-between; }
 
-        /* Plantilla de Ticket Corporativo */
-        #ticket-print { 
-            position: absolute; left: -9999px; width: 320px; background: white; padding: 25px; border: 1px solid #eee; text-align: center; 
-        }
+        /* Ticket de Pago */
+        #ticket-print { position: absolute; left: -9999px; width: 350px; background: white; padding: 30px; border: 1px solid #eee; text-align: center; }
     </style>
 </head>
 <body>
 
 <header>
-    <p style="margin:0; font-size: 12px; color: #555;">SISTEMA DE GESTIÓN</p>
-    <h1 class="muebleria-nombre" id="brand-display">MUEBLERÍA "TU NOMBRE AQUÍ"</h1>
+    <img id="logo-preview" src="" style="display:none">
+    <div id="nombre-muebleria-txt" style="font-weight:bold; font-size:18px;">MI MUEBLERÍA</div>
 </header>
 
 <div class="container">
-    <button class="btn-gps" onclick="ordenarPorRuta()">
-        📍 INICIAR RUTA (ORDENAR POR CERCANÍA)
-    </button>
+    <button class="btn btn-gps" onclick="optimizarRuta()">📍 ORDENAR RUTA INTELIGENTE</button>
 
     <div class="box">
-        <input type="text" id="brand-input" placeholder="Nombre de tu Mueblería" onchange="cambiarNombreMuebleria(this.value)">
-        <p style="font-size:11px; color:gray; margin:0">Este nombre aparecerá en todos los comprobantes.</p>
+        <h4>⚙️ Configuración</h4>
+        <input type="text" id="cfg-nombre" placeholder="Nombre de la Mueblería" onchange="guardarConfig()">
+        <label style="font-size:12px">Subir Logotipo:</label>
+        <input type="file" id="cfg-logo" accept="image/*" onchange="cargarLogo(event)">
     </div>
 
     <div class="box">
-        <h4 style="margin:0">👤 Asignar Nuevo Cliente</h4>
-        <input type="text" id="n-nombre" placeholder="Nombre del Cliente">
-        <input type="number" id="n-saldo" placeholder="Deuda Total $">
-        <p style="font-size:11px; color:red; margin:0">* Asegúrate de dar permisos de GPS al navegador.</p>
-        <button class="btn-blue" style="margin-top:10px" onclick="crearCliente()">Registrar y Guardar Ubicación</button>
+        <h4>➕ Nuevo Registro de Venta</h4>
+        <input type="text" id="reg-nombre" placeholder="Nombre del Cliente">
+        <input type="text" id="reg-dir" placeholder="Dirección">
+        <button class="btn-maps" onclick="buscarEnGoogleMaps()">🌐 Verificar en Google Maps</button>
+        <input type="text" id="reg-mueble" placeholder="Descripción del Mueble (ej. Sala Gris)">
+        <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
+        <button class="btn btn-blue" onclick="agregarVenta()">REGISTRAR VENTA</button>
     </div>
 
-    <div id="lista-clientes"></div>
+    <div id="lista-clientes-root"></div>
 </div>
 
 <div id="ticket-print">
-    <h2 id="t-muebleria" style="margin:0; color:#2d3436;"></h2>
-    <p style="font-size:12px; margin:5px 0;">Comprobante Digital de Pago</p>
+    <img id="t-logo" src="" style="max-height:70px; margin-bottom:10px">
+    <h2 id="t-muebleria" style="margin:0"></h2>
+    <p>Comprobante de Abono</p>
     <hr>
-    <p id="t-fecha" style="font-size:11px; color:#636e72"></p>
-    <div style="text-align:left; line-height: 1.6;">
-        <p><strong>CLIENTE:</strong> <span id="t-nombre"></span></p>
+    <div style="text-align:left; font-size:14px">
+        <p><strong>FECHA:</strong> <span id="t-fecha"></span></p>
+        <p><strong>CLIENTE:</strong> <span id="t-cliente"></span></p>
+        <p><strong>ARTÍCULO:</strong> <span id="t-articulo"></span></p>
+        <hr>
         <p>SALDO ANTERIOR: <span id="t-ant"></span></p>
-        <p>ABONO RECIBIDO: <span id="t-abono"></span></p>
-        <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:10px">
-            <p style="font-size:20px; margin:0"><strong>SALDO ACTUAL: <span id="t-act"></span></strong></p>
-        </div>
+        <p>ABONO: <span id="t-abo"></span></p>
+        <p style="font-size:20px; background:#f1f1f1; padding:10px"><strong>SALDO ACTUAL: <span id="t-act"></span></strong></p>
     </div>
-    <hr>
-    <p style="font-size:10px;">Gracias por su preferencia.</p>
 </div>
 
 <script>
-    let clientes = JSON.parse(localStorage.getItem('muebleria_db')) || [];
-    let nombreMuebleria = localStorage.getItem('muebleria_nombre') || 'MUEBLERÍA CENTRAL';
+    let db = JSON.parse(localStorage.getItem('muebleria_pro_db')) || {};
+    let logoData = localStorage.getItem('muebleria_logo') || "";
 
-    document.getElementById('brand-display').innerText = nombreMuebleria;
-    document.getElementById('brand-input').value = nombreMuebleria;
-
-    function cambiarNombreMuebleria(val) {
-        nombreMuebleria = val.toUpperCase();
-        document.getElementById('brand-display').innerText = nombreMuebleria;
-        localStorage.setItem('muebleria_nombre', nombreMuebleria);
+    function cargarLogo(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            logoData = reader.result;
+            localStorage.setItem('muebleria_logo', logoData);
+            mostrarLogo();
+        };
+        reader.readAsDataURL(event.target.files[0]);
     }
 
-    function crearCliente() {
-        const nombre = document.getElementById('n-nombre').value;
-        const saldo = parseFloat(document.getElementById('n-saldo').value);
-        
-        if(!nombre || isNaN(saldo)) return alert("Datos incompletos");
+    function mostrarLogo() {
+        if(logoData) {
+            document.getElementById('logo-preview').src = logoData;
+            document.getElementById('logo-preview').style.display = 'block';
+            document.getElementById('t-logo').src = logoData;
+        }
+    }
 
-        // Capturar ubicación al registrar
+    function buscarEnGoogleMaps() {
+        const dir = document.getElementById('reg-dir').value;
+        if(dir) window.open(`https://www.google.com/maps/search/${encodeURIComponent(dir)}`, '_blank');
+    }
+
+    function agregarVenta() {
+        const nombre = document.getElementById('reg-nombre').value.toUpperCase();
+        const dir = document.getElementById('reg-dir').value;
+        const mueble = document.getElementById('reg-mueble').value;
+        const saldo = parseFloat(document.getElementById('reg-saldo').value);
+
+        if(!nombre || !mueble || isNaN(saldo)) return alert("Faltan datos");
+
         navigator.geolocation.getCurrentPosition(pos => {
-            clientes.push({
+            if(!db[nombre]) db[nombre] = { nombre, direccion: dir, lat: pos.coords.latitude, lon: pos.coords.longitude, articulos: [] };
+            
+            db[nombre].articulos.push({
                 id: Date.now(),
-                nombre: nombre,
+                descripcion: mueble,
                 saldo: saldo,
-                lat: pos.coords.latitude,
-                lon: pos.coords.longitude,
                 historial: []
             });
-            actualizar();
-            alert("Cliente registrado con ubicación GPS exitosa");
-        }, () => {
-            alert("No se pudo obtener la ubicación, se guardará sin GPS.");
-            clientes.push({ id: Date.now(), nombre, saldo, lat: 0, lon: 0, historial: [] });
-            actualizar();
+
+            guardar();
+            alert("Venta registrada correctamente");
         });
-    }
-
-    function ordenarPorRuta() {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const myLat = pos.coords.latitude;
-            const myLon = pos.coords.longitude;
-
-            clientes.forEach(c => {
-                // Cálculo de distancia simple
-                c.distancia = Math.sqrt(Math.pow(c.lat - myLat, 2) + Math.pow(c.lon - myLon, 2));
-            });
-
-            clientes.sort((a, b) => a.distancia - b.distancia);
-            render();
-            alert("Ruta optimizada por cercanía");
-        });
-    }
-
-    function actualizar() {
-        localStorage.setItem('muebleria_db', JSON.stringify(clientes));
-        render();
     }
 
     function render() {
-        const div = document.getElementById('lista-clientes');
-        div.innerHTML = "<h4 style='margin-bottom:10px'>Lista de Cobro:</h4>";
+        const root = document.getElementById('lista-clientes-root');
+        root.innerHTML = "<h4>Ruta de Cobro</h4>";
         
-        clientes.forEach(c => {
-            let hist = c.historial.map(h => `
-                <div class="abono-item">
-                    <span>${h.fecha.split(',')[0]} - <b>$${h.monto}</b></span>
-                    <button onclick="descargarTicket('${c.nombre}', ${h.anterior}, ${h.monto}, ${h.actual}, '${h.fecha}')">Re-imprimir</button>
-                </div>
-            `).reverse().join('');
-
-            div.innerHTML += `
-                <div class="card">
-                    <div class="card-header" onclick="document.getElementById('b-${c.id}').classList.toggle('active')">
-                        <div>
-                            <strong>${c.nombre}</strong><br>
-                            <span class="distancia-label">📍 En ruta</span>
-                        </div>
-                        <span style="font-weight:bold; color:var(--ml-blue)">$${c.saldo}</span>
+        Object.values(db).forEach(cliente => {
+            let articulosHTML = cliente.articulos.map(art => `
+                <div class="articulo-card">
+                    <div class="articulo-header" onclick="event.stopPropagation(); toggle('art-${art.id}')">
+                        <span>📦 ${art.descripcion}</span>
+                        <b>$${art.saldo}</b>
                     </div>
-                    <div class="card-body" id="b-${c.id}">
-                        <button class="btn-blue" onclick="cobrar(${c.id})">REGISTRAR ABONO</button>
-                        <div style="margin-top:15px; font-size:12px">
-                            <strong>HISTORIAL DE ABONOS:</strong>
-                            ${hist || '<p>Sin movimientos</p>'}
+                    <div class="articulo-body" id="art-${art.id}">
+                        <button class="btn btn-blue" onclick="cobrar('${cliente.nombre}', ${art.id})">ABONAR</button>
+                        <div style="margin-top:10px">
+                            ${art.historial.map(h => `
+                                <div class="historial-item">
+                                    <span>${h.fecha.split(',')[0]}</span>
+                                    <span>Abonó: $${h.monto}</span>
+                                    <button onclick="generarFoto('${cliente.nombre}', '${art.descripcion}', ${h.anterior}, ${h.monto}, ${h.actual}, '${h.fecha}')">📸</button>
+                                </div>
+                            `).reverse().join('')}
                         </div>
+                    </div>
+                </div>
+            `).join('');
+
+            root.innerHTML += `
+                <div class="cliente-group">
+                    <div class="cliente-header" onclick="toggle('cli-${cliente.nombre.replace(/\s/g,'')}')">
+                        <span>👤 ${cliente.nombre}</span>
+                        <small style="font-size:10px">${cliente.direccion.substring(0,15)}...</small>
+                    </div>
+                    <div class="articulo-body" id="cli-${cliente.nombre.replace(/\s/g,'')}">
+                        ${articulosHTML}
                     </div>
                 </div>
             `;
         });
     }
 
-    function cobrar(id) {
-        const c = clientes.find(x => x.id === id);
-        const monto = parseFloat(prompt(`Saldo Anterior: $${c.saldo}\n¿Cuánto abona?`));
+    function cobrar(nombreCliente, artId) {
+        const art = db[nombreCliente].articulos.find(a => a.id === artId);
+        const monto = parseFloat(prompt(`Saldo actual del mueble: $${art.saldo}\n¿Monto del abono?`));
         if(!monto) return;
 
-        const anterior = c.saldo;
-        c.saldo = (anterior - monto).toFixed(2);
+        const anterior = art.saldo;
+        art.saldo = (anterior - monto).toFixed(2);
         const fecha = new Date().toLocaleString();
 
-        c.historial.push({ fecha, anterior, monto, actual: c.saldo });
-        actualizar();
-        descargarTicket(c.nombre, anterior, monto, c.saldo, fecha);
+        const registro = { fecha, anterior, monto, actual: art.saldo };
+        art.historial.push(registro);
+        
+        guardar();
+        generarFoto(nombreCliente, art.descripcion, anterior, monto, art.saldo, fecha);
     }
 
-    function descargarTicket(nombre, ant, abo, act, fecha) {
-        document.getElementById('t-muebleria').innerText = nombreMuebleria;
-        document.getElementById('t-nombre').innerText = nombre;
+    function generarFoto(cliente, mueble, ant, abo, act, fecha) {
+        document.getElementById('t-muebleria').innerText = document.getElementById('cfg-nombre').value || "MUEBLERÍA";
+        document.getElementById('t-cliente').innerText = cliente;
+        document.getElementById('t-articulo').innerText = mueble;
         document.getElementById('t-ant').innerText = "$" + ant;
-        document.getElementById('t-abono').innerText = "$" + abo;
+        document.getElementById('t-abo').innerText = "$" + abo;
         document.getElementById('t-act').innerText = "$" + act;
         document.getElementById('t-fecha').innerText = fecha;
 
         html2canvas(document.getElementById('ticket-print')).then(canvas => {
             const link = document.createElement('a');
-            link.download = `Recibo_${nombre}.png`;
+            link.download = `Recibo_${cliente}_${mueble}.png`;
             link.href = canvas.toDataURL();
             link.click();
         });
     }
 
+    function optimizarRuta() {
+        navigator.geolocation.getCurrentPosition(pos => {
+            let arr = Object.values(db);
+            arr.forEach(c => {
+                c.d = Math.sqrt(Math.pow(c.lat - pos.coords.latitude, 2) + Math.pow(c.lon - pos.coords.longitude, 2));
+            });
+            arr.sort((a,b) => a.d - b.d);
+            let nuevoDb = {};
+            arr.forEach(c => nuevoDb[c.nombre] = c);
+            db = nuevoDb;
+            render();
+        });
+    }
+
+    function toggle(id) { document.getElementById(id).classList.toggle('active'); }
+    function guardar() { localStorage.setItem('muebleria_pro_db', JSON.stringify(db)); render(); }
+    function guardarConfig() { localStorage.setItem('muebleria_nombre_cfg', document.getElementById('cfg-nombre').value); }
+
+    // Inicio
+    document.getElementById('cfg-nombre').value = localStorage.getItem('muebleria_nombre_cfg') || "";
+    mostrarLogo();
     render();
 </script>
 </body>
