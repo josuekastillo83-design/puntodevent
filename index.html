@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bitacora Pro - Sistema Maestro</title>
+    <title>Bitacora Pro - Cloud Elite</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -27,33 +27,32 @@
         let currentOwnerUid = "";
         let isOwner = false;
 
-        // --- SISTEMA DE VENTANAS PERSONALIZADAS (MODALES) ---
+        // --- VENTANAS DE CONFIRMACIÓN PERSONALIZADAS ---
         window.notificar = (titulo, msg) => {
-            document.getElementById('modal-title').innerText = titulo;
-            document.getElementById('modal-msg').innerText = msg;
-            document.getElementById('custom-modal').style.display = 'flex';
+            document.getElementById('m-title').innerText = titulo;
+            document.getElementById('m-msg').innerText = msg;
+            document.getElementById('bitacora-modal').style.display = 'flex';
         };
+        window.cerrarM = () => document.getElementById('bitacora-modal').style.display = 'none';
 
-        window.closeModal = () => document.getElementById('custom-modal').style.display = 'none';
-
-        // --- AUTH ---
+        // --- ACCESO Y REGISTRO ---
         window.handleAuth = async () => {
             const biz = document.getElementById('l-biz').value.toLowerCase().trim();
             const user = document.getElementById('l-user').value.toLowerCase().trim();
             const pass = document.getElementById('l-pass').value;
 
             if (user.includes('@')) {
-                signInWithEmailAndPassword(auth, user, pass).catch(e => notificar("Bitacora Pro", "Error: " + e.message));
+                signInWithEmailAndPassword(auth, user, pass).catch(e => notificar("Bitacora Pro", "Error Dueño: " + e.message));
             } else {
-                if(!biz) return notificar("Bitacora Pro", "Ingresa el nombre de la Mueblería");
+                if(!biz) return notificar("Bitacora Pro", "Ingresa nombre de Mueblería");
                 const bSnap = await get(ref(db, `nombres_mueblerias/${biz}`));
-                if(!bSnap.exists()) return notificar("Bitacora Pro", "Mueblería no registrada");
+                if(!bSnap.exists()) return notificar("Bitacora Pro", "Mueblería no encontrada");
                 const uid = bSnap.val().ownerUid;
                 const sSnap = await get(ref(db, `mueblerias/${uid}/staff/${user}`));
                 if(sSnap.exists() && sSnap.val().pass === pass) {
                     localStorage.setItem('staff_session', JSON.stringify({ uid, user, biz }));
                     location.reload();
-                } else { notificar("Bitacora Pro", "Credenciales de cobrador inválidas"); }
+                } else { notificar("Bitacora Pro", "Clave de cobrador incorrecta"); }
             }
         };
 
@@ -61,6 +60,8 @@
             const biz = document.getElementById('r-biz').value.toLowerCase().trim();
             const email = document.getElementById('r-email').value.trim();
             const pass = document.getElementById('r-pass').value;
+            if(!biz || !email || pass.length < 6) return notificar("Bitacora Pro", "Datos incompletos");
+
             createUserWithEmailAndPassword(auth, email, pass).then(u => {
                 set(ref(db, `nombres_mueblerias/${biz}`), { ownerUid: u.user.uid });
                 set(ref(db, `mueblerias/${u.user.uid}/config`), { nombre: biz, email: email });
@@ -68,179 +69,164 @@
             }).catch(e => notificar("Bitacora Pro", e.message));
         };
 
-        // --- GESTIÓN DUEÑO (Pestañas Colapsables) ---
-        window.crearStaff = () => {
-            const u = document.getElementById('new-staff-u').value.toLowerCase().trim();
-            const p = document.getElementById('new-staff-p').value;
-            if(!u || !p) return notificar("Bitacora Pro", "Faltan datos del cobrador");
-            set(ref(db, `mueblerias/${currentOwnerUid}/staff/${u}`), { user: u, pass: p })
-                .then(() => notificar("Bitacora Pro", "Cobrador registrado con éxito"));
+        window.handleLogout = () => {
+            localStorage.clear();
+            signOut(auth).then(() => location.reload());
         };
 
-        window.eliminarStaff = (userName) => {
-            if(confirm("¿Seguro que deseas eliminar a " + userName + "?")) {
-                remove(ref(db, `mueblerias/${currentOwnerUid}/staff/${userName}`));
-            }
-        };
-
-        // --- MONITOR SESIÓN ---
+        // --- MONITOR DE SESIÓN (CORREGIDO) ---
         onAuthStateChanged(auth, user => {
             const staff = JSON.parse(localStorage.getItem('staff_session'));
             document.getElementById('splash').style.display = 'none';
+            
             if (user || staff) {
+                // Hay sesión: Mostrar App
                 currentOwnerUid = user ? user.uid : staff.uid;
                 isOwner = !!user;
                 document.getElementById('view-auth').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
+                document.getElementById('app-ui').style.display = 'block';
+                
                 if(isOwner) {
                     document.getElementById('owner-panel').style.display = 'block';
                     onValue(ref(db, `mueblerias/${currentOwnerUid}/staff`), s => renderStaff(s.val()));
                 }
                 onValue(ref(db, `mueblerias/${currentOwnerUid}/clientes`), s => renderClientes(s.val()));
             } else {
+                // No hay sesión: Mostrar Login obligatoriamente
                 document.getElementById('view-auth').style.display = 'flex';
+                document.getElementById('app-ui').style.display = 'none';
             }
         });
 
-        // --- LÓGICA DE NEGOCIO ---
-        window.registrarCliente = () => {
-            const nom = document.getElementById('new-cli-nom').value.toUpperCase().trim();
-            const dir = document.getElementById('new-cli-dir').value.trim();
-            if(!nom) return notificar("Bitacora Pro", "Nombre del cliente es obligatorio");
-            const id = Date.now();
-            set(ref(db, `mueblerias/${currentOwnerUid}/clientes/${id}`), { nombre: nom, direccion: dir });
-            document.getElementById('new-cli-nom').value = "";
-            document.getElementById('new-cli-dir').value = "";
-            notificar("Bitacora Pro", "Cliente guardado");
+        // --- FUNCIONES DE BASE DE DATOS ---
+        window.crearStaff = () => {
+            const u = document.getElementById('new-u').value.toLowerCase().trim();
+            const p = document.getElementById('new-p').value;
+            if(!u || !p) return notificar("Bitacora Pro", "Faltan datos");
+            set(ref(db, `mueblerias/${currentOwnerUid}/staff/${u}`), { user: u, pass: p })
+            .then(() => notificar("Bitacora Pro", "Cobrador registrado"));
+        };
+
+        window.crearCliente = () => {
+            const nom = document.getElementById('c-nom').value.toUpperCase().trim();
+            const dir = document.getElementById('c-dir').value.trim();
+            if(!nom) return;
+            set(ref(db, `mueblerias/${currentOwnerUid}/clientes/${Date.now()}`), { nombre: nom, direccion: dir });
         };
     </script>
 
     <style>
-        :root { --blue: #1a73e8; --red: #d93025; --green: #1e8e3e; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background: var(--bg); padding-bottom: 50px; }
-        header { background: var(--blue); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .card { background: white; margin: 12px; padding: 18px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .btn { border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        :root { --blue: #1a73e8; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
+        header { background: var(--blue); color: white; padding: 15px; display: flex; justify-content: space-between; font-weight: bold; }
+        .card { background: white; margin: 12px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
         .btn-blue { background: var(--blue); color: white; }
         
-        /* Modales Personalizados */
-        #custom-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .modal-box { background: white; width: 85%; max-width: 400px; border-radius: 20px; text-align: center; overflow: hidden; animation: zoom 0.3s; }
-        .modal-head { background: var(--blue); color: white; padding: 15px; font-weight: bold; }
-        .modal-body { padding: 25px; color: #444; }
+        /* Modal Bitacora Pro */
+        #bitacora-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .m-box { background: white; width: 85%; max-width: 350px; border-radius: 15px; overflow: hidden; text-align: center; }
+        .m-head { background: var(--blue); color: white; padding: 12px; font-weight: bold; }
+        .m-body { padding: 20px; color: #444; }
 
-        /* Pestañas Colapsables Cobradores */
-        .staff-acc { border: 1px solid #eee; border-radius: 12px; margin-top: 10px; overflow: hidden; }
-        .acc-header { background: #f1f3f4; padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
-        .acc-content { display: none; padding: 15px; background: white; border-top: 1px solid #eee; }
-
-        /* Estados de Muebles */
-        .mueble-card { border-left: 6px solid var(--blue); background: #fcfcfc; padding: 12px; margin: 10px 0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .mueble-card.liquidado { border-left-color: var(--green); background: #e6f4ea; }
-        
-        .tab-nav { display: flex; justify-content: center; gap: 30px; margin-bottom: 25px; }
-        .tab { cursor: pointer; font-weight: bold; color: #777; padding: 5px; }
-        .tab.active { color: var(--blue); border-bottom: 3px solid var(--blue); }
-        @keyframes zoom { from {transform: scale(0.8);} to {transform: scale(1);} }
+        /* Acordeones */
+        .acc-card { border: 1px solid #eee; border-radius: 10px; margin-top: 8px; overflow: hidden; }
+        .acc-header { background: #f1f3f4; padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        .acc-content { display: none; padding: 12px; background: white; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-    <div id="splash" style="position:fixed; inset:0; background:white; z-index:999; display:flex; justify-content:center; align-items:center;">
-        <img src="1000123395.png" style="width:120px; animation: pulse 2s infinite;">
+    <div id="splash" style="position:fixed; inset:0; background:white; z-index:1000; display:flex; justify-content:center; align-items:center;">
+        <img src="1000123395.png" style="width:100px;">
     </div>
 
-    <div id="custom-modal">
-        <div class="modal-box">
-            <div class="modal-head" id="modal-title">Bitacora Pro</div>
-            <div class="modal-body" id="modal-msg">Mensaje aquí</div>
-            <button class="btn btn-blue" onclick="closeModal()" style="border-radius: 0; margin-top: 0;">ENTENDIDO</button>
+    <div id="bitacora-modal">
+        <div class="m-box">
+            <div class="m-head" id="m-title">Bitacora Pro</div>
+            <div class="m-body" id="m-msg"></div>
+            <button class="btn btn-blue" onclick="cerrarM()" style="border-radius:0;">ACEPTAR</button>
         </div>
     </div>
 
-    <div id="view-auth" style="display:none; flex-direction:column; padding:30px; min-height:100vh; justify-content:center; background:white;">
-        <h2 style="text-align:center; color:var(--blue); margin-top:0;">Bitacora Pro</h2>
-        <div class="tab-nav">
-            <span id="t-l" class="tab active" onclick="switchAuth('l')">INICIAR SESIÓN</span>
-            <span id="t-r" class="tab" onclick="switchAuth('r')">NUEVO DUEÑO</span>
+    <div id="view-auth" style="display:none; flex-direction:column; padding:30px; height:100vh; justify-content:center; background:white;">
+        <h2 style="text-align:center; color:var(--blue);">Bitacora Pro</h2>
+        
+        <div style="display:flex; justify-content:center; gap:25px; margin-bottom:20px;">
+            <b id="btn-show-l" onclick="showForm('l')" style="cursor:pointer; color:var(--blue); border-bottom:2px solid var(--blue);">ENTRAR</b>
+            <b id="btn-show-r" onclick="showForm('r')" style="cursor:pointer; color:#777;">NUEVO DUEÑO</b>
         </div>
+
         <div id="f-l">
-            <input type="text" id="l-biz" placeholder="Nombre de la Mueblería">
-            <input type="text" id="l-user" placeholder="Dueño (Correo) o Cobrador (Usuario)">
+            <input type="text" id="l-biz" placeholder="Nombre de Mueblería">
+            <input type="text" id="l-user" placeholder="Correo o Usuario">
             <input type="password" id="l-pass" placeholder="Contraseña">
-            <button class="btn btn-blue" onclick="handleAuth()">ENTRAR AL SISTEMA</button>
+            <button class="btn btn-blue" onclick="handleAuth()">INGRESAR</button>
         </div>
+
         <div id="f-r" style="display:none;">
-            <input type="text" id="r-biz" placeholder="Nombre de tu Nueva Mueblería">
-            <input type="email" id="r-email" placeholder="Correo del Dueño">
-            <input type="password" id="r-pass" placeholder="Contraseña Maestra">
-            <button class="btn btn-blue" onclick="registerOwner()">CREAR MI NEGOCIO</button>
+            <input type="text" id="r-biz" placeholder="Nombre de tu Mueblería">
+            <input type="email" id="r-email" placeholder="Correo Maestro">
+            <input type="password" id="r-pass" placeholder="Contraseña (mín 6)">
+            <button class="btn btn-blue" onclick="registerOwner()">CREAR NEGOCIO</button>
         </div>
     </div>
 
-    <div id="app" style="display:none;">
-        <header>BITACORA PRO <i class="fas fa-power-off" onclick="localStorage.clear(); location.reload();"></i></header>
+    <div id="app-ui" style="display:none;">
+        <header>BITACORA PRO <i class="fas fa-sign-out-alt" onclick="handleLogout()"></i></header>
 
         <div id="owner-panel" style="display:none;" class="card">
-            <h3 style="margin:0; color:var(--blue);">Panel Administrativo</h3>
-            <p style="font-size: 13px; color: #666;">Registra nuevos cobradores para tu mueblería:</p>
-            <input type="text" id="new-staff-u" placeholder="Nombre de Usuario">
-            <input type="password" id="new-staff-p" placeholder="Contraseña">
-            <button class="btn btn-blue" onclick="crearStaff()">AÑADIR COBRADOR</button>
-            <div id="staff-container" style="margin-top:20px;"></div>
+            <h4 style="margin:0;">Administrar Cobradores</h4>
+            <input type="text" id="new-u" placeholder="Usuario Cobrador">
+            <input type="password" id="new-p" placeholder="Clave">
+            <button class="btn btn-blue" onclick="crearStaff()">GUARDAR</button>
+            <div id="staff-render"></div>
         </div>
 
         <div class="card">
-            <h3 style="margin:0;">Nuevo Cliente</h3>
-            <input type="text" id="new-cli-nom" placeholder="Nombre Completo">
-            <input type="text" id="new-cli-dir" placeholder="Dirección / Colonia">
-            <button class="btn btn-blue" onclick="registrarCliente()">GUARDAR CLIENTE</button>
+            <h4>Nuevo Cliente</h4>
+            <input type="text" id="c-nom" placeholder="Nombre">
+            <input type="text" id="c-dir" placeholder="Dirección">
+            <button class="btn btn-blue" onclick="crearCliente()">GUARDAR</button>
         </div>
-
-        <div id="clientes-list"></div>
+        <div id="clientes-render"></div>
     </div>
 
 <script>
-    function switchAuth(m) {
-        document.getElementById('f-l').style.display = m === 'l' ? 'block' : 'none';
-        document.getElementById('f-r').style.display = m === 'r' ? 'block' : 'none';
-        document.getElementById('t-l').className = m === 'l' ? 'tab active' : 'tab';
-        document.getElementById('t-r').className = m === 'r' ? 'tab active' : 'tab';
-    }
+    window.showForm = (mode) => {
+        document.getElementById('f-l').style.display = mode === 'l' ? 'block' : 'none';
+        document.getElementById('f-r').style.display = mode === 'r' ? 'block' : 'none';
+        document.getElementById('btn-show-l').style.color = mode === 'l' ? '#1a73e8' : '#777';
+        document.getElementById('btn-show-l').style.borderBottom = mode === 'l' ? '2px solid #1a73e8' : 'none';
+        document.getElementById('btn-show-r').style.color = mode === 'r' ? '#1a73e8' : '#777';
+        document.getElementById('btn-show-r').style.borderBottom = mode === 'r' ? '2px solid #1a73e8' : 'none';
+    };
 
     function renderStaff(data) {
-        const div = document.getElementById('staff-container');
-        div.innerHTML = "<strong>Cobradores Registrados:</strong>";
-        if(!data) return div.innerHTML += "<p style='font-size:12px;'>No hay personal registrado.</p>";
+        const div = document.getElementById('staff-render');
+        div.innerHTML = "";
+        if(!data) return;
         Object.values(data).forEach(s => {
             div.innerHTML += `
-                <div class="staff-acc">
+                <div class="acc-card">
                     <div class="acc-header" onclick="this.nextElementSibling.style.display = (this.nextElementSibling.style.display === 'block' ? 'none' : 'block')">
                         👤 ${s.user.toUpperCase()} <span>▼</span>
                     </div>
                     <div class="acc-content">
-                        <p style="margin:0;">Clave: ${s.pass}</p>
-                        <button class="btn" style="background:#fce8e6; color:red; margin-top:10px;" onclick="eliminarStaff('${s.user}')">ELIMINAR ACCESO</button>
+                        <p>Clave: ${s.pass}</p>
+                        <button class="btn" style="background:#fce8e6; color:red;" onclick="removeStaff('${s.user}')">ELIMINAR</button>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     }
 
     function renderClientes(data) {
-        const div = document.getElementById('clientes-list');
+        const div = document.getElementById('clientes-render');
         div.innerHTML = "";
         if(!data) return;
-        Object.entries(data).forEach(([id, cli]) => {
-            let html = `<div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${cli.nombre}</strong>
-                    <button class="btn" style="background:#f0f0f0; width:auto; padding:8px 15px; font-size:12px;" onclick="notificar('Nuevo Artículo', 'Funcionalidad de añadir mueble activa')">+ ARTÍCULO</button>
-                </div>
-                <small style="color:#777;">📍 ${cli.direccion || 'Sin dirección'}</small>
-            </div>`;
-            div.innerHTML += html;
+        Object.values(data).forEach(cli => {
+            div.innerHTML += `<div class="card"><strong>${cli.nombre}</strong><br><small>${cli.direccion}</small></div>`;
         });
     }
 </script>
