@@ -3,851 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AboneroApp Pro</title>
+    <title>AboneroApp Pro - Cloud Master</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
-            /* Paleta de colores elegante tipo App Profesional */
-            --primary: #1a73e8; /* Azul Google */
-            --primary-dark: #1557b0;
-            --secondary: #e8f0fe;
-            --success: #34a853; /* Verde Google */
-            --danger: #ea4335; /* Rojo Google */
-            --dark: #202124;
-            --light: #f8f9fa;
-            --white: #ffffff;
-            --gray-100: #f1f3f4;
-            --gray-300: #dadce0;
-            --gray-600: #5f6368;
-            --gray-900: #202124;
-            
-            /* Sombreados y bordes elegantes */
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 20px;
-            
-            /* Altura segura para notch en móviles */
-            --safe-top: env(safe-area-inset-top, 0px);
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Quita el flash al tocar en iOS */
-            outline: none;
+            --primary-blue: #1a73e8;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --pink-ticket: #ffb6c1;
+            --header-gradient: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: var(--gray-100);
-            color: var(--gray-900);
+            background-color: var(--dark-bg);
+            color: var(--text-color);
             overflow-x: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* --- 1. PANTALLA SPLASH (BIENVENIDA) --- */
+        /* Pantalla Splash Animada */
         #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--white);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease, visibility 0.5s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.6s ease;
         }
-        
-        #splash-screen.fade-out {
-            opacity: 0;
-            visibility: hidden;
-        }
-        
-        #splash-logo {
-            width: 150px;
-            height: auto;
-            margin-bottom: 30px;
-            animation: logoPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        #splash-loader {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--secondary);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes logoPop {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        #splash-logo { width: 180px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* --- 2. INTERFAZ MAESTRA --- */
-        
-        /* Header elegante */
+        /* Header Profesional */
         header {
-            background-color: var(--primary);
-            color: var(--white);
-            padding: calc(var(--safe-top) + 15px) 15px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: var(--shadow-md);
-        }
-
-        .brand-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .header-logo {
-            height: 24px;
-            width: auto;
-            filter: brightness(0) invert(1); /* Logo blanco */
-        }
-
-        .header-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: -0.5px;
-        }
-
-        /* Contenedor principal de vistas */
-        #main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding-bottom: 80px; /* Espacio para el menú inferior */
-        }
-
-        .view {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            background: var(--header-gradient);
             padding: 15px;
-            animation: viewSlideIn 0.3s ease-out;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
+        .header-title { font-weight: 800; letter-spacing: 1px; font-size: 1.1rem; color: white; }
 
-        .view.active {
-            display: block;
-            opacity: 1;
-        }
-        
-        @keyframes viewSlideIn {
-            from { transform: translateY(15px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        /* Contenedores y Vistas */
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+        .view { display: none; animation: fadeIn 0.4s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- 3. COMPONENTES ELEGANTES (Nexpen Style) --- */
-        
-        /* Tarjetas modernas */
+        /* Tarjetas de Clientes */
         .card {
-            background-color: var(--white);
-            border-radius: var(--radius-md);
+            background: var(--card-bg);
+            border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-            border: 1px solid var(--gray-100);
+            border: 1px solid #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        
-        .card:active {
-            transform: scale(0.99);
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        input, select {
+            width: 100%; padding: 14px; margin-bottom: 12px;
+            background: #2c2c2c; border: 1px solid #444;
+            border-radius: 12px; color: white; font-size: 16px; box-sizing: border-box;
         }
-
-        .card-header-app {
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            border-left: 3px solid var(--primary);
-            padding-left: 10px;
-        }
-
-        /* Formularios profesionales */
-        .input-group {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 14px 14px 40px; /* Espacio para el icono */
-            border: 1px solid var(--gray-300);
-            border-radius: var(--radius-md);
-            background-color: var(--gray-100);
-            font-size: 1rem;
-            color: var(--dark);
-            transition: border 0.3s, background-color 0.3s;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-            background-color: var(--white);
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 14px;
-            top: 17px;
-            color: var(--gray-600);
-            font-size: 1rem;
-            transition: color 0.3s;
-        }
-        
-        input:focus + .input-icon {
-            color: var(--primary);
-        }
-
-        /* Botones grandes y táctiles */
         .btn {
-            border: none;
-            padding: 16px;
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            font-size: 1rem;
-            width: 100%;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+            border: none; padding: 16px; border-radius: 12px;
+            font-weight: bold; width: 100%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.2s;
+        }
+        .btn-main { background: var(--primary-blue); color: white; }
+        .btn-main:active { transform: scale(0.98); }
+
+        /* Tarjeta Rosa (Basada en tu imagen) */
+        #ticket-wrapper { position: absolute; left: -9999px; }
+        .pink-ticket {
+            width: 350px; background: var(--pink-ticket);
+            padding: 20px; color: #000; font-family: Arial, sans-serif;
+            border: 1px solid #000;
+        }
+        .pink-header { border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 10px; font-weight: bold; }
+        .pink-table { width: 100%; border-collapse: collapse; }
+        .pink-table th, .pink-table td { 
+            border: 1px solid #000; padding: 6px; text-align: center; font-size: 11px; 
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        /* Modal de Confirmación */
+        #modal-ov {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center;
         }
-
-        .btn-main {
-            background-color: var(--primary);
-            color: var(--white);
+        .modal-box { 
+            background: #252525; width: 85%; max-width: 350px; 
+            border-radius: 20px; overflow: hidden; border: 1px solid var(--primary-blue); 
         }
-        
-        .btn-main:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        .btn-success {
-            background-color: var(--success);
-            color: var(--white);
-        }
-
-        .btn-fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 30px;
-            box-shadow: var(--shadow-lg);
-            background-color: var(--secondary);
-            color: var(--primary);
-            z-index: 999;
-            animation: fabEnter 0.5s ease-out 0.8s both;
-        }
-        
-        @keyframes fabEnter {
-            from { transform: scale(0) rotate(-90deg); opacity: 0; }
-            to { transform: scale(1) rotate(0); opacity: 1; }
-        }
-
-        /* --- 4. LISTA DE CLIENTES Y DETALLES (Nido) --- */
-        .client-box {
-            background-color: var(--white);
-            border-radius: var(--radius-md);
-            margin-bottom: 12px;
-            overflow: hidden;
-            border: 1px solid var(--gray-100);
-        }
-        
-        .cli-head {
-            padding: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-        
-        .cli-head::after {
-            content: '\f078'; /* Icono chevron down */
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            right: 15px;
-            top: 25px;
-            color: var(--gray-600);
-            font-size: 0.8rem;
-            transition: transform 0.3s;
-        }
-        
-        .cli-head.expanded::after {
-            transform: rotate(180deg);
-        }
-
-        .client-photo {
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            object-fit: cover;
-            border: 2px solid var(--white);
-            box-shadow: 0 0 0 2px var(--gray-100);
-        }
-        
-        .cli-info h3 { margin: 0; font-size: 1rem; color: var(--gray-900); }
-        .cli-info p { margin: 2px 0 0; font-size: 0.8rem; color: var(--gray-600); }
-
-        .cli-body {
-            display: none;
-            padding: 15px;
-            background-color: var(--gray-100);
-            border-top: 1px solid #eee;
-        }
-        
-        .cli-body.expanded {
-            display: block;
-        }
-
-        /* Artículos dentro del cliente */
-        .art-nest-card {
-            background-color: var(--white);
-            border: 1px solid var(--gray-300);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        
-        .art-nest-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed var(--gray-300);
-        }
-        
-        .art-nest-title { font-weight: 700; color: var(--dark); font-size: 0.9rem; }
-        .art-nest-price { font-weight: 700; color: var(--primary); }
-
-        /* --- 5. TICKET "TARJETA REAL" (Moderno) --- */
-        #ticket-wrapper {
-            position: absolute;
-            left: -9999px; /* Oculto en vista normal */
-            top: 0;
-        }
-        
-        .real-card-ticket {
-            width: 400px;
-            height: 250px;
-            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 18px;
-            position: relative;
-            font-family: 'OCR A Extended', 'Courier New', monospace; /* Tipo de letra de tarjeta */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            text-transform: uppercase;
-        }
-        
-        .ticket-chip {
-            width: 50px;
-            height: 38px;
-            background: linear-gradient(135deg, #f0ca1d 0%, #b8910d 100%);
-            border-radius: 8px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-        
-        .ticket-chip::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNMCA1MGgxMDBNMCAtNTBoMTAwTTAgMTUwaDEwME0wIC0xNTBoMTAwTTAgMjUwaDEwME0wIC0yNTBoMTAwTTUwIDB2MTAwTTUwIC0xMDB2MTAwTTUwIDEwMHYxMDBNNSAtMTUwdjEwME01MCAyNTB2MTAwTTUwIC0yNTB2MTAwTTAgMGw1MCA1ME0wIDEwMGw1MCAtNTBNMCAyMDBsNTAgLTUwTTAgLTEwMGw1MCA1ME0wIC0yMDBsNTAgNTBNMCAzMDBsNTAgLTUwIiBzdHJva2U9IiNhYWEiIHN0cm9rZS13aWR0aD0iMSIIGZpbGw9Im5vbmUiLz48L3N2Zz4=');
-            opacity: 0.3;
-        }
-        
-        .card-number {
-            font-size: 1.4rem;
-            letter-spacing: 2.5px;
-            margin-bottom: 15px;
-            display: block;
-        }
-        
-        .holder-label {
-            font-family: 'Segoe UI', sans-serif;
-            text-transform: capitalize;
-            font-size: 0.65rem;
-            opacity: 0.7;
-            margin-bottom: 2px;
-            display: block;
-        }
-        
-        .card-holder-name {
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            display: block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 70%;
-        }
-        
-        .card-details {
-            position: absolute;
-            bottom: 25px;
-            right: 25px;
-            text-align: right;
-            font-size: 0.7rem;
-            line-height: 1.4;
-        }
-        
-        .t-brand {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 800;
-            font-size: 0.8rem;
-            text-align: right;
-            text-transform: none;
-        }
-        
-        .t-brand img {
-            height: 25px;
-            margin-bottom: 2px;
-        }
-
-        /* --- 6. MODAL DE AVISO PERSONALIZADO --- */
-        #modal-avisos {
-            display:none;
-            position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
-            background:rgba(0,0,0,0.8);
-            z-index:3000;
-            align-items:center;
-            justify-content:center;
-        }
-        
-        .modal-body {
-            background: var(--white);
-            width: 85%;
-            max-width: 380px;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        .modal-header-aviso {
-            background-color: var(--secondary);
-            color: var(--primary);
-            padding: 15px;
-            font-weight: 800;
-            text-align: center;
-        }
-        
-        .modal-content-aviso {
-            padding: 25px;
-            text-align: center;
-            font-size: 0.95rem;
-            color: var(--dark);
-        }
-        
-        .modal-footer {
-            padding: 15px;
-            border-top: 1px solid var(--gray-300);
-            display: flex;
-            gap: 10px;
-        }
-        
-        @keyframes modalPop {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <img id="splash-logo" src="image_2.png" alt="AboneroApp Logo">
-        <div id="splash-loader"></div>
-        <p style="color:var(--gray-600); font-weight:600; font-size: 1.1rem; margin-top: 20px;">Cargando AboneroApp Pro...</p>
+        <img id="splash-logo" src="https://i.ibb.co/68Z4rY3/logo.png" alt="Abonero App Logo">
+        <p style="color: #666; font-weight: bold; margin-top: 20px; font-family: sans-serif;">CONECTANDO A CLOUD...</p>
     </div>
 
     <header>
-        <div class="brand-container">
-            <img class="header-logo" src="image_2.png" alt="Logo Small">
-            <div class="header-title">AboneroApp Pro</div>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <i class="fas fa-sort-amount-down" id="sort-gps" style="cursor:pointer;" onclick="orderByGps()"></i>
-        </div>
+        <div onclick="showView('v-ruta')" style="font-size: 24px; cursor:pointer; color:white;"><i class="fas fa-home"></i></div>
+        <div class="header-title">ABONEROAPP PRO</div>
+        <div onclick="showView('v-nueva')" style="font-size: 22px; cursor:pointer; color:white;"><i class="fas fa-user-plus"></i></div>
     </header>
 
-    <div id="main-content">
-        
-        <div id="view-list" class="view active">
+    <div class="container">
+        <div id="v-ruta" class="view active">
             <div class="card">
-                <div class="card-header-app">Gestión de Cobro</div>
-                <div id="lista-clientes">
-                    </div>
+                <input type="text" id="search" placeholder="🔍 Buscar cliente..." onkeyup="filterClients()">
             </div>
-            
-            <button class="btn-fab" onclick="showView('view-add')">
-                <i class="fas fa-plus" style="font-size: 1.5rem;"></i>
-            </button>
+            <div id="lista-clientes"></div>
         </div>
 
-        <div id="view-add" class="view">
+        <div id="v-nueva" class="view">
             <div class="card">
-                <div class="card-header-app">Nuevo Registro de Venta</div>
-                
-                <div class="input-group">
-                    <input type="text" id="reg-nom" placeholder="Nombre completo del cliente" required>
-                    <i class="fas fa-user input-icon"></i>
-                </div>
-                
-                <div class="input-group">
-                    <input type="text" id="reg-dir" placeholder="Dirección completa">
-                    <i class="fas fa-map-marker-alt input-icon"></i>
-                </div>
-                
-                <div class="input-group">
-                    <input type="text" id="reg-mueble" placeholder="Artículo o mueble vendido" required>
-                    <i class="fas fa-couch input-icon"></i>
-                </div>
-                
-                <div class="input-group">
-                    <input type="number" id="reg-saldo" placeholder="Saldo Inicial (ej. 5000)" required>
-                    <i class="fas fa-dollar-sign input-icon"></i>
-                </div>
-                
-                <p style="font-size: 0.8rem; color: var(--gray-600); margin: -5px 0 15px;">La foto y ubicación GPS se capturan automáticamente al guardar.</p>
+                <h4 style="margin-top:0; color:var(--primary-blue);">Nuevo Registro de Venta</h4>
+                <input type="text" id="reg-nom" placeholder="Nombre completo">
+                <input type="text" id="reg-dir" placeholder="Dirección">
+                <input type="text" id="reg-art" placeholder="Artículo">
+                <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
+                <button class="btn btn-main" onclick="saveToCloud()">REGISTRAR VENTA</button>
+            </div>
+        </div>
+    </div>
 
-                <button class="btn btn-main" onclick="registrarVenta()">
-                    <i class="fas fa-save"></i> GUARDAR EN EL SISTEMA
-                </button>
+    <div id="modal-ov">
+        <div class="modal-box">
+            <div style="background: var(--primary-blue); padding: 15px; text-align: center; font-weight: bold; color:white;">AboneroApp</div>
+            <div id="m-body" style="padding: 25px; text-align: center; color:white;"></div>
+            <div id="m-foot" style="padding: 15px; border-top: 1px solid #333;">
+                <button class="btn btn-main" onclick="closeModal()">ACEPTAR</button>
             </div>
         </div>
     </div>
 
     <div id="ticket-wrapper">
-        <div id="real-card-print" class="real-card-ticket">
-            <div class="t-brand">
-                <img src="image_2.png" alt="App Logo Small">
-                <div>ABONEROAPP PRO</div>
+        <div class="pink-ticket" id="final-ticket">
+            <div style="text-align: center; font-size: 14px; margin-bottom: 10px;"><b>TARJETA DE ABONOS</b></div>
+            <div class="pink-header">
+                <div>Nombre: <span id="t-nom"></span></div>
+                <div>Dirección: <span id="t-dir"></span></div>
+                <div>Artículo: <span id="t-art"></span></div>
             </div>
-            <div class="ticket-chip"></div>
-            <span class="card-number" id="t-card-num">**** **** **** 0000</span>
-            <div style="display:flex; justify-content:space-between; align-items:end;">
-                <div>
-                    <span class="holder-label">Cliente</span>
-                    <span class="card-holder-name" id="t-holder">NOMBRE DEL CLIENTE</span>
-                </div>
-            </div>
-            <div class="card-details">
-                VALID THRU <br>
-                <span id="t-date">MM/YY</span> <br>
-                ART: <span id="t-art">SALÓN</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-avisos">
-        <div class="modal-body">
-            <div class="modal-header-aviso" id="modal-header">Aviso</div>
-            <div class="modal-content-aviso" id="modal-text">Mensaje.</div>
-            <div class="modal-footer" id="modal-actions">
-                <button class="btn btn-main" style="flex:1;" onclick="closeAviso()">ACEPTAR</button>
-            </div>
+            <table class="pink-table">
+                <thead>
+                    <tr><th>FECHA</th><th>ABONO</th><th>RESTA</th></tr>
+                </thead>
+                <tbody id="t-rows"></tbody>
+            </table>
         </div>
     </div>
 
 <script>
-    // --- PERSISTENCIA Y CONFIGURACIÓN ---
-    const DB_KEY = "abonero_pro_db_v1";
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || {};
+    // --- INTEGRACIÓN CON TUS CREDENCIALES DE FIREBASE ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7xEDb_sa_C76G6KA5cQMsd3w-h83hpb0",
+      authDomain: "bitacoregust.firebaseapp.com",
+      databaseURL: "https://bitacoregust-default-rtdb.firebaseio.com",
+      projectId: "bitacoregust",
+      storageBucket: "bitacoregust.firebasestorage.app",
+      messagingSenderId: "155618684015",
+      appId: "1:155618684015:web:ebea5a55a678395c9df19a",
+      measurementId: "G-93RTQWDMTR"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // Manejo de la pantalla Splash
-    window.addEventListener('load', () => {
+    // Splash y Carga
+    window.onload = () => {
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
-            splash.classList.add('fade-out');
-            setTimeout(() => splash.style.display = 'none', 500);
-        }, 1500); // 1.5s de splash
-    });
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 600);
+        }, 2000);
+        fetchData();
+    };
 
-    // --- FUNCIONALIDADES DE VISTA ---
-    function showView(viewId) {
-        document.querySelectorAll('.view').forEach(view => {
-            view.classList.remove('active');
-        });
-        document.getElementById(viewId).classList.add('active');
-        render(); // Re-renderiza al cambiar de vista
-    }
+    function saveToCloud() {
+        const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
+        const saldo = parseFloat(document.getElementById('reg-saldo').value);
 
-    // --- GESTIÓN DE AVISOS ---
-    function lanzarAviso(text, header = "Aviso") {
-        document.getElementById('modal-header').innerText = header;
-        document.getElementById('modal-text').innerText = text;
-        document.getElementById('modal-avisos').style.display = 'flex';
-    }
-
-    function closeAviso() {
-        document.getElementById('modal-avisos').style.display = 'none';
-    }
-
-    // --- GESTIÓN GPS ---
-    function orderByGps() {
-        lanzarAviso("⏳ Solicitando ubicación GPS para ordenar la ruta...", "Ruta");
-        navigator.geolocation.getCurrentPosition(pos => {
-            const myLat = pos.coords.latitude;
-            const myLon = pos.coords.longitude;
-            
-            // Ordenar clientes por distancia euclidiana
-            const ordered = Object.values(db).sort((a, b) => {
-                const distA = Math.sqrt(Math.pow(a.lat - myLat, 2) + Math.pow(a.lon - myLon, 2));
-                const distB = Math.sqrt(Math.pow(b.lat - myLat, 2) + Math.pow(b.lon - myLon, 2));
-                return distA - distB;
-            });
-
-            // Re-mapear base de datos ordenada (aunque es un objeto)
-            let newDb = {};
-            ordered.forEach(cli => { newDb[cli.nombre] = cli; });
-            db = newDb; 
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
-            render();
-            closeAviso();
-            setTimeout(() => lanzarAviso("📍 Ruta ordenada por cercanía GPS.", "Ruta Exitosa"), 600);
-        }, () => {
-            closeAviso();
-            setTimeout(() => lanzarAviso("❌ Error GPS. Asegúrate de tener activa la ubicación en tu móvil.", "Error"), 600);
-        });
-    }
-
-    // --- GESTIÓN DE REGISTRO ---
-    async function registrarVenta() {
-        const nom = document.getElementById('reg-nom').value.trim();
-        const mueble = document.getElementById('reg-mueble').value.trim();
-        const saldoString = document.getElementById('reg-saldo').value;
-        const saldo = parseFloat(saldoString);
-
-        if (!nom || !mueble || isNaN(saldo)) {
-            lanzarAviso("⚠️ Por favor, completa todos los campos obligatorios (Nombre, Artículo y Saldo).");
+        if(!nom || isNaN(saldo)) {
+            showModal("⚠️ Completa los campos obligatorios.");
             return;
         }
 
-        // 1. GPS
-        let lat = 0; let lon = 0;
-        lanzarAviso("⏳ Capturando ubicación GPS y registro...", "Guardando");
-        try {
-            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej));
-            lat = pos.coords.latitude; lon = pos.coords.longitude;
-        } catch (e) { console.log("GPS falló."); }
-
-        // 2. Foto genérica (Se elimina la cámara para estabilidad)
-        const photo = `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(nom)}`;
-
-        // 3. Estructura de datos Nido
-        if (!db[nom]) {
-            db[nom] = {
-                nombre: nom,
-                direccion: document.getElementById('reg-dir').value.trim(),
-                foto: photo,
-                lat: lat, lon: lon,
-                creacion: new Date().getTime(),
-                cuentas: [] // Nido de múltiples muebles
-            };
-        }
-
-        // Agregar nueva cuenta al nido
-        const ctaId = new Date().getTime();
-        db[nom].cuentas.push({
-            id: ctaId,
-            articulo: mueble,
-            saldoOriginal: saldo,
-            saldoActual: saldo,
-            abonos: [] // Historial de abonos
+        const path = nom.replace(/\./g, '_');
+        db.ref('clientes/' + path).set({
+            nombre: nom,
+            direccion: document.getElementById('reg-dir').value,
+            articulo: document.getElementById('reg-art').value,
+            saldo: saldo,
+            historial: []
+        }).then(() => {
+            showModal("Venta registrada correctamente");
+            document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
+            showView('v-ruta');
         });
-
-        // Guardar
-        localStorage.setItem(DB_KEY, JSON.stringify(db));
-        
-        // Limpiar campos
-        document.querySelectorAll('#view-add input').forEach(inpt => inpt.value = "");
-        
-        closeAviso();
-        setTimeout(() => lanzarAviso(`✅ Venta de ${mueble} registrada correctamente para ${nom}.`), 600);
-        showView('view-list');
     }
 
-    // --- GESTIÓN DE ABONOS ---
-    function abrirCobro(clienteNom, cuentaId) {
-        // En AboneroApp Pro, el cobro se hace directo en la lista, no abre ventana nueva.
-        // Solo enfocamos y preparamos el input de abono
-        const inputId = `in-abono-${cuentaId}`;
-        document.getElementById(inputId).focus();
-    }
+    function fetchData() {
+        db.ref('clientes').on('value', (snap) => {
+            const list = document.getElementById('lista-clientes');
+            list.innerHTML = "";
+            const data = snap.val();
+            if(!data) return;
 
-    function confirmarAbono(clienteNom, cuentaId) {
-        const inputId = `in-abono-${cuentaId}`;
-        const inpt = document.getElementById(inputId);
-        const abo = parseFloat(inpt.value);
-
-        if (isNaN(abo) || abo <= 0) {
-            lanzarAviso("⚠️ Ingresa un monto válido mayor a 0.");
-            return;
-        }
-
-        const cuenta = db[clienteNom].cuentas.find(c => c.id === cuentaId);
-        const ant = cuenta.saldoActual;
-        const act = ant - abo;
-
-        lanzarAviso("⏳ Procesando abono y generando tarjeta...", "Abonando");
-        
-        setTimeout(async () => {
-            // Actualizar DB
-            cuenta.saldoActual = act;
-            cuenta.abonos.push({
-                fecha: new Date().toLocaleDateString(),
-                timestamp: new Date().getTime(),
-                monto: abo,
-                saldoAnterior: ant,
-                saldoNuevo: act
-            });
-
-            // Guardar
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
-
-            // Limpiar input y renderizar
-            inpt.value = "";
-            render();
-
-            // Generar Ticket moderno "Tarjeta Real"
-            generarTicketModerno(clienteNom, cuenta.articulo, ant, abo, act);
-
-        }, 1200); // Pequeño delay profesional
-    }
-
-    // --- GENERACIÓN DE TICKET (Moderno) ---
-    function generarTicketModerno(clienteNom, mueble, ant, abo, act) {
-        // Llenar datos ocultos del ticket
-        document.getElementById('t-nom').innerText = clienteNom;
-        // Limitar nombre a 20 caracteres para que quepa en la tarjeta
-        document.getElementById('t-holder').innerText = clienteNom.length > 20 ? clienteNom.substring(0,20) + '...' : clienteNom;
-        document.getElementById('t-art').innerText = mueble;
-        document.getElementById('t-date').innerText = new Date().toLocaleDateString('es-ES', { month: '2-digit', year: '2-digit' });
-        
-        // Formatear saldo como número de tarjeta (últimos dígitos = saldo actual)
-        const actStr = String(Math.round(act));
-        document.getElementById('t-card-num').innerText = `**** **** **** ${actStr.padStart(4, '0')}`;
-
-        // Llenar tabla acumulable rosa (con estilo profesional en ticket moderno)
-        // Se elimina la tabla rosa original por diseño, ahora el ticket es la tarjeta.
-        // Si se requiere historial acumulable, debe ser una tarjeta por cada mueble.
-
-        const printArea = document.getElementById('real-card-print');
-        
-        setTimeout(() => {
-            html2canvas(printArea, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Comprobante_Abono_${clienteNom.replace(/ /g, '_')}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-                closeAviso();
-                setTimeout(() => lanzarAviso(`✅ Abono registrado. Saldo: ${actStr}. Tarjeta descargada.`), 600);
-            });
-        }, 500); // Delay para que carguen fuentes/estilos
-    }
-
-    // --- RENDERIZADO ---
-    function render() {
-        const root = document.getElementById('lista-clientes');
-        root.innerHTML = "";
-
-        Object.values(db).forEach(cli => {
-            // Acordeón para clientes con múltiples cuentas
-            const cliId = `cli-body-${cli.nombre.replace(/ /g, '_')}`;
-            const headId = `cli-head-${cli.nombre.replace(/ /g, '_')}`;
-            
-            let cuentasHtml = cli.cuentas.map(cta => `
-                <div class="art-nest-card">
-                    <div class="art-nest-header">
-                        <span class="art-nest-title">📦 ${cta.articulo}</span>
-                        <span class="art-nest-price">$${cta.saldoActual}</span>
-                    </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <input type="number" id="in-abono-${cta.id}" placeholder="Monto" style="margin-bottom:0; flex:1;">
-                        <button class="btn btn-main" style="width:auto; padding:10px;" onclick="confirmarAbono('${cli.nombre}', ${cta.id})">
-                            <i class="fas fa-money-bill-wave"></i> COBRAR
-                        </button>
-                    </div>
-                    <p style="font-size:0.75rem; color:var(--gray-600); margin:5px 0 0;">Deuda orig: $${cta.saldoOriginal}</p>
-                </div>
-            `).join('');
-
-            root.innerHTML += `
-                <div class="client-box">
-                    <div class="cli-head" id="${headId}" onclick="toggleEl('${cliId}', '${headId}')">
-                        <img class="client-photo" src="${cli.foto}" alt="Cli">
-                        <div class="cli-info">
-                            <h3>${cli.nombre}</h3>
-                            <p><i class="fas fa-map-marker-alt" style="color:var(--gray-600)"></i> ${cli.direccion.length > 25 ? cli.direccion.substring(0,25) + '...' : cli.direccion}</p>
+            Object.values(data).forEach(cli => {
+                const id = cli.nombre.replace(/\s/g,'');
+                list.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${cli.nombre}</strong>
+                            <b style="color:var(--primary-blue);">$${cli.saldo}</b>
+                        </div>
+                        <p style="margin:5px 0; font-size:0.85rem; color:#aaa;">${cli.articulo} | ${cli.direccion}</p>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <input type="number" id="inp-${id}" placeholder="Abonar $" style="margin-bottom:0; flex:1;">
+                            <button class="btn btn-main" style="width:auto; padding:0 20px;" onclick="registrarAbono('${cli.nombre}')">ABONAR</button>
                         </div>
                     </div>
-                    <div class="cli-body" id="${cliId}">
-                        ${cuentasHtml}
-                    </div>
-                </div>
-            `;
+                `;
+            });
         });
     }
 
-    function toggleEl(id, headId) {
-        const el = document.getElementById(id);
-        const head = document.getElementById(headId);
-        if (el.style.display === "block") {
-            el.style.display = "none";
-            head.classList.remove('expanded');
-        } else {
-            // Cerrar otros abiertos para experiencia App fluida
-            document.querySelectorAll('.cli-body').forEach(body => body.style.display = 'none');
-            document.querySelectorAll('.cli-head').forEach(headItem => headItem.classList.remove('expanded'));
-            el.style.display = "block";
-            head.classList.add('expanded');
-        }
+    function registrarAbono(nom) {
+        const id = nom.replace(/\s/g,'');
+        const monto = parseFloat(document.getElementById(`inp-${id}`).value);
+        if(!monto || monto <= 0) return;
+
+        const path = nom.replace(/\./g, '_');
+        db.ref('clientes/' + path).once('value', (snap) => {
+            const cli = snap.val();
+            const nuevoSaldo = (cli.saldo - monto).toFixed(2);
+            const fecha = new Date().toLocaleDateString();
+
+            const hist = cli.historial || [];
+            hist.push({ f: fecha, a: monto, r: nuevoSaldo });
+
+            db.ref('clientes/' + path).update({
+                saldo: nuevoSaldo,
+                historial: hist
+            }).then(() => {
+                showModal("Abono registrado exitosamente");
+                descargarTicket(cli, hist);
+            });
+        });
     }
 
-    // Inicio
-    init();
+    function descargarTicket(cli, hist) {
+        document.getElementById('t-nom').innerText = cli.nombre;
+        document.getElementById('t-dir').innerText = cli.direccion;
+        document.getElementById('t-art').innerText = cli.articulo;
+        
+        const rows = document.getElementById('t-rows');
+        rows.innerHTML = "";
+        for(let i=0; i<15; i++) {
+            const h = hist[i] || { f: "", a: "", r: "" };
+            rows.innerHTML += `<tr><td>${h.f}</td><td>${h.a ? '$'+h.a : ""}</td><td>${h.r ? '$'+h.r : ""}</td></tr>`;
+        }
 
+        setTimeout(() => {
+            html2canvas(document.getElementById('final-ticket')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Recibo_${cli.nombre}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }, 800);
+    }
+
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function filterClients() {
+        const q = document.getElementById('search').value.toUpperCase();
+        document.querySelectorAll('.card').forEach(c => {
+            if(c.id !== "search") c.style.display = c.innerText.toUpperCase().includes(q) ? 'block' : 'none';
+        });
+    }
+
+    function showModal(txt) {
+        document.getElementById('m-body').innerText = txt;
+        document.getElementById('modal-ov').style.display = 'flex';
+    }
+    function closeModal() { document.getElementById('modal-ov').style.display = 'none'; }
 </script>
 </body>
 </html>
