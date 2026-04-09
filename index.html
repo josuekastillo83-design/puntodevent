@@ -1,238 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXVENTA PRO</title>
+
+<style>
+:root{
+    --color:#3483fa;
+}
+body{
+    font-family:Arial;
+    margin:0;
+    background:#f5f5f5;
+}
+header{
+    background:var(--color);
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-weight:bold;
+}
+.container{padding:15px;}
+.card{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+input,button{
+    width:100%;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+button{
+    background:var(--color);
+    color:white;
+    border:none;
+}
+.client{
+    background:white;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+img{max-width:100%;border-radius:10px;}
+</style>
+</head>
+
+<body>
+
+<header>NEXVENTA PRO</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="login">
+<div class="card">
+<h3>Iniciar sesión</h3>
+<input id="email" placeholder="Correo">
+<input id="pass" type="password" placeholder="Contraseña">
+<button onclick="login()">Entrar</button>
+
+<h4>Registro</h4>
+<input id="remail" placeholder="Correo">
+<input id="rpass" type="password" placeholder="Contraseña">
+<button onclick="register()">Crear cuenta</button>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+
+<div class="card">
+<h3>Nueva venta</h3>
+<input id="name" placeholder="Cliente">
+<input id="address" placeholder="Dirección">
+<input id="item" placeholder="Artículo">
+<input id="price" type="number" placeholder="Saldo">
+
+<input type="file" id="photo">
+<img id="preview" style="display:none;">
+
+<button onclick="save()">Guardar</button>
+</div>
+
+<button onclick="logout()">Cerrar sesión</button>
+
+<div id="list"></div>
+
+</div>
+
+</div>
+
 <script>
-const STORE_KEY = "ABONERO_PRO_DATABASE_V1";
-const CONFIG_KEY = "ABONERO_PRO_CONFIG_V1";
+// STORAGE
+let users = JSON.parse(localStorage.getItem("users")) || {};
+let db = JSON.parse(localStorage.getItem("db")) || {};
+let session = localStorage.getItem("session");
 
-let database = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
-let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {
-    name: "ABONERO APP",
-    color: "#3483fa",
-    logo: ""
-};
+// INIT
+if(session){
+    showApp();
+}
 
-function init() {
-    document.documentElement.style.setProperty('--p-color', config.color);
-    document.getElementById('header-name').innerText = config.name;
-    document.getElementById('cfg-name').value = config.name;
-    document.getElementById('cfg-color-p').value = config.color;
+// LOGIN
+function login(){
+    let e=email.value;
+    let p=pass.value;
 
-    if(config.logo){
-        document.getElementById('cfg-preview').src = config.logo;
-        document.getElementById('cfg-preview').style.display = 'block';
+    if(users[e]===p){
+        localStorage.setItem("session",e);
+        showApp();
+    }else{
+        alert("Error");
     }
-
-    renderList();
 }
 
-function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('open');
+// REGISTRO
+function register(){
+    let e=remail.value;
+    let p=rpass.value;
+
+    users[e]=p;
+    localStorage.setItem("users",JSON.stringify(users));
+    alert("Usuario creado");
 }
 
-function changeView(id) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    toggleMenu();
+// APP
+function showApp(){
+    loginDiv=document.getElementById("login");
+    appDiv=document.getElementById("app");
+
+    loginDiv.style.display="none";
+    appDiv.style.display="block";
+
+    render();
 }
 
-function showModal(msg, footer = '') {
-    document.getElementById('modal-text').innerHTML = msg;
-    document.getElementById('modal-actions').innerHTML =
-        footer || `<button class="btn btn-main" onclick="closeModal()">OK</button>`;
-    document.getElementById('modal').style.display = 'flex';
+// LOGOUT
+function logout(){
+    localStorage.removeItem("session");
+    location.reload();
 }
 
-function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-}
-
-function handleLogo(e) {
-    if(!e.target.files[0]) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-        config.logo = reader.result;
-        document.getElementById('cfg-preview').src = config.logo;
-        document.getElementById('cfg-preview').style.display = 'block';
-    };
+// FOTO
+photo.onchange=e=>{
+    let reader=new FileReader();
+    reader.onload=()=>{
+        preview.src=reader.result;
+        preview.style.display="block";
+    }
     reader.readAsDataURL(e.target.files[0]);
 }
 
-function applySettings() {
-    config.name = document.getElementById('cfg-name').value.toUpperCase();
-    config.color = document.getElementById('cfg-color-p').value;
+// GUARDAR
+function save(){
+    let n=name.value;
+    let a=address.value;
+    let i=item.value;
+    let p=parseFloat(price.value);
 
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+    if(!n||!i||isNaN(p)) return alert("Faltan datos");
 
-    showModal("✅ Cambios guardados", `
-        <button class="btn btn-main" onclick="location.reload()">REINICIAR</button>
-    `);
-}
-
-function saveSale() {
-    const name = document.getElementById('in-name').value.trim().toUpperCase();
-    const street = document.getElementById('in-street').value;
-    const col = document.getElementById('in-col').value;
-    const cp = document.getElementById('in-cp').value;
-    const mun = document.getElementById('in-mun').value;
-    const est = document.getElementById('in-est').value;
-    const item = document.getElementById('in-item').value;
-    const bal = parseFloat(document.getElementById('in-balance').value);
-
-    if(!name || !item || isNaN(bal)){
-        return showModal("⚠️ Completa los campos obligatorios");
+    if(!db[n]){
+        db[n]={name:n,address:a,photo:preview.src,items:[]};
     }
 
-    if(!database[name]){
-        database[name] = { name, street, col, cp, mun, est, accounts: [] };
-    }
+    db[n].items.push({item:i,balance:p});
 
-    database[name].accounts.push({
-        id: Date.now(),
-        item,
-        balance: bal,
-        history: []
-    });
+    localStorage.setItem("db",JSON.stringify(db));
 
-    localStorage.setItem(STORE_KEY, JSON.stringify(database));
+    name.value="";
+    address.value="";
+    item.value="";
+    price.value="";
+    preview.style.display="none";
 
-    // LIMPIAR CAMPOS
-    document.querySelectorAll('#view-add input').forEach(i => i.value = "");
-
-    showModal("✅ Venta guardada correctamente");
-    renderList();
-    changeView('view-list');
+    render();
 }
 
-function renderList() {
-    const root = document.getElementById('clients-render');
-    root.innerHTML = "";
+// RENDER
+function render(){
+    let list=document.getElementById("list");
+    list.innerHTML="";
 
-    Object.values(database).forEach(cli => {
-        let accountsHtml = cli.accounts.map(acc => `
-            <div class="item-box">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${acc.item}</strong>
-                    <b style="color:var(--p-color)">$${acc.balance}</b>
-                </div>
+    Object.values(db).forEach(c=>{
 
-                <button class="btn btn-main" style="padding:10px; margin-top:10px;"
-                onclick="openAbono('${cli.name}', ${acc.id})">ABONAR</button>
-
-                <table class="history-table">
-                    <tbody>
-                        ${acc.history.map(h => `
-                        <tr>
-                            <td>${h.date}</td>
-                            <td>$${h.amount}</td>
-                            <td>$${h.current}</td>
-                        </tr>`).reverse().join('')}
-                    </tbody>
-                </table>
-            </div>
-        `).join('');
-
-        const safeId = "c-" + cli.name.replace(/[^a-zA-Z0-9]/g,'');
-
-        root.innerHTML += `
-            <div class="client-box">
-                <div class="client-top" onclick="toggleAcc('${safeId}')">
-                    <div>
-                        <strong>${cli.name}</strong><br>
-                        <small>${cli.street}, ${cli.col}</small>
-                    </div>
-                    ▼
-                </div>
-
-                <div id="${safeId}" style="display:none">
-                    ${accountsHtml}
-                </div>
-            </div>
+        let html=`
+        <div class="client">
+        <h4>${c.name}</h4>
+        <p>${c.address}</p>
+        ${c.photo?`<img src="${c.photo}">`:""}
         `;
+
+        c.items.forEach(it=>{
+            html+=`
+            <p>${it.item} - $${it.balance}</p>
+            <button onclick="pay('${c.name}','${it.item}')">Abonar</button>
+            `;
+        });
+
+        html+="</div>";
+
+        list.innerHTML+=html;
     });
 }
 
-function openAbono(cli, id) {
-    showModal(`
-        Abonar a <b>${cli}</b><br><br>
-        <input type="number" id="modal-amount" placeholder="Monto">
-    `, `
-        <button class="btn btn-main" onclick="processAbono('${cli}', ${id})">PAGAR</button>
-    `);
+// ABONO
+function pay(client,item){
+    let amount=parseFloat(prompt("Monto"));
+
+    if(isNaN(amount)) return;
+
+    let acc=db[client].items.find(i=>i.item===item);
+
+    acc.balance=(acc.balance-amount).toFixed(2);
+
+    localStorage.setItem("db",JSON.stringify(db));
+    render();
 }
-
-function processAbono(cliName, accId) {
-    const amount = parseFloat(document.getElementById('modal-amount').value);
-
-    if(isNaN(amount) || amount <= 0){
-        return alert("Monto inválido");
-    }
-
-    const acc = database[cliName].accounts.find(a => a.id === accId);
-
-    let prev = parseFloat(acc.balance);
-    let newBalance = prev - amount;
-
-    acc.balance = parseFloat(newBalance.toFixed(2));
-
-    const date = new Date().toLocaleString();
-
-    acc.history.push({
-        date,
-        amount,
-        previous: prev,
-        current: acc.balance
-    });
-
-    localStorage.setItem(STORE_KEY, JSON.stringify(database));
-
-    closeModal();
-    renderList();
-
-    generateTicket(cliName, acc.item, prev, amount, acc.balance, date);
-}
-
-function generateTicket(cli, item, ant, abo, act, date) {
-    const c = database[cli];
-
-    document.getElementById('t-brand').innerText = config.name;
-    document.getElementById('t-date').innerText = date;
-    document.getElementById('t-c-name').innerText = cli;
-    document.getElementById('t-c-dir').innerText = `${c.street}, ${c.col}`;
-    document.getElementById('t-c-item').innerText = item;
-    document.getElementById('t-c-ant').innerText = "$" + ant;
-    document.getElementById('t-c-abo').innerText = "$" + abo;
-    document.getElementById('t-c-act').innerText = "$" + act;
-
-    if(config.logo){
-        document.getElementById('t-logo').src = config.logo;
-        document.getElementById('t-logo').style.display = "block";
-    }
-
-    html2canvas(document.getElementById('ticket')).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `ticket_${cli}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    });
-}
-
-function smartRoute() {
-    let sorted = Object.values(database).sort((a, b) =>
-        (parseInt(a.cp)||0) - (parseInt(b.cp)||0)
-    );
-
-    let newDb = {};
-    sorted.forEach(c => newDb[c.name] = c);
-
-    database = newDb;
-
-    renderList();
-    showModal("📍 Ruta optimizada");
-}
-
-function toggleAcc(id) {
-    const el = document.getElementById(id);
-    el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-}
-
-init();
 </script>
+
+</body>
+</html>
