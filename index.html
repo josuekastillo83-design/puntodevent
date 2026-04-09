@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AboneroApp - Control Maestro</title>
+    <title>AboneroApp Pro - Sistema Central</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // TUS CREDENCIALES REALES
         const firebaseConfig = {
             apiKey: "AIzaSyD7xEDb_sa_C76G6KA5cQMsd3w-h83hpb0",
             authDomain: "bitacoregust.firebaseapp.com",
@@ -24,76 +25,63 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- SISTEMA DE USUARIOS PERSONALIZADOS ---
+        // --- LÓGICA DE ACCESO ---
+        window.handleLogin = async () => {
+            const userInp = document.getElementById('login-user').value.toLowerCase().trim();
+            const passInp = document.getElementById('login-pass').value;
 
-        // Función para que el Dueño cree un cobrador (Nombre de usuario en lugar de correo)
-        window.crearCobrador = () => {
-            const user = auth.currentUser;
-            const nuevoUser = document.getElementById('new-user').value.toLowerCase().trim();
-            const nuevaPass = document.getElementById('new-pass').value.trim();
-
-            if(!nuevoUser || !nuevaPass) return alert("Completa los datos del cobrador.");
-
-            // Guardamos el cobrador bajo el ID del dueño
-            set(ref(db, `mueblerias/${user.uid}/staff/${nuevoUser}`), {
-                password: nuevaPass,
-                nombre: nuevoUser
-            }).then(() => {
-                alert(`✅ Cobrador "${nuevoUser}" creado. Ya puede iniciar sesión.`);
-                document.getElementById('new-user').value = "";
-                document.getElementById('new-pass').value = "";
-            });
-        };
-
-        // Login Especial (Detecta si es Dueño o Cobrador por nombre)
-        window.handleLoginMaster = async () => {
-            const inputUser = document.getElementById('login-email').value.toLowerCase().trim();
-            const inputPass = document.getElementById('login-pass').value;
-
-            // Si el input contiene @, intentamos login como Dueño (Firebase Auth)
-            if(inputUser.includes('@')) {
-                signInWithEmailAndPassword(auth, inputUser, inputPass).catch(() => alert("Error en cuenta maestra."));
+            if(userInp.includes('@')) {
+                // LOGIN DUEÑO (CORREO)
+                signInWithEmailAndPassword(auth, userInp, passInp).catch(() => alert("Error en cuenta maestra."));
             } else {
-                // Si no tiene @, buscamos en la base de datos de Staff
-                const bizId = document.getElementById('login-biz-id').value.trim(); // Necesitamos el ID del dueño
-                if(!bizId) return alert("Ingresa el ID de la Mueblería proporcionado por tu patrón.");
-
-                const path = `mueblerias/${bizId}/staff/${inputUser}`;
-                const snapshot = await get(ref(db, path));
+                // LOGIN COBRADOR (USUARIO + ID)
+                const bizId = document.getElementById('login-biz-id').value.trim();
+                if(!bizId) return alert("Cobradores deben ingresar el ID de Mueblería.");
                 
-                if(snapshot.exists() && snapshot.val().password === inputPass) {
-                    // Login simulado para cobradores usando una sesión persistente local
-                    localStorage.setItem('abonero_staff_session', JSON.stringify({
-                        bizId: bizId,
-                        user: inputUser
-                    }));
-                    location.reload(); // Recargamos para activar la sesión de staff
-                } else {
-                    alert("❌ Usuario o clave de cobrador incorrecta.");
-                }
+                const snap = await get(ref(db, `mueblerias/${bizId}/staff/${userInp}`));
+                if(snap.exists() && snap.val().password === passInp) {
+                    localStorage.setItem('staff_session', JSON.stringify({ bizId: bizId, user: userInp }));
+                    location.reload();
+                } else { alert("Usuario o clave incorrecta."); }
             }
         };
 
-        window.handleLogout = () => {
-            localStorage.removeItem('abonero_staff_session');
-            signOut(auth);
+        window.handleLogout = () => { localStorage.removeItem('staff_session'); signOut(auth); };
+
+        // --- PANEL DUEÑO: CREAR COBRADOR ---
+        window.crearStaff = () => {
+            const user = auth.currentUser;
+            const nuevoUser = document.getElementById('new-staff-user').value.toLowerCase().trim();
+            const nuevaPass = document.getElementById('new-staff-pass').value.trim();
+            if(!nuevoUser || !nuevaPass) return alert("Completa los datos.");
+
+            set(ref(db, `mueblerias/${user.uid}/staff/${nuevoUser}`), { 
+                password: nuevaPass, 
+                nombre: nuevoUser 
+            }).then(() => {
+                alert(`✅ Cobrador "${nuevoUser}" creado exitosamente.`);
+                document.getElementById('new-staff-user').value = "";
+                document.getElementById('new-staff-pass').value = "";
+            });
         };
 
-        // Monitor de Sesión Dual
+        // --- MONITOR DE SESIÓN ---
         onAuthStateChanged(auth, user => {
-            const staffSession = JSON.parse(localStorage.getItem('abonero_staff_session'));
+            const staff = JSON.parse(localStorage.getItem('staff_session'));
             const splash = document.getElementById('splash-screen');
-
-            if (user || staffSession) {
+            
+            if (user || staff) {
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
-                const finalId = user ? user.uid : staffSession.bizId;
+                const finalId = user ? user.uid : staff.bizId;
                 
-                // Si es dueño, mostrar panel de control de staff
-                if(user) document.getElementById('panel-admin').style.display = 'block';
-                
-                // Cargar Clientes
+                if(user) {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    document.getElementById('display-id').innerText = user.uid;
+                }
+
+                // ESCUCHAR CLIENTES EN TIEMPO REAL
                 onValue(ref(db, `mueblerias/${finalId}/clientes`), snap => {
                     renderClients(snap.val(), finalId);
                 });
@@ -105,9 +93,8 @@
         });
 
         window.saveClient = () => {
-            const staffSession = JSON.parse(localStorage.getItem('abonero_staff_session'));
-            const finalId = auth.currentUser ? auth.currentUser.uid : staffSession.bizId;
-            
+            const staff = JSON.parse(localStorage.getItem('staff_session'));
+            const finalId = auth.currentUser ? auth.currentUser.uid : staff.bizId;
             const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
             const saldo = parseFloat(document.getElementById('reg-saldo').value);
 
@@ -118,42 +105,41 @@
                 historial: []
             }).then(() => {
                 showView('v-ruta');
-                document.querySelectorAll('input').forEach(i => i.value = "");
+                document.querySelectorAll('.view-add input').forEach(i => i.value = "");
             });
         };
     </script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --bg: #f1f3f4; --dark: #202124; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
-        header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
-        .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #ddd; }
+        :root { --primary: #1a73e8; --bg: #f1f3f4; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: #333; }
+        header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; position: sticky; top:0; z-index:100; }
+        .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #ddd; }
         input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
         .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-main { background: var(--primary); color: white; }
         .view { display: none; padding: 15px; }
         .view.active { display: block; }
-        #view-login { height: 100vh; flex-direction: column; justify-content: center; align-items: center; padding: 30px; background: white; text-align: center; }
-        .badge-admin { background: #e8f0fe; color: var(--primary); padding: 5px 10px; border-radius: 5px; font-size: 11px; margin-top: 5px; display: inline-block; }
+        #view-login { height: 100vh; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; background: white; display: flex; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; justify-content:center; align-items:center;">
-        <img src="1000123395.png" style="width:150px;">
+        <img src="1000123395.png" style="width:160px;">
     </div>
 
     <div id="view-login" style="display:none;">
         <img src="1000123395.png" style="width:100px; margin-bottom:15px;">
-        <h2>AboneroApp Pro</h2>
+        <h2 style="margin:0;">AboneroApp Pro</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Control Maestro de Cobranza</p>
         
-        <div id="staff-fields" style="width:100%; max-width:320px;">
-            <input type="text" id="login-biz-id" placeholder="ID de la Mueblería (Solo cobradores)">
-            <input type="text" id="login-email" placeholder="Usuario o Correo">
+        <div style="width:100%; max-width:320px;">
+            <input type="text" id="login-biz-id" placeholder="ID de Mueblería (Solo para cobradores)">
+            <input type="text" id="login-user" placeholder="Usuario o Correo">
             <input type="password" id="login-pass" placeholder="Contraseña">
-            <button class="btn btn-main" onclick="handleLoginMaster()">INICIAR SESIÓN</button>
-            <p style="font-size: 11px; color: #666; margin-top: 15px;">DUEÑOS: Usen su correo y clave.<br>COBRADORES: Usen su nombre de usuario e ID de negocio.</p>
+            <button class="btn btn-main" onclick="handleLogin()">ENTRAR AL SISTEMA</button>
         </div>
     </div>
 
@@ -164,24 +150,25 @@
         </header>
 
         <div class="view active" id="v-ruta">
-            <div id="panel-admin" style="display:none;" class="card">
-                <h4 style="margin:0; color:var(--primary);">Panel de Dueño</h4>
-                <p style="font-size:11px; color:#666;">Crea cuentas para tus cobradores sin correos:</p>
-                <input type="text" id="new-user" placeholder="Nombre de usuario (ej: juan01)">
-                <input type="text" id="new-pass" placeholder="Contraseña para él">
-                <button class="btn btn-main" style="padding:10px;" onclick="crearCobrador()">+ CREAR COBRADOR</button>
+            <div id="admin-panel" style="display:none;" class="card">
+                <h4 style="margin:0; color:var(--primary);">Panel Maestro</h4>
+                <p style="font-size:11px; margin:5px 0;">Tu ID para cobradores: <b id="display-id" style="color:red;"></b></p>
+                <hr>
+                <input type="text" id="new-staff-user" placeholder="Nombre de usuario del cobrador">
+                <input type="text" id="new-staff-pass" placeholder="Clave para él">
+                <button class="btn btn-main" style="padding:10px; font-size:12px;" onclick="crearStaff()">+ CREAR COBRADOR</button>
             </div>
 
-            <div id="lista-clientes" style="margin-top:15px;"></div>
+            <div id="lista-clientes" style="margin-top:10px;"></div>
             
             <button class="btn btn-main" style="position:fixed; bottom:20px; right:20px; width:60px; height:60px; border-radius:30px; box-shadow:0 4px 10px rgba(0,0,0,0.3);" onclick="showView('v-nueva')">
                 <i class="fas fa-plus"></i>
             </button>
         </div>
 
-        <div id="v-nueva" class="view">
+        <div id="v-nueva" class="view view-add">
             <div class="card">
-                <h3>Nueva Venta</h3>
+                <h3>Nuevo Cliente</h3>
                 <input type="text" id="reg-nom" placeholder="Nombre">
                 <input type="text" id="reg-dir" placeholder="Dirección">
                 <input type="number" id="reg-saldo" placeholder="Saldo $">
@@ -195,9 +182,9 @@
     function renderClients(data, uid) {
         const list = document.getElementById('lista-clientes');
         list.innerHTML = "";
-        if(!data) return list.innerHTML = "<p style='text-align:center;'>Sin clientes.</p>";
+        if(!data) return list.innerHTML = "<p style='text-align:center;'>Aún no hay clientes.</p>";
         Object.values(data).forEach(cli => {
-            list.innerHTML += `<div class="card"><strong>${cli.nombre}</strong><br>Saldo: $${cli.saldo}</div>`;
+            list.innerHTML += `<div class="card"><strong>${cli.nombre}</strong><br>Saldo Actual: $${cli.saldo}</div>`;
         });
     }
 
