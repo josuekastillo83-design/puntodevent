@@ -46,13 +46,19 @@
         .total-box { background: #000; color: white; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid var(--accent); margin-bottom: 15px; }
         .total-box h2 { font-size: 3em; margin: 0; color: var(--accent); }
 
-        /* ACORDEONES */
+        /* BOTONES ELEGANTES CAJA */
+        .qty-container { display: flex; align-items: center; gap: 12px; justify-content: center; }
+        .btn-qty { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-main); font-weight: bold; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-qty:active { transform: scale(0.9); background: var(--accent); color: #000; }
+        .qty-num { font-weight: 600; font-size: 16px; min-width: 25px; text-align: center; cursor: pointer; color: var(--accent); text-decoration: underline; }
+
+        /* ACORDEONES E IMAGENES */
         .accordion { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--border-color); }
         .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
         .accordion-content { display: none; padding: 15px; border-top: 1px solid var(--border-color); }
         .accordion-content.open { display: block; }
-
         .thumb { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; margin-right: 12px; background: #333; }
+
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--bg-card); width: 100%; max-width: 380px; padding: 25px; border-radius: 25px; text-align: center; border: 1px solid var(--accent); }
 
@@ -92,7 +98,7 @@
             <div id="reader-pos" style="width:100%; display:none; border-radius:15px; overflow:hidden; border:2px solid var(--accent); margin-bottom:10px;"></div>
             <div class="card"><table style="width:100%; border-collapse: collapse;"><tbody id="cart-body"></tbody></table></div>
             <div class="total-box"><small>TOTAL A COBRAR</small><h2 id="total-val">$0.00</h2></div>
-            <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000;">COBRAR</button>
+            <button class="btn-main" onclick="openPaymentModal()" style="background:var(--accent); color:#000; margin-top:15px;">COBRAR</button>
             <div id="post-sale-actions" style="display:none; margin-top:15px;">
                 <div id="ticket-print-area" style="background:#fff; color:#000; padding:15px; font-family:monospace; white-space:pre-wrap; border:1px solid #ddd;"></div>
                 <button class="btn-main no-print" style="background:#25D366; margin-top:10px;" onclick="shareWA()">WHATSAPP</button>
@@ -118,19 +124,8 @@
             <div id="inv-list-container"></div>
         </div>
 
-        <div id="gastos" class="section">
-            <div class="card">
-                <h3>Nuevo Gasto</h3>
-                <input type="text" id="g-desc" class="input-style" placeholder="Motivo del gasto">
-                <input type="number" id="g-monto" class="input-style" placeholder="Monto $">
-                <button class="btn-main" style="background:var(--danger)" onclick="addGasto()">REGISTRAR SALIDA</button>
-            </div>
-            <div id="gastos-list"></div>
-        </div>
-
         <div id="providers" class="section">
             <div class="card">
-                <h3>Registro de Proveedores</h3>
                 <input type="text" id="p-name" class="input-style" placeholder="Nombre">
                 <input type="text" id="p-comp" class="input-style" placeholder="Compañía">
                 <input type="tel" id="p-phone" class="input-style" placeholder="Teléfono">
@@ -145,13 +140,17 @@
             <div id="fiados-list"></div>
         </div>
 
+        <div id="gastos" class="section">
+            <div class="card"><input type="text" id="g-desc" class="input-style" placeholder="Motivo"><input type="number" id="g-monto" class="input-style" placeholder="$"><button class="btn-main" style="background:var(--danger)" onclick="addGasto()">RESTAR</button></div>
+            <div id="gastos-list"></div>
+        </div>
+
         <div id="corte" class="section">
             <div class="card" style="text-align:center;">
-                <small>UTILIDAD (GANANCIA REAL)</small><h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
-                <p>Caja (Efectivo - Gastos + Abonos): <b id="c-balance">$0.00</b></p>
-                <p>Ventas Tarjeta: <b id="c-tarjeta">$0.00</b></p>
-                <p style="font-size:12px; color:var(--danger)">Total Gastos Hoy: <b id="c-gastos-hoy">$0.00</b></p>
-                <button class="btn-main" onclick="showNxConfirm('¿Cerrar caja hoy?', resetCorteAction)" style="background:#444; margin-top:20px;">CERRAR DÍA</button>
+                <small>GANANCIA HOY</small><h1 id="c-profit" style="color:var(--success); font-size:3.5em; margin:10px 0;">$0.00</h1>
+                <p>Caja Efectivo: <b id="c-balance">$0.00</b></p>
+                <p>Caja Tarjeta: <b id="c-tarjeta">$0.00</b></p>
+                <button class="btn-main" onclick="showNxConfirm('¿Cerrar caja hoy?', resetCorteAction)" style="background:#444;">CERRAR DÍA</button>
             </div>
         </div>
 
@@ -175,7 +174,7 @@
         <div id="cash-ui"><input type="number" id="cash-rec" class="input-style" placeholder="Recibido" oninput="calcChange()"><h2 id="change-text">$0.00 cambio</h2></div>
         <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="Cliente"></div>
         <button class="btn-main" onclick="confirmPayment()">FINALIZAR</button>
-        <button class="btn-main" style="background:transparent; color:inherit;" onclick="closeModal()">VOLVER</button>
+        <button class="btn-main" style="background:transparent; color:inherit; margin-top:10px;" onclick="closeModal()">VOLVER</button>
     </div></div>
 
 <script>
@@ -196,98 +195,57 @@
         applyVIP();
     }
 
-    function save() { 
-        localStorage.setItem('n_inv', JSON.stringify(db.inv)); localStorage.setItem('n_fia', JSON.stringify(db.fiados)); 
-        localStorage.setItem('n_prov', JSON.stringify(db.providers)); localStorage.setItem('n_gas', JSON.stringify(db.gastos));
-        localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar); 
-        localStorage.setItem('n_ab_h', db.abHoy); localStorage.setItem('n_gan', db.ganancia); 
-        localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); 
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none'; }
+    function showSec(id, btn) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); if(btn) btn.classList.add('active'); toggleSidebar(); if(id === 'stock') renderInv(); if(id === 'providers') renderProviders(); if(id === 'gastos') renderGastos(); if(id === 'fiados') renderFiados(); if(id === 'corte') { let totalG = db.gastos.reduce((a,b)=>a+b.m,0); document.getElementById('c-balance').innerText = `$${(db.vEfe + db.abHoy - totalG).toFixed(2)}`; document.getElementById('c-tarjeta').innerText = `$${db.vTar.toFixed(2)}`; document.getElementById('c-profit').innerText = `$${db.ganancia.toFixed(2)}`; } }
+
+    function renderCart() {
+        let t = 0;
+        document.getElementById('cart-body').innerHTML = cart.map((i, idx) => {
+            t += (i.sell * i.q);
+            return `<tr style="border-bottom:1px solid var(--border-color);">
+                <td style="padding:15px; font-weight:600;">${i.name}</td>
+                <td style="padding:10px;">
+                    <div class="qty-container">
+                        <button class="btn-qty" onclick="updateQty(${idx},-1)">-</button>
+                        <span class="qty-num" onclick="manualQty(${idx})">${i.q}</span>
+                        <button class="btn-qty" onclick="updateQty(${idx},1)">+</button>
+                    </div>
+                </td>
+                <td style="text-align:right; padding:15px; font-weight:600;">$${(i.sell*i.q).toFixed(2)}</td>
+                <td style="color:var(--danger); padding:10px; cursor:pointer;" onclick="cart.splice(${idx},1);renderCart();">❌</td>
+            </tr>`;
+        }).join('');
+        document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none';
-    }
-
-    function showSec(id, btn) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(btn) btn.classList.add('active');
-        toggleSidebar();
-        if(id === 'stock') renderInv();
-        if(id === 'providers') renderProviders();
-        if(id === 'gastos') renderGastos();
-        if(id === 'fiados') renderFiados();
-        if(id === 'corte') {
-            let totalG = db.gastos.reduce((a,b)=>a+b.m,0);
-            document.getElementById('c-balance').innerText = `$${(db.vEfe + db.abHoy - totalG).toFixed(2)}`;
-            document.getElementById('c-tarjeta').innerText = `$${db.vTar.toFixed(2)}`;
-            document.getElementById('c-profit').innerText = `$${db.ganancia.toFixed(2)}`;
-            document.getElementById('c-gastos-hoy').innerText = `$${totalG.toFixed(2)}`;
+    function manualQty(idx) {
+        const item = cart[idx], orig = db.inv.find(x => x.sku === item.sku);
+        const nueva = prompt(`Ajustar cantidad para ${item.name} (Max: ${orig.stock}):`, item.q);
+        if(nueva !== null) {
+            const num = parseInt(nueva);
+            if(num > 0 && num <= orig.stock) { item.q = num; renderCart(); }
+            else if(num > orig.stock) showNxConfirm(`Stock insuficiente. Máximo: ${orig.stock}`, ()=>{});
         }
     }
 
-    function process(code, m) {
-        const now = Date.now(); if(now - lastScan < 2000) return; lastScan = now;
-        const p = db.inv.find(x => x.sku === code);
-        beep();
-        if (m === 'add') {
-            document.getElementById('s-sku').value = code;
-            if(p){ document.getElementById('s-nom').value = p.name; document.getElementById('s-sell').value = p.sell; }
-            return;
-        }
-        if (p) {
-            if(p.stock <= 0) return showNxConfirm("AGOTADO", ()=>{});
-            const i = cart.find(x => x.sku === code);
-            if (i) { if(i.q < p.stock) i.q++; else return showNxConfirm("Límite stock", ()=>{}); }
-            else cart.push({...p, q: 1});
-            renderCart();
-        } else {
-            document.getElementById('s-sku').value = code;
-            showSec('stock', null);
-        }
+    function updateQty(idx, d) {
+        const item = cart[idx], orig = db.inv.find(x => x.sku === item.sku);
+        if(d > 0 && item.q >= orig.stock) { showNxConfirm(`Límite de stock: ${orig.stock}`, ()=>{}); return; }
+        item.q += d; if(item.q <= 0) cart.splice(idx,1);
+        renderCart();
     }
 
-    function confirmPayment() {
-        if(isProcessing) return; isProcessing = true;
-        const total = parseFloat(document.getElementById('total-val').innerText.replace('$','')), method = document.getElementById('p-method').value;
-        let details = cart.map(i => `${i.q}x ${i.name}`).join(', ');
-        cart.forEach(i => {
-            const p = db.inv.find(x => x.sku === i.sku); if(p) p.stock -= i.q;
-            db.ganancia += (i.sell - i.buy) * i.q;
-        });
-        if (method === 'efectivo') db.vEfe += total;
-        else if (method === 'tarjeta') db.vTar += total;
-        else db.fiados.unshift({n: document.getElementById('debt-cust').value || "Cliente", m: total, fecha: new Date().toLocaleString(), detalles: details});
-        save(); location.reload();
-    }
-
-    // GESTIÓN DE GASTOS
-    function addGasto() {
-        const d = document.getElementById('g-desc').value, m = parseFloat(document.getElementById('g-monto').value);
-        if(d && m > 0) { db.gastos.unshift({d, m}); save(); renderGastos(); document.getElementById('g-desc').value=''; document.getElementById('g-monto').value=''; showNxConfirm("Gasto guardado", ()=>{}); }
-    }
-    function renderGastos() { document.getElementById('gastos-list').innerHTML = db.gastos.map((g,i) => `<div class='card'>${g.d}: <b>$${g.m}</b> <button onclick='db.gastos.splice(${i},1);save();renderGastos();' style='float:right; color:red; border:none; background:none;'>X</button></div>`).join(''); }
-
-    // GESTIÓN PROVEEDORES
-    function addProvider() { const n=document.getElementById('p-name').value, c=document.getElementById('p-comp').value, p=document.getElementById('p-phone').value, d=document.getElementById('p-days').value; if(n && c){ db.providers.unshift({n,c,p,d}); save(); renderProviders(); showNxConfirm("Proveedor listo", ()=>{}); } }
-    function renderProviders() { document.getElementById('providers-list').innerHTML = db.providers.map(p => `<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><span>${p.c} - ${p.n}</span><span>${p.d}</span></div><div class='accordion-content'>Tel: ${p.p}</div></div>`).join(''); }
-
-    // FUNCIONES BASE RESTANTES
-    function saveVIPManual() { db.cfg.name = document.getElementById('set-name').value; db.cfg.slogan = document.getElementById('set-slogan').value; const f = document.getElementById('set-logo').files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>{ db.cfg.logo=e.target.result; save(); applyVIP(); }; r.readAsDataURL(f); } else { save(); applyVIP(); } }
+    // --- RESTO DE FUNCIONES BLINDADAS ---
+    function process(code, m) { const now = Date.now(); if(now - lastScan < 2000) return; lastScan = now; const p = db.inv.find(x => x.sku === code); beep(); if (m === 'add') { document.getElementById('s-sku').value = code; if(p){ document.getElementById('s-nom').value = p.name; document.getElementById('s-sell').value = p.sell; } return; } if (p) { if(p.stock <= 0) return showNxConfirm("AGOTADO", ()=>{}); const i = cart.find(x => x.sku === code); if (i) { if(i.q < p.stock) i.q++; else return showNxConfirm("Límite stock", ()=>{}); } else cart.push({...p, q: 1}); renderCart(); } else { document.getElementById('s-sku').value = code; showSec('stock', null); } }
+    function save() { localStorage.setItem('n_inv', JSON.stringify(db.inv)); localStorage.setItem('n_fia', JSON.stringify(db.fiados)); localStorage.setItem('n_prov', JSON.stringify(db.providers)); localStorage.setItem('n_gas', JSON.stringify(db.gastos)); localStorage.setItem('n_v_e', db.vEfe); localStorage.setItem('n_v_t', db.vTar); localStorage.setItem('n_ab_h', db.abHoy); localStorage.setItem('n_gan', db.ganancia); localStorage.setItem('n_cfg', JSON.stringify(db.cfg)); }
+    function addInv() { const s=document.getElementById('s-sku').value, n=document.getElementById('s-nom').value, b=parseFloat(document.getElementById('s-buy').value), se=parseFloat(document.getElementById('s-sell').value), st=parseInt(document.getElementById('s-sto').value), f=document.getElementById('s-img').files[0]; if(!s) return; const hS=(i='')=>{ const ex=db.inv.find(x=>x.sku===s); if(ex){ ex.stock+=st; ex.buy=b; ex.sell=se; if(i) ex.img=i; } else db.inv.push({sku:s, name:n, buy:b, sell:se, stock:st, img:i}); save(); renderInv(); showNxConfirm("Guardado", ()=>{}); }; if(f){ const r=new FileReader(); r.onload=(e)=>hS(e.target.result); r.readAsDataURL(f); } else hS(); }
+    function confirmPayment() { if(isProcessing) return; isProcessing=true; const total=parseFloat(document.getElementById('total-val').innerText.replace('$','')), method=document.getElementById('p-method').value; cart.forEach(i=>{ const p=db.inv.find(x=>x.sku===i.sku); if(p) p.stock-=i.q; db.ganancia+=(i.sell-i.buy)*i.q; }); if(method==='efectivo') db.vEfe+=total; else if(method==='tarjeta') db.vTar+=total; else { db.fiados.unshift({n: document.getElementById('debt-cust').value, m: total, fecha: new Date().toLocaleString()}); } save(); location.reload(); }
+    function renderInv() { let v=0, q=0; document.getElementById('inv-list-container').innerHTML = db.inv.map(p => { v+=(p.buy*p.stock); q+=p.stock; return `<div class='accordion'><div class='accordion-header' onclick='h.nextElementSibling.classList.toggle("open")'><div>${p.img?`<img src='${p.img}' class='thumb'>`:`<div class='thumb'></div>`}<span>${p.name}</span></div><span>${p.stock} pzas</span></div><div class='accordion-content'>SKU: ${p.sku}<br>Precio: $${p.sell}</div></div>`; }).join(''); document.getElementById('inv-val').innerText=`$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText=q; }
+    function addProvider() { const n=document.getElementById('p-name').value, c=document.getElementById('p-comp').value, p=document.getElementById('p-phone').value, d=document.getElementById('p-days').value; if(n && c){ db.providers.unshift({n,c,p,d}); save(); renderProviders(); showNxConfirm("Guardado", ()=>{}); } }
+    function renderProviders() { document.getElementById('providers-list').innerHTML = db.providers.map(p => `<div class='accordion'><div class='accordion-header' onclick='this.nextElementSibling.classList.toggle("open")'><span>${p.c} - ${p.n}</span><span>${p.d}</span></div><div class='accordion-content'>Tel: ${p.p}</div></div>`).join(''); }
     function applyVIP() { document.getElementById('bar-display').innerHTML = db.cfg.name.toLowerCase().replace('vent', '<span>vent</span>'); document.getElementById('sidebar-slogan').innerText = db.cfg.slogan; if(db.cfg.logo){ document.getElementById('bar-logo-img').src=db.cfg.logo; document.getElementById('bar-logo-img').style.display='block'; } document.body.classList.toggle('dark-mode', db.cfg.theme==='dark'); }
     function setTheme(t) { db.cfg.theme = t; applyVIP(); save(); }
-    function renderInv() { let v=0, q=0; document.getElementById('inv-list-container').innerHTML = db.inv.map(p => { v+=(p.buy*p.stock); q+=p.stock; return `<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><div>${p.img?`<img src='${p.img}' class='thumb'>`:`<div class='thumb'></div>`}<span>${p.name}</span></div><span>${p.stock} pzas</span></div><div class='accordion-content'>SKU: ${p.sku}<br>Venta: $${p.sell}</div></div>`; }).join(''); document.getElementById('inv-val').innerText=`$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText=q; }
-    function addInv() { const s=document.getElementById('s-sku').value, n=document.getElementById('s-nom').value, b=parseFloat(document.getElementById('s-buy').value), se=parseFloat(document.getElementById('s-sell').value), st=parseInt(document.getElementById('s-sto').value), f=document.getElementById('s-img').files[0]; if(!s) return; const hS=(i='')=>{ const ex=db.inv.find(x=>x.sku===s); if(ex){ ex.stock+=st; ex.buy=b; ex.sell=se; if(i) ex.img=i; } else db.inv.push({sku:s, name:n, buy:b, sell:se, stock:st, img:i}); save(); renderInv(); showNxConfirm("Stock listo", ()=>{}); }; if(f){ const r=new FileReader(); r.onload=(e)=>hS(e.target.result); r.readAsDataURL(f); } else hS(); }
-    function renderFiados() { const q=document.getElementById('f-search').value.toLowerCase(); document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map(f=>`<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><span>${f.n}</span><span style='color:red'>$${f.m.toFixed(2)}</span></div><div class='accordion-content'>${f.detalles}</div></div>`).join(''); }
-    function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
-    function renderCart() { let t=0; document.getElementById('cart-body').innerHTML = cart.map((i,idx)=> { t+=(i.sell*i.q); return `<tr><td style='padding:10px'>${i.name}</td><td><button onclick='updateQty(${idx},1)'>+</button> ${i.q} <button onclick='updateQty(${idx},-1)'>-</button></td><td style='text-align:right'>$${(i.sell*i.q).toFixed(2)}</td></tr>`; }).join(''); document.getElementById('total-val').innerText=`$${t.toFixed(2)}`; }
-    function updateQty(idx, d) { const item=cart[idx], orig=db.inv.find(x=>x.sku===item.sku); if(d>0 && item.q>=orig.stock) return; item.q+=d; if(item.q<=0) cart.splice(idx,1); renderCart(); }
-    function openPaymentModal() { if(cart.length) document.getElementById('payment-modal').style.display='flex'; document.getElementById('m-total').innerText="Total: "+document.getElementById('total-val').innerText; }
-    function closeModal() { document.getElementById('payment-modal').style.display='none'; }
-    function togglePayUI() { const m=document.getElementById('p-method').value; document.getElementById('cash-ui').style.display=m==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display=m==='fiado'?'block':'none'; }
-    function calcChange() { const t=parseFloat(document.getElementById('total-val').innerText.replace('$','')), r=parseFloat(document.getElementById('cash-rec').value)||0; document.getElementById('change-text').innerText=`$${(r-t).toFixed(2)} cambio`; }
+    function saveVIPManual() { db.cfg.name = document.getElementById('set-name').value; db.cfg.slogan = document.getElementById('set-slogan').value; const f = document.getElementById('set-logo').files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>{ db.cfg.logo=e.target.result; save(); applyVIP(); }; r.readAsDataURL(f); } else { save(); applyVIP(); } }
     function showNxConfirm(m, a) { const mod=document.getElementById('nx-confirm-modal'); document.getElementById('nx-confirm-message').innerText=m; mod.style.display='flex'; document.getElementById('nx-confirm-accept').onclick=()=>{ a(); mod.style.display='none'; }; }
     function toggleCam(id, m) { const r=document.getElementById(id); if(r.style.display==='block'){ if(scanner) scanner.stop(); r.style.display='none'; } else { r.style.display='block'; scanner=new Html5Qrcode(id); scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>process(t,m)); } }
     function beep() { const ctx=new AudioContext(), o=ctx.createOscillator(), g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=880; g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.2); o.start(); o.stop(ctx.currentTime+0.2); }
