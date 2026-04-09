@@ -3,298 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp - Nexpen Master</title>
+    <title>ABONERO APP - Oficial</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        :root { 
-            --accent: #1a73e8; 
-            --header: #fff159; 
-            --bg: #f8f9fa; 
+        :root {
+            --primary: #1a73e8;
+            --secondary: #fff159;
+            --success: #00b894;
+            --danger: #d63031;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+            --pink-card: #ffc0cb; /* Color de la tarjeta física rosa */
         }
 
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
-        
-        /* Interfaz Original Nexpen */
-        header { background: var(--header); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top:0; z-index: 1000; }
-        .menu-btn { font-size: 24px; cursor: pointer; padding: 5px; }
-        .brand { font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        .sidebar { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; box-shadow: 2px 0 15px rgba(0,0,0,0.2); }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: var(--secondary);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Sidebar / Menú Lateral */
+        .sidebar {
+            position: fixed;
+            left: -100%;
+            top: 0;
+            width: 85%;
+            max-width: 300px;
+            height: 100%;
+            background: white;
+            z-index: 2000;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+        }
         .sidebar.open { left: 0; }
-        .sidebar-header { background: var(--header); padding: 25px; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.1); }
-        .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #eee; cursor: pointer; font-weight: 600; font-size: 15px; color: #444; }
+        .sidebar-header { background: var(--secondary); padding: 30px; font-weight: 800; text-align: center; }
+        .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #f0f0f0; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 15px; }
 
-        .container { max-width: 600px; margin: auto; padding: 15px; }
-        .view { display: none; }
-        .active { display: block; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
 
-        .box { background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        h4 { margin: 0 0 15px 0; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Tarjetas y Formularios */
+        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h4 { margin: 0 0 15px 0; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 10px; }
         
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--accent); }
-        
-        .btn { border: none; padding: 15px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        .btn-main { background: var(--accent); color: white; }
-        .btn-add-item { background: #f0f4ff; color: var(--accent); margin-top: 10px; border: 1px dashed var(--accent); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full { grid-column: 1 / 3; }
 
-        /* Clientes y Pestañas Originales */
-        .cli-card { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--accent); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cli-head { padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .cli-body { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #eee; }
+        label { font-size: 0.75rem; font-weight: 700; color: #636e72; margin-bottom: 5px; display: block; }
+        input { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; font-size: 1rem; margin-bottom: 12px; outline: none; }
+        input:focus { border-color: var(--primary); }
 
+        /* Botones */
+        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-route { background: var(--success); color: white; margin-bottom: 20px; }
+        .btn-add-item { background: #f0f4ff; color: var(--primary); border: 1px dashed var(--primary); margin-top: 10px; }
+
+        /* Lista de Clientes (Colapsables) */
+        .cli-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
+        .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #fff; }
+        .cli-info { flex-grow: 1; }
+        .cli-info strong { display: block; font-size: 1rem; }
+        .cli-info small { color: #b2bec3; font-size: 0.75rem; }
+
+        .cli-body { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+
+        /* Artículos */
         .art-card { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
-        .art-header { display: flex; justify-content: space-between; cursor: pointer; font-weight: bold; }
-        .art-content { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; }
+        .art-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; }
+        .art-content { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #dfe6e9; }
 
-        /* Ticket Rosa (Tarjeta Real) */
-        #ticket-wrapper { position: absolute; left: -9999px; }
-        .pink-ticket { width: 350px; background: #ffc0cb; padding: 20px; color: #000; font-family: Arial, sans-serif; border: 1px solid #000; }
-        .pink-header { border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; font-size: 13px; }
-        .pink-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        .pink-table th, .pink-table td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 11px; height: 20px; }
-
-        /* Modal Personalizado */
+        /* Modal */
         #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center; }
-        .modal-box { background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; }
+        .modal-box { background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; animation: pop 0.2s; }
+
+        /* Ticket Rosa (Estilo Tarjeta de Abonos) */
+        #ticket-wrapper { position: absolute; left: -9999px; }
+        .pink-ticket { width: 350px; background: var(--pink-card); padding: 25px; color: #000; font-family: 'Arial', sans-serif; border: 1px solid #000; }
+        .pink-header { border-bottom: 2px solid #000; margin-bottom: 15px; padding-bottom: 10px; }
+        .pink-header div { border-bottom: 1px solid #000; margin-bottom: 5px; padding-bottom: 2px; font-weight: bold; text-transform: uppercase; font-size: 11px; }
+        .pink-table { width: 100%; border-collapse: collapse; }
+        .pink-table th, .pink-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; height: 22px; }
+
+        .photo-input-label { display: block; width: 100px; height: 100px; background: #eee; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; overflow: hidden; border: 2px dashed var(--primary); }
+        .photo-input-label img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <div id="sidebar" class="sidebar">
     <div class="sidebar-header" id="side-brand">ABONERO APP</div>
-    <div class="sidebar-menu">
-        <div class="sidebar-item" onclick="showView('v-ruta')">📍 Mi Ruta de Cobro</div>
-        <div class="sidebar-item" onclick="showView('v-nueva')">➕ Nuevo Cliente</div>
-        <div class="sidebar-item" onclick="showView('v-config')">⚙️ Personalizar Mueblería</div>
-    </div>
+    <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta Diaria</div>
+    <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Registrar Cliente</div>
+    <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cog"></i> Configurar Mueblería</div>
 </div>
 
 <header>
-    <div class="menu-btn" onclick="toggleSidebar()">☰</div>
+    <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer;"><i class="fas fa-bars"></i></div>
     <div class="brand" id="header-title">ABONERO APP</div>
     <div style="width:30px"></div>
 </header>
 
 <div class="container">
+    
     <div id="v-ruta" class="view active">
-        <button class="btn" style="background:#00b894; color:white; margin-bottom:15px;" onclick="ordenarRuta()">📍 ACTIVAR RUTA INTELIGENTE (CP)</button>
+        <button class="btn btn-route" onclick="smartRoute()">
+            <i class="fas fa-map-marked-alt"></i> RUTA INTELIGENTE (C.P.)
+        </button>
         <div id="lista-clientes"></div>
     </div>
 
     <div id="v-nueva" class="view">
-        <div class="box">
+        <div class="card">
             <h4>Registro de Cliente</h4>
-            <input type="text" id="reg-nom" placeholder="Nombre completo">
-            <input type="text" id="reg-calle" placeholder="Calle y Número">
-            <input type="text" id="reg-col" placeholder="Colonia">
-            <input type="number" id="reg-cp" placeholder="Código Postal">
-            <input type="text" id="reg-art" placeholder="Primer Artículo (ej. Sala)">
+            <label class="photo-input-label">
+                <input type="file" id="reg-photo" accept="image/*" style="display:none" onchange="previewImg(event, 'prev-reg')">
+                <img id="prev-reg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ccc' d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E">
+            </label>
+            <input type="text" id="reg-nom" placeholder="Nombre Completo">
+            <div class="form-grid">
+                <div class="full"><input type="text" id="reg-calle" placeholder="Calle y Número"></div>
+                <input type="text" id="reg-col" placeholder="Colonia">
+                <input type="number" id="reg-cp" placeholder="C.P.">
+                <input type="text" id="reg-mun" placeholder="Municipio">
+                <input type="text" id="reg-est" placeholder="Estado">
+            </div>
+            <hr>
+            <h4>Detalle de Venta</h4>
+            <input type="text" id="reg-art" placeholder="Artículo (ej. Sala, Refri)">
             <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
-            <button class="btn btn-main" onclick="guardarClienteNuevo()">GUARDAR REGISTRO</button>
+            <button class="btn btn-main" onclick="saveClient()">GUARDAR VENTA</button>
         </div>
     </div>
 
     <div id="v-config" class="view">
-        <div class="box">
-            <h4>Personalizar Mi Negocio</h4>
-            <label>Nombre de la Mueblería:</label>
+        <div class="card">
+            <h4>Ajustes de Marca</h4>
+            <label>Nombre de la Mueblería</label>
             <input type="text" id="cfg-nom" placeholder="Ej. Mueblería Olimpo">
-            <label>Logotipo:</label>
-            <input type="file" accept="image/*" onchange="cargarLogo(event)">
-            <img id="logo-v" style="max-height:60px; display:none; margin:10px auto;">
-            <button class="btn btn-main" onclick="guardarConfig()">APLICAR CAMBIOS</button>
+            <label>Logotipo</label>
+            <input type="file" accept="image/*" onchange="previewImg(event, 'prev-logo', true)">
+            <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto; border-radius:8px;">
+            <button class="btn btn-main" onclick="applySettings()">APLICAR Y CONFIRMAR</button>
         </div>
     </div>
 </div>
 
 <div id="modal-ov">
     <div class="modal-box">
-        <div style="background:var(--header); padding:15px; font-weight:bold; text-align:center;">AboneroApp</div>
-        <div id="m-body" style="padding:20px; text-align:center;"></div>
+        <div id="m-head" style="background:var(--secondary); padding:15px; font-weight:800; text-align:center;">AboneroApp</div>
+        <div id="m-body" style="padding:25px; text-align:center; font-weight:600;"></div>
         <div id="m-foot" style="padding:10px; border-top:1px solid #eee;"></div>
     </div>
 </div>
 
 <div id="ticket-wrapper">
     <div class="pink-ticket" id="final-ticket">
-        <div style="text-align:center;">
-            <img id="t-logo" style="max-height:40px; display:none; margin:0 auto;">
-            <h3 id="t-muebleria" style="margin:5px 0;">MUEBLERÍA</h3>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <img id="t-logo" style="max-height: 40px; display: none; margin: 0 auto;">
+            <h3 id="t-brand" style="margin: 5px 0 0 0; text-transform: uppercase; font-size: 14px;">ABONERO APP</h3>
         </div>
         <div class="pink-header">
-            <div>Nombre: <span id="t-nom"></span></div>
+            <div>Cliente: <span id="t-nom"></span></div>
             <div>Dirección: <span id="t-dir"></span></div>
             <div>Artículo: <span id="t-art"></span></div>
         </div>
         <table class="pink-table">
-            <thead><tr><th>Fecha</th><th>Abono</th><th>Resta</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Abono</th>
+                    <th>Resta</th>
+                </tr>
+            </thead>
             <tbody id="t-rows"></tbody>
         </table>
+        <div style="font-size: 8px; text-align: center; margin-top: 8px;">TARJETA DE CONTROL DE PAGOS</div>
     </div>
 </div>
 
 <script>
-    // MEMORIA DE LARGO PLAZO
-    let db = JSON.parse(localStorage.getItem('abo_master_db')) || {};
-    let config = JSON.parse(localStorage.getItem('abo_master_cfg')) || { nombre: "ABONERO APP", logo: "" };
+    const STORAGE_DATA = "ABO_APP_DATA_V1";
+    const STORAGE_CFG = "ABO_APP_CFG_V1";
+
+    let db = JSON.parse(localStorage.getItem(STORAGE_DATA)) || {};
+    let config = JSON.parse(localStorage.getItem(STORAGE_CFG)) || { nombre: "ABONERO APP", logo: "" };
+    let tempLogo = config.logo;
 
     function init() {
         document.getElementById('header-title').innerText = config.nombre;
+        document.getElementById('side-brand').innerText = config.nombre;
         document.getElementById('cfg-nom').value = config.nombre;
         if(config.logo) {
-            document.getElementById('logo-v').src = config.logo;
-            document.getElementById('logo-v').style.display = 'block';
+            document.getElementById('prev-logo').src = config.logo;
+            document.getElementById('prev-logo').style.display = 'block';
             document.getElementById('t-logo').src = config.logo;
             document.getElementById('t-logo').style.display = 'block';
         }
-        renderRuta();
+        renderClients();
     }
 
-    // Funciones de Interfaz
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-    function showView(v) {
+    function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
+    function changeView(v) {
         document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
         document.getElementById(v).classList.add('active');
-        toggleSidebar();
-    }
-    function avisar(m, f='') {
-        document.getElementById('m-body').innerText = m;
-        document.getElementById('m-foot').innerHTML = f || `<button class="btn btn-main" onclick="document.getElementById('modal-ov').style.display='none'">ACEPTAR</button>`;
-        document.getElementById('modal-ov').style.display = 'flex';
+        toggleMenu();
     }
 
-    // Configuración
-    function cargarLogo(e) {
+    function avisar(msg, foot = '') {
+        document.getElementById('m-body').innerText = msg;
+        document.getElementById('m-foot').innerHTML = foot || `<button class="btn btn-main" onclick="closeAviso()">ACEPTAR</button>`;
+        document.getElementById('modal-ov').style.display = 'flex';
+    }
+    function closeAviso() { document.getElementById('modal-ov').style.display = 'none'; }
+
+    function previewImg(e, id, isLogo = false) {
         const reader = new FileReader();
         reader.onload = () => {
-            config.logo = reader.result;
-            document.getElementById('logo-v').src = config.logo;
-            document.getElementById('logo-v').style.display = 'block';
+            document.getElementById(id).src = reader.result;
+            document.getElementById(id).style.display = 'block';
+            if(isLogo) tempLogo = reader.result;
         };
         reader.readAsDataURL(e.target.files[0]);
     }
-    function guardarConfig() {
+
+    function applySettings() {
         config.nombre = document.getElementById('cfg-nom').value.toUpperCase();
-        localStorage.setItem('abo_master_cfg', JSON.stringify(config));
+        config.logo = tempLogo;
+        localStorage.setItem(STORAGE_CFG, JSON.stringify(config));
         location.reload();
     }
 
-    // Lógica de Negocio
-    function guardarClienteNuevo() {
+    function saveClient() {
         const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
-        const calle = document.getElementById('reg-calle').value;
+        const street = document.getElementById('reg-calle').value;
         const col = document.getElementById('reg-col').value;
         const cp = document.getElementById('reg-cp').value;
+        const mun = document.getElementById('reg-mun').value;
         const art = document.getElementById('reg-art').value;
-        const saldo = parseFloat(document.getElementById('reg-saldo').value);
+        const bal = parseFloat(document.getElementById('reg-saldo').value);
+        const photo = document.getElementById('prev-reg').src;
 
-        if(!nom || isNaN(saldo)) return avisar("⚠️ Nombre y Saldo requeridos.");
+        if(!nom || isNaN(bal) || !art) return avisar("⚠️ Completa los campos: Nombre, Artículo y Saldo.");
 
         if(!db[nom]) {
-            db[nom] = { nom, dir: `${calle}, Col. ${col}`, cp, articulos: [] };
+            db[nom] = { 
+                nom, street, col, cp, mun, 
+                photo: photo.startsWith('data') ? photo : "", 
+                cuentas: [] 
+            };
         }
-        db[nom].articulos.push({ id: Date.now(), mueble: art, saldo: saldo, historial: [] });
+        db[nom].cuentas.push({ id: Date.now(), mueble: art, saldo: bal, historial: [] });
         
-        localStorage.setItem('abo_master_db', JSON.stringify(db));
-        renderRuta();
-        showView('v-ruta');
+        localStorage.setItem(STORAGE_DATA, JSON.stringify(db));
+        renderClients();
+        document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
+        document.getElementById('prev-reg').src = "data:image/svg+xml,...";
+        changeView('v-ruta');
+        avisar("✅ Venta registrada con éxito.");
     }
 
-    function agregarArticulo(nomCli) {
-        const mueble = prompt("Descripción del nuevo mueble:");
-        const saldo = parseFloat(prompt("Saldo inicial:"));
-        if(!mueble || isNaN(saldo)) return;
-
-        db[nomCli].articulos.push({ id: Date.now(), mueble, saldo, historial: [] });
-        localStorage.setItem('abo_master_db', JSON.stringify(db));
-        renderRuta();
+    function agregarOtro(nom) {
+        const m = prompt("Nombre del nuevo mueble:");
+        const s = parseFloat(prompt("Saldo inicial $:"));
+        if(!m || isNaN(s)) return;
+        db[nom].cuentas.push({ id: Date.now(), mueble: m, saldo: s, historial: [] });
+        localStorage.setItem(STORAGE_DATA, JSON.stringify(db));
+        renderClients();
     }
 
-    function renderRuta() {
-        const root = document.getElementById('lista-clientes');
-        root.innerHTML = "";
+    function renderClients() {
+        const list = document.getElementById('lista-clientes');
+        list.innerHTML = "";
         Object.values(db).forEach(cli => {
-            let artsHTML = cli.articulos.map(a => `
+            let accountsHTML = cli.cuentas.map(c => `
                 <div class="art-card">
-                    <div class="art-header" onclick="toggle('c-${a.id}')">
-                        <span>📦 ${a.mueble}</span>
-                        <b style="color:var(--accent)">$${a.saldo}</b>
+                    <div class="art-head" onclick="toggleDisplay('acc-${c.id}')">
+                        <span>📦 ${c.mueble}</span>
+                        <b style="color:var(--primary)">$${c.saldo}</b>
                     </div>
-                    <div id="c-${a.id}" class="art-content">
-                        <input type="number" id="inp-${a.id}" placeholder="Monto abono $">
-                        <button class="btn btn-main" onclick="abonar('${cli.nom}', ${a.id})">COBRAR ABONO</button>
+                    <div id="acc-${c.id}" class="art-content">
+                        <input type="number" id="inp-${c.id}" placeholder="Cantidad a abonar $">
+                        <button class="btn btn-main" onclick="registrarAbono('${cli.nom}', ${c.id})">PROCESAR ABONO</button>
+                        <div style="margin-top:10px; font-size:11px; color:#636e72;">
+                            <strong>Historial reciente:</strong>
+                            ${c.historial.map(h => `<div>${h.f.split(',')[0]} - Abono: $${h.m} | Saldo: $${h.r}</div>`).reverse().slice(0,3).join('')}
+                        </div>
                     </div>
                 </div>
             `).join('');
 
-            root.innerHTML += `
-                <div class="cli-card">
-                    <div class="cli-head" onclick="toggle('cli-${cli.nom.replace(/\s/g,'')}')">
-                        <div><strong>${cli.nom}</strong><br><small>${cli.dir}</small></div>
-                        <span>▼</span>
+            list.innerHTML += `
+                <div class="cli-box">
+                    <div class="cli-head" onclick="toggleDisplay('cli-${cli.nom.replace(/\s/g,'')}')">
+                        <img src="${cli.photo || 'https://via.placeholder.com/50'}" class="cli-photo">
+                        <div class="cli-info">
+                            <strong>${cli.nom}</strong>
+                            <small>${cli.street}, Col. ${cli.col} (CP ${cli.cp})</small>
+                        </div>
+                        <i class="fas fa-chevron-down" style="font-size:12px; color:#ccc"></i>
                     </div>
                     <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
-                        ${artsHTML}
-                        <button class="btn btn-add-item" onclick="agregarArticulo('${cli.nom}')">➕ AGREGAR OTRO ARTÍCULO</button>
+                        ${accountsHTML}
+                        <button class="btn btn-add-item" onclick="agregarOtro('${cli.nom}')">
+                            <i class="fas fa-plus"></i> AGREGAR OTRO ARTÍCULO
+                        </button>
+                        <button class="btn" style="margin-top:10px; font-size:11px; padding:5px; background:#e17055; color:white;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col + ' ' + cli.mun)}')">
+                            <i class="fas fa-directions"></i> VER EN MAPAS
+                        </button>
                     </div>
                 </div>
             `;
         });
     }
 
-    function abonar(nomCli, artId) {
-        const input = document.getElementById(`inp-${artId}`);
-        const monto = parseFloat(input.value);
-        if(!monto) return;
+    function registrarAbono(cliName, accId) {
+        const inp = document.getElementById(`inp-${accId}`);
+        const monto = parseFloat(inp.value);
+        if(!monto || isNaN(monto)) return;
 
-        const art = db[nomCli].articulos.find(x => x.id === artId);
-        art.saldo = (art.saldo - monto).toFixed(2);
-        art.historial.push({ f: new Date().toLocaleDateString(), m: monto, r: art.saldo });
+        const cuenta = db[cliName].cuentas.find(a => a.id === accId);
+        const anterior = cuenta.saldo;
+        cuenta.saldo = (anterior - monto).toFixed(2);
+        const fecha = new Date().toLocaleString();
 
-        localStorage.setItem('abo_master_db', JSON.stringify(db));
-        renderRuta();
-        imprimir(nomCli, art);
+        cuenta.historial.push({ f: fecha, m: monto, r: cuenta.saldo, ant: anterior });
+        localStorage.setItem(STORAGE_DATA, JSON.stringify(db));
+        renderClients();
+        generarTicketRosa(cliName, cuenta);
     }
 
-    function imprimir(nomCli, art) {
-        document.getElementById('t-muebleria').innerText = config.nombre;
-        document.getElementById('t-nom').innerText = nomCli;
-        document.getElementById('t-dir').innerText = db[nomCli].dir;
-        document.getElementById('t-art').innerText = art.mueble;
+    function generarTicketRosa(cliName, cuenta) {
+        const cli = db[cliName];
+        document.getElementById('t-brand').innerText = config.nombre;
+        document.getElementById('t-nom').innerText = cliName;
+        document.getElementById('t-dir').innerText = `${cli.street}, Col. ${cli.col}, ${cli.mun}`;
+        document.getElementById('t-art').innerText = cuenta.mueble;
 
         const tbody = document.getElementById('t-rows');
         tbody.innerHTML = "";
-        for(let i=0; i<15; i++) {
-            const h = art.historial[i] || { f:"", m:"", r:"" };
-            tbody.innerHTML += `<tr><td>${h.f}</td><td>${h.m?'$'+h.m:''}</td><td>${h.r?'$'+h.r:''}</td></tr>`;
+        // Genera 15 filas fijas como tarjeta física
+        for(let i = 0; i < 15; i++) {
+            const h = cuenta.historial[i] || { f: "", m: "", r: "" };
+            tbody.innerHTML += `<tr><td>${h.f.split(' ')[0]}</td><td>${h.m ? '$'+h.m : ""}</td><td>${h.r ? '$'+h.r : ""}</td></tr>`;
         }
 
-        avisar("🖼️ Generando Tarjeta de Abono...");
+        avisar("🖼️ Generando imagen del comprobante...");
         setTimeout(() => {
             html2canvas(document.getElementById('final-ticket')).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Ticket_${nomCli}.png`;
+                link.download = `Recibo_${cliName}_${cuenta.mueble}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
-                document.getElementById('modal-ov').style.display='none';
+                closeAviso();
             });
-        }, 800);
+        }, 1000);
     }
 
-    function ordenarRuta() {
-        let arr = Object.values(db).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
-        let nDB = {}; arr.forEach(x => nDB[x.nom] = x);
-        db = nDB; renderRuta();
+    function smartRoute() {
+        let sorted = Object.values(db).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
+        let newDb = {};
+        sorted.forEach(c => newDb[c.nom] = c);
+        db = newDb;
+        renderClients();
         avisar("📍 Ruta ordenada por Código Postal.");
     }
 
-    function toggle(id) {
+    function toggleDisplay(id) {
         const el = document.getElementById(id);
-        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
     }
 
     init();
 </script>
 </body>
 </html>
+
