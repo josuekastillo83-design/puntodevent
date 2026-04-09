@@ -3,69 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABONERO APP - Profesional</title>
+    <title>AboneroApp Pro - Reparado</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
             --primary: #1a73e8;
-            --secondary: #fff159;
-            --success: #00b894;
-            --danger: #d63031;
+            --secondary: #fff159; /* Tu amarillo característico */
             --bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #2d3436;
             --pink-card: #ffc0cb;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
 
-        /* UI Base */
+        /* HEADER Y SIDEBAR ORIGINAL */
         header { background: var(--secondary); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
         .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
         
-        .sidebar { position: fixed; left: -100%; top: 0; width: 85%; max-width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+        .sidebar { position: fixed; left: -100%; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
         .sidebar.open { left: 0; }
+        .sidebar-header { background: var(--secondary); padding: 30px; font-weight: 900; text-align: center; }
         .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #f0f0f0; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 15px; }
 
         .container { padding: 15px; max-width: 600px; margin: auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* TARJETAS Y FORMULARIOS */
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         input, select { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 10px; margin-bottom: 12px; outline: none; font-size: 16px; }
         
         .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-main { background: var(--primary); color: white; }
-        .btn-route { background: var(--success); color: white; margin-bottom: 20px; }
+        .btn-route { background: #00b894; color: white; margin-bottom: 20px; }
+        .btn-add-item { background: #f0f4ff; color: var(--primary); border: 1px dashed var(--primary); margin-top: 10px; }
 
-        /* Clientes y Colapsables */
-        .cli-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; }
+        /* ACORDEONES REPARADOS */
+        .cli-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #eee; }
         .cli-body { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #f0f0f0; }
 
-        /* Alertas de Cobro */
+        /* DÍAS DE COBRO Y ALERTAS */
         .dia-alerta { font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; background: #ffeaa7; color: #d35400; font-weight: bold; margin-top: 5px; display: inline-block; }
         .hoy-toca { background: #55efc4; color: #00b894; }
 
-        /* Artículos y Historial Elegante */
+        /* ARTÍCULOS E HISTORIAL MOVIMIENTOS */
         .art-card { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
         .historial-toggle { background: #f1f3f4; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; color: var(--primary); cursor: pointer; margin-top: 10px; display: flex; justify-content: space-between; }
-        .historial-desglose { display: none; padding: 10px 0; }
-        
-        .row-hist { border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 0.85rem; }
-        .row-hist:last-child { border: none; }
-        .badge-saldo { color: #636e72; font-size: 0.75rem; display: block; }
+        .historial-desglose { display: none; padding: 10px 0; font-size: 0.85rem; }
 
-        /* Modal Personalizado */
+        /* MODAL PERSONALIZADO ABONEROAPP */
         #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center; }
         .modal-box { background:white; width:85%; max-width:350px; border-radius:20px; overflow:hidden; animation: pop 0.2s; }
+        .modal-header-app { background: var(--secondary); padding: 15px; font-weight: 900; text-align: center; }
         @keyframes pop { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
 
-        /* Ticket Rosa */
+        /* TICKET TARJETA ROSA ACUMULABLE */
         #ticket-wrapper { position: absolute; left: -9999px; }
         .pink-ticket { width: 350px; background: var(--pink-card); padding: 25px; color: #000; font-family: 'Arial', sans-serif; border: 1px solid #000; }
         .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -83,14 +78,13 @@
 </header>
 
 <div id="sidebar" class="sidebar">
-    <div style="background:var(--secondary); padding:30px; font-weight:900; text-align:center;">MENU</div>
+    <div class="sidebar-header">MENU</div>
     <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta Diaria</div>
     <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Registrar Cliente</div>
     <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cogs"></i> Personalizar App</div>
 </div>
 
 <div class="container">
-    
     <div id="v-ruta" class="view active">
         <button class="btn btn-route" onclick="smartRoute()">📍 RUTA INTELIGENTE (CP)</button>
         <div id="lista-clientes"></div>
@@ -122,7 +116,7 @@
 
     <div id="v-config" class="view">
         <div class="card">
-            <h4>Ajustes</h4>
+            <h4>Ajustes de Marca</h4>
             <input type="text" id="cfg-nom" placeholder="Nombre de la Mueblería">
             <input type="file" accept="image/*" onchange="previewImg(event, 'prev-logo', true)">
             <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto;">
@@ -133,7 +127,7 @@
 
 <div id="modal-ov">
     <div class="modal-box">
-        <div style="background:var(--secondary); padding:15px; font-weight:900; text-align:center;">AboneroApp</div>
+        <div class="modal-header-app">AboneroApp</div>
         <div id="m-body" style="padding:25px; text-align:center;"></div>
         <div id="m-foot" style="padding:15px; border-top:1px solid #eee;"></div>
     </div>
@@ -158,8 +152,8 @@
 </div>
 
 <script>
-    const KEY_DB = "ABO_PRO_DATA";
-    const KEY_CFG = "ABO_PRO_CFG";
+    const KEY_DB = "ABO_APP_MASTER_REPAIR";
+    const KEY_CFG = "ABO_APP_CFG_REPAIR";
     let db = JSON.parse(localStorage.getItem(KEY_DB)) || {};
     let config = JSON.parse(localStorage.getItem(KEY_CFG)) || { nombre: "ABONERO APP", logo: "" };
     let tempLogo = config.logo;
@@ -217,7 +211,7 @@
         const bal = parseFloat(document.getElementById('reg-saldo').value);
         const photo = document.getElementById('prev-reg').src;
 
-        if(!nom || isNaN(bal)) return avisar("⚠️ Completa los datos.");
+        if(!nom || isNaN(bal)) return avisar("⚠️ Por favor completa los datos.");
 
         if(!db[nom]) {
             db[nom] = { nom, street, col, cp, dia, photo, cuentas: [] };
@@ -226,7 +220,7 @@
         
         localStorage.setItem(KEY_DB, JSON.stringify(db));
         renderClients();
-        avisar("✅ Cliente registrado en AboneroApp");
+        avisar("✅ ¡Venta registrada con éxito!");
         changeView('v-ruta');
     }
 
@@ -244,24 +238,19 @@
                         <b style="color:var(--primary)">$${c.saldo}</b>
                     </div>
                     <div style="margin-top:10px;">
-                        <input type="number" id="inp-${c.id}" placeholder="Monto $">
+                        <input type="number" id="inp-${c.id}" placeholder="Cantidad $">
                         <button class="btn btn-main" onclick="registrarAbono('${cli.nom}', ${c.id})">ABONAR</button>
                     </div>
-                    
                     <div class="historial-toggle" onclick="toggleDisplay('hist-${c.id}')">
-                        <span>Ver movimientos recientes</span>
-                        <i class="fas fa-history"></i>
+                        <span>Ver movimientos recientes</span> <i class="fas fa-history"></i>
                     </div>
                     <div id="hist-${c.id}" class="historial-desglose">
                         ${c.historial.map(h => `
-                            <div class="row-hist">
-                                <div style="display:flex; justify-content:space-between;">
-                                    <strong>${h.f.split(',')[0]}</strong>
-                                    <span style="color:var(--success)">+$${h.m}</span>
-                                </div>
-                                <span class="badge-saldo">Saldo: $${h.ant} → $${h.r}</span>
+                            <div style="border-bottom:1px solid #f0f0f0; padding:5px 0;">
+                                <strong>${h.f.split(',')[0]}</strong> | Abono: $${h.m}<br>
+                                <small style="color:gray">Antes: $${h.ant} → Nuevo: $${h.r}</small>
                             </div>
-                        `).reverse().slice(0,5).join('') || '<small>Sin abonos aún</small>'}
+                        `).reverse().join('') || '<small>Sin abonos</small>'}
                     </div>
                 </div>
             `).join('');
@@ -272,12 +261,12 @@
                         <img src="${cli.photo || 'https://via.placeholder.com/50'}" class="cli-photo">
                         <div class="cli-info">
                             <strong>${cli.nom}</strong>
-                            <small>${cli.street}, Col. ${cli.col}</small><br>
                             <span class="dia-alerta ${esHoy ? 'hoy-toca' : ''}">Cobro: ${cli.dia} ${esHoy ? '(TOCA HOY)' : ''}</span>
                         </div>
                     </div>
                     <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
                         ${accountsHTML}
+                        <button class="btn btn-add-item" onclick="agregarOtro('${cli.nom}')">➕ AGREGAR OTRO ARTÍCULO</button>
                         <button class="btn" style="margin-top:10px; background:#e17055; color:white; font-size:11px;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col)}')">IR AL MAPA</button>
                     </div>
                 </div>
@@ -339,6 +328,24 @@
     function toggleDisplay(id) {
         const el = document.getElementById(id);
         el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function agregarOtro(nom) {
+        avisar(`Nuevo mueble para ${nom}`, `
+            <input type="text" id="add-art" placeholder="Mueble">
+            <input type="number" id="add-saldo" placeholder="Saldo $">
+            <button class="btn btn-main" onclick="confirmarAdd('${nom}')">GUARDAR</button>
+        `);
+    }
+
+    function confirmarAdd(nom) {
+        const m = document.getElementById('add-art').value;
+        const s = parseFloat(document.getElementById('add-saldo').value);
+        if(!m || isNaN(s)) return;
+        db[nom].cuentas.push({ id: Date.now(), mueble: m, saldo: s, historial: [] });
+        localStorage.setItem(KEY_DB, JSON.stringify(db));
+        renderClients();
+        closeAviso();
     }
 
     init();
