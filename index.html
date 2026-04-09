@@ -2,102 +2,144 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobranza Mueblería Premium</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AboneroApp - Mueblería Olimpo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --ml-yellow: #fff159; --ml-blue: #3483fa; --bg: #ebebeb; }
-        body { font-family: 'Helvetica Neue', Helvetica, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        :root { 
+            --ml-yellow: #fff159; 
+            --ml-blue: #3483fa; 
+            --bg: #ebebeb; 
+            --text: #333;
+        }
+
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; color: var(--text); }
         
         /* Header y Logo */
-        header { background: var(--ml-yellow); padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        #logo-preview { max-height: 60px; display: block; margin: 5px auto; border-radius: 4px; }
+        header { background: var(--ml-yellow); padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top:0; z-index: 100; }
+        #logo-preview { max-height: 50px; display: block; margin: 5px auto; border-radius: 4px; }
+        .brand-name { font-weight: bold; font-size: 20px; text-transform: uppercase; margin: 5px 0; }
 
         .container { max-width: 600px; margin: auto; padding: 10px; }
         .box { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
-        h4 { margin: 0 0 10px 0; color: #333; border-bottom: 2px solid var(--ml-yellow); display: inline-block; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        h4 { margin: 0 0 10px 0; border-left: 4px solid var(--ml-blue); padding-left: 10px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         
-        .btn { border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        /* Botones */
+        .btn { border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; transition: 0.3s; }
         .btn-blue { background: var(--ml-blue); color: white; }
-        .btn-gps { background: #00b894; color: white; margin-bottom: 10px; }
-        .btn-maps { background: #e17055; color: white; font-size: 12px; padding: 5px; }
+        .btn-gps { background: #00b894; color: white; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-maps { background: #e17055; color: white; font-size: 12px; padding: 8px; margin-bottom: 10px; }
 
-        /* Acordeones */
-        .cliente-group { background: white; border-radius: 8px; margin-bottom: 10px; overflow: hidden; border: 1px solid #ddd; }
-        .cliente-header { background: #f8f9fa; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        /* Acordeones Clientes/Artículos */
+        .cliente-group { background: white; border-radius: 8px; margin-bottom: 12px; overflow: hidden; border: 1px solid #ddd; }
+        .cliente-header { background: #fff; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .cliente-info h3 { margin: 0; font-size: 16px; color: var(--ml-blue); }
+        .cliente-info small { color: #777; font-size: 11px; }
+
+        .articulo-card { margin: 10px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
+        .articulo-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+        .articulo-body { display: none; padding: 15px; background: white; border-top: 1px solid #eee; }
         
-        .articulo-card { margin: 10px; border: 1px solid #eee; border-radius: 6px; background: #fff; }
-        .articulo-header { padding: 10px; background: #f1f2f6; cursor: pointer; display: flex; justify-content: space-between; font-size: 14px; }
-        .articulo-body { display: none; padding: 15px; }
+        .historial-item { font-size: 12px; padding: 8px 0; border-bottom: 1px dotted #ccc; display: flex; justify-content: space-between; align-items: center; }
         .active { display: block !important; }
 
-        /* Historial */
-        .historial-item { font-size: 12px; padding: 5px 0; border-bottom: 1px dotted #ccc; display: flex; justify-content: space-between; }
+        /* Modal Personalizado */
+        #custom-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; }
+        .modal-content { background:white; width:85%; max-width:350px; border-radius:15px; overflow:hidden; text-align:center; animation: pop 0.3s ease; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Ticket de Pago */
-        #ticket-print { position: absolute; left: -9999px; width: 350px; background: white; padding: 30px; border: 1px solid #eee; text-align: center; }
+        /* Ticket de Pago (Oculto para captura) */
+        #ticket-print { position: absolute; left: -9999px; width: 350px; background: white; padding: 30px; text-align: center; color: black; }
     </style>
 </head>
 <body>
 
 <header>
     <img id="logo-preview" src="" style="display:none">
-    <div id="nombre-muebleria-txt" style="font-weight:bold; font-size:18px;">MI MUEBLERÍA</div>
+    <div class="brand-name" id="display-muebleria">ABONERO APP</div>
 </header>
 
 <div class="container">
-    <button class="btn btn-gps" onclick="optimizarRuta()">📍 ORDENAR RUTA INTELIGENTE</button>
+    <button class="btn btn-gps" onclick="optimizarRuta()">📍 INICIAR RUTA (ORDENAR POR GPS)</button>
 
     <div class="box">
         <h4>⚙️ Configuración</h4>
-        <input type="text" id="cfg-nombre" placeholder="Nombre de la Mueblería" onchange="guardarConfig()">
-        <label style="font-size:12px">Subir Logotipo:</label>
-        <input type="file" id="cfg-logo" accept="image/*" onchange="cargarLogo(event)">
+        <input type="text" id="cfg-nombre" placeholder="Nombre de la Mueblería" onchange="guardarNombre()">
+        <label style="font-size:12px; display:block; margin-top:5px;">Subir Logotipo:</label>
+        <input type="file" id="cfg-logo" accept="image/*" onchange="procesarLogo(event)">
     </div>
 
     <div class="box">
-        <h4>➕ Nuevo Registro de Venta</h4>
+        <h4>➕ Registro de Venta Nueva</h4>
         <input type="text" id="reg-nombre" placeholder="Nombre del Cliente">
-        <input type="text" id="reg-dir" placeholder="Dirección">
-        <button class="btn-maps" onclick="buscarEnGoogleMaps()">🌐 Verificar en Google Maps</button>
-        <input type="text" id="reg-mueble" placeholder="Descripción del Mueble (ej. Sala Gris)">
+        <input type="text" id="reg-dir" placeholder="Dirección Completa">
+        <button class="btn btn-maps" onclick="verificarMapa()">🌐 Verificar en Google Maps</button>
+        <input type="text" id="reg-mueble" placeholder="Artículo (ej. Sala, Comedor...)">
         <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
-        <button class="btn btn-blue" onclick="agregarVenta()">REGISTRAR VENTA</button>
+        <button class="btn btn-blue" id="btn-registrar" onclick="agregarVenta()">REGISTRAR VENTA</button>
     </div>
 
     <div id="lista-clientes-root"></div>
 </div>
 
 <div id="ticket-print">
-    <img id="t-logo" src="" style="max-height:70px; margin-bottom:10px">
-    <h2 id="t-muebleria" style="margin:0"></h2>
-    <p>Comprobante de Abono</p>
+    <img id="t-logo" src="" style="max-height:80px; margin-bottom:10px">
+    <h2 id="t-muebleria" style="margin:0; text-transform:uppercase;"></h2>
+    <p style="margin:5px 0; font-size:14px;">Comprobante de Abono</p>
     <hr>
-    <div style="text-align:left; font-size:14px">
+    <div style="text-align:left; font-size:14px; line-height:1.6;">
         <p><strong>FECHA:</strong> <span id="t-fecha"></span></p>
         <p><strong>CLIENTE:</strong> <span id="t-cliente"></span></p>
+        <p><strong>DIRECCIÓN:</strong> <span id="t-dir"></span></p>
         <p><strong>ARTÍCULO:</strong> <span id="t-articulo"></span></p>
         <hr>
         <p>SALDO ANTERIOR: <span id="t-ant"></span></p>
         <p>ABONO: <span id="t-abo"></span></p>
-        <p style="font-size:20px; background:#f1f1f1; padding:10px"><strong>SALDO ACTUAL: <span id="t-act"></span></strong></p>
+        <div style="background:#f2f2f2; padding:15px; border-radius:8px; margin-top:10px; text-align:center;">
+            <p style="font-size:22px; margin:0"><strong>SALDO ACTUAL: <span id="t-act"></span></strong></p>
+        </div>
+    </div>
+    <p style="margin-top:20px; font-size:10px; color:#555;">¡Gracias por su pago! Conserve esta imagen.</p>
+</div>
+
+<div id="custom-modal">
+    <div class="modal-content">
+        <div style="background:var(--ml-yellow); padding:15px; font-weight:bold; font-size:18px;">AboneroApp</div>
+        <div id="modal-message" style="padding:25px; color:#444; font-size:15px;"></div>
+        <button onclick="cerrarModal()" style="width:100%; border:none; background:var(--ml-blue); color:white; padding:15px; font-weight:bold; font-size:16px;">ACEPTAR</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('muebleria_pro_db')) || {};
-    let logoData = localStorage.getItem('muebleria_logo') || "";
+    let db = JSON.parse(localStorage.getItem('abonero_db')) || {};
+    let logoData = localStorage.getItem('abonero_logo') || "";
+    let nombreMuebleria = localStorage.getItem('abonero_nombre_cfg') || "MUEBLERÍA";
 
-    function cargarLogo(event) {
+    // Inicializar app
+    document.getElementById('display-muebleria').innerText = nombreMuebleria;
+    document.getElementById('cfg-nombre').value = nombreMuebleria;
+    mostrarLogo();
+    render();
+
+    function avisar(msg) {
+        document.getElementById('modal-message').innerText = msg;
+        document.getElementById('custom-modal').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+        document.getElementById('custom-modal').style.display = 'none';
+    }
+
+    function procesarLogo(e) {
         const reader = new FileReader();
         reader.onload = function() {
             logoData = reader.result;
-            localStorage.setItem('muebleria_logo', logoData);
+            localStorage.setItem('abonero_logo', logoData);
             mostrarLogo();
         };
-        reader.readAsDataURL(event.target.files[0]);
+        reader.readAsDataURL(e.target.files[0]);
     }
 
     function mostrarLogo() {
@@ -108,53 +150,88 @@
         }
     }
 
-    function buscarEnGoogleMaps() {
+    function guardarNombre() {
+        nombreMuebleria = document.getElementById('cfg-nombre').value.toUpperCase();
+        localStorage.setItem('abonero_nombre_cfg', nombreMuebleria);
+        document.getElementById('display-muebleria').innerText = nombreMuebleria;
+    }
+
+    function verificarMapa() {
         const dir = document.getElementById('reg-dir').value;
         if(dir) window.open(`https://www.google.com/maps/search/${encodeURIComponent(dir)}`, '_blank');
+        else avisar("Escribe una dirección primero");
     }
 
     function agregarVenta() {
-        const nombre = document.getElementById('reg-nombre').value.toUpperCase();
-        const dir = document.getElementById('reg-dir').value;
-        const mueble = document.getElementById('reg-mueble').value;
+        const btn = document.getElementById('btn-registrar');
+        const nombre = document.getElementById('reg-nombre').value.toUpperCase().trim();
+        const dir = document.getElementById('reg-dir').value.trim();
+        const mueble = document.getElementById('reg-mueble').value.trim();
         const saldo = parseFloat(document.getElementById('reg-saldo').value);
 
-        if(!nombre || !mueble || isNaN(saldo)) return alert("Faltan datos");
+        if(!nombre || !mueble || isNaN(saldo)) return avisar("⚠️ Por favor completa los campos obligatorios.");
 
-        navigator.geolocation.getCurrentPosition(pos => {
-            if(!db[nombre]) db[nombre] = { nombre, direccion: dir, lat: pos.coords.latitude, lon: pos.coords.longitude, articulos: [] };
-            
-            db[nombre].articulos.push({
-                id: Date.now(),
-                descripcion: mueble,
-                saldo: saldo,
-                historial: []
-            });
+        btn.disabled = true;
+        btn.innerText = "⏳ REGISTRANDO...";
 
-            guardar();
-            alert("Venta registrada correctamente");
+        navigator.geolocation.getCurrentPosition(
+            (pos) => registrarFinal(pos, nombre, dir, mueble, saldo),
+            () => registrarFinal(null, nombre, dir, mueble, saldo),
+            { timeout: 5000 }
+        );
+    }
+
+    function registrarFinal(pos, nombre, dir, mueble, saldo) {
+        const lat = pos ? pos.coords.latitude : 0;
+        const lon = pos ? pos.coords.longitude : 0;
+
+        if(!db[nombre]) {
+            db[nombre] = { nombre, direccion: dir, lat, lon, articulos: [] };
+        }
+        
+        db[nombre].articulos.push({
+            id: Date.now(),
+            descripcion: mueble,
+            saldo: saldo,
+            historial: []
         });
+
+        localStorage.setItem('abonero_db', JSON.stringify(db));
+        
+        // Limpiar campos
+        document.getElementById('reg-nombre').value = "";
+        document.getElementById('reg-dir').value = "";
+        document.getElementById('reg-mueble').value = "";
+        document.getElementById('reg-saldo').value = "";
+        
+        const btn = document.getElementById('btn-registrar');
+        btn.disabled = false;
+        btn.innerText = "REGISTRAR VENTA";
+        
+        render();
+        avisar("✅ Venta registrada correctamente en AboneroApp");
     }
 
     function render() {
         const root = document.getElementById('lista-clientes-root');
-        root.innerHTML = "<h4>Ruta de Cobro</h4>";
+        root.innerHTML = "<h4>Ruta de Cobro Actual</h4>";
         
         Object.values(db).forEach(cliente => {
             let articulosHTML = cliente.articulos.map(art => `
                 <div class="articulo-card">
                     <div class="articulo-header" onclick="event.stopPropagation(); toggle('art-${art.id}')">
                         <span>📦 ${art.descripcion}</span>
-                        <b>$${art.saldo}</b>
+                        <span style="color:var(--ml-blue)">$${art.saldo}</span>
                     </div>
                     <div class="articulo-body" id="art-${art.id}">
-                        <button class="btn btn-blue" onclick="cobrar('${cliente.nombre}', ${art.id})">ABONAR</button>
-                        <div style="margin-top:10px">
+                        <button class="btn btn-blue" onclick="cobrar('${cliente.nombre}', ${art.id})">REGISTRAR ABONO</button>
+                        <div style="margin-top:12px; border-top:1px solid #eee; padding-top:8px;">
+                            <strong>Movimientos:</strong>
                             ${art.historial.map(h => `
                                 <div class="historial-item">
                                     <span>${h.fecha.split(',')[0]}</span>
-                                    <span>Abonó: $${h.monto}</span>
-                                    <button onclick="generarFoto('${cliente.nombre}', '${art.descripcion}', ${h.anterior}, ${h.monto}, ${h.actual}, '${h.fecha}')">📸</button>
+                                    <span>$${h.monto}</span>
+                                    <button class="btn-maps" style="margin:0; padding:4px 8px;" onclick="generarTicket('${cliente.nombre}', '${art.descripcion}', ${h.anterior}, ${h.monto}, ${h.actual}, '${h.fecha}')">📸 Foto</button>
                                 </div>
                             `).reverse().join('')}
                         </div>
@@ -165,8 +242,11 @@
             root.innerHTML += `
                 <div class="cliente-group">
                     <div class="cliente-header" onclick="toggle('cli-${cliente.nombre.replace(/\s/g,'')}')">
-                        <span>👤 ${cliente.nombre}</span>
-                        <small style="font-size:10px">${cliente.direccion.substring(0,15)}...</small>
+                        <div class="cliente-info">
+                            <h3>👤 ${cliente.nombre}</h3>
+                            <small>📍 ${cliente.direccion}</small>
+                        </div>
+                        <span style="font-size:18px">▶</span>
                     </div>
                     <div class="articulo-body" id="cli-${cliente.nombre.replace(/\s/g,'')}">
                         ${articulosHTML}
@@ -178,38 +258,44 @@
 
     function cobrar(nombreCliente, artId) {
         const art = db[nombreCliente].articulos.find(a => a.id === artId);
-        const monto = parseFloat(prompt(`Saldo actual del mueble: $${art.saldo}\n¿Monto del abono?`));
-        if(!monto) return;
+        const monto = parseFloat(prompt(`Saldo actual: $${art.saldo}\n¿Cuánto abona el cliente?`));
+        if(!monto || isNaN(monto)) return;
 
         const anterior = art.saldo;
         art.saldo = (anterior - monto).toFixed(2);
         const fecha = new Date().toLocaleString();
 
-        const registro = { fecha, anterior, monto, actual: art.saldo };
-        art.historial.push(registro);
-        
-        guardar();
-        generarFoto(nombreCliente, art.descripcion, anterior, monto, art.saldo, fecha);
+        art.historial.push({ fecha, anterior, monto, actual: art.saldo });
+        localStorage.setItem('abonero_db', JSON.stringify(db));
+        render();
+        generarTicket(nombreCliente, art.descripcion, anterior, monto, art.saldo, fecha);
     }
 
-    function generarFoto(cliente, mueble, ant, abo, act, fecha) {
-        document.getElementById('t-muebleria').innerText = document.getElementById('cfg-nombre').value || "MUEBLERÍA";
+    function generarTicket(cliente, mueble, ant, abo, act, fecha) {
+        document.getElementById('t-muebleria').innerText = nombreMuebleria;
         document.getElementById('t-cliente').innerText = cliente;
+        document.getElementById('t-dir').innerText = db[cliente].direccion;
         document.getElementById('t-articulo').innerText = mueble;
         document.getElementById('t-ant').innerText = "$" + ant;
         document.getElementById('t-abo').innerText = "$" + abo;
         document.getElementById('t-act').innerText = "$" + act;
         document.getElementById('t-fecha').innerText = fecha;
 
-        html2canvas(document.getElementById('ticket-print')).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Recibo_${cliente}_${mueble}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        });
+        avisar("Generando imagen del comprobante...");
+
+        setTimeout(() => {
+            html2canvas(document.getElementById('ticket-print')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Recibo_${cliente}_${mueble}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                cerrarModal();
+            });
+        }, 800);
     }
 
     function optimizarRuta() {
+        avisar("Buscando ubicación actual...");
         navigator.geolocation.getCurrentPosition(pos => {
             let arr = Object.values(db);
             arr.forEach(c => {
@@ -220,17 +306,15 @@
             arr.forEach(c => nuevoDb[c.nombre] = c);
             db = nuevoDb;
             render();
+            avisar("📍 Ruta inteligente calculada. Clientes ordenados por cercanía.");
         });
     }
 
-    function toggle(id) { document.getElementById(id).classList.toggle('active'); }
-    function guardar() { localStorage.setItem('muebleria_pro_db', JSON.stringify(db)); render(); }
-    function guardarConfig() { localStorage.setItem('muebleria_nombre_cfg', document.getElementById('cfg-nombre').value); }
-
-    // Inicio
-    document.getElementById('cfg-nombre').value = localStorage.getItem('muebleria_nombre_cfg') || "";
-    mostrarLogo();
-    render();
+    function toggle(id) {
+        const el = document.getElementById(id);
+        const disp = window.getComputedStyle(el).display;
+        el.style.display = (disp === 'none') ? 'block' : 'none';
+    }
 </script>
 </body>
 </html>
