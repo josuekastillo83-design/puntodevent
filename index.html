@@ -10,12 +10,11 @@
             --accent: #1a73e8; 
             --header: #fff159; 
             --bg: #f8f9fa; 
-            --pink-card: #ffb6c1;
         }
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
         
-        /* UI Estilo Nexpen */
+        /* Interfaz Original Nexpen */
         header { background: var(--header); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top:0; z-index: 1000; }
         .menu-btn { font-size: 24px; cursor: pointer; padding: 5px; }
         .brand { font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
@@ -37,27 +36,25 @@
         
         .btn { border: none; padding: 15px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .btn-main { background: var(--accent); color: white; }
-        .btn-add-item { background: #e8f0fe; color: var(--accent); margin-top: 10px; border: 1px dashed var(--accent); }
+        .btn-add-item { background: #f0f4ff; color: var(--accent); margin-top: 10px; border: 1px dashed var(--accent); }
 
-        /* Clientes y Pestañas Abatibles */
+        /* Clientes y Pestañas Originales */
         .cli-card { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--accent); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .cli-head { padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .cli-body { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #eee; }
 
-        /* Tarjetas de Artículos dentro del cliente */
-        .art-card { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .art-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; padding-bottom: 10px; border-bottom: 1px dashed #ddd; margin-bottom: 10px; }
-        .art-content { display: none; }
+        .art-card { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
+        .art-header { display: flex; justify-content: space-between; cursor: pointer; font-weight: bold; }
+        .art-content { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; }
 
-        /* Tarjeta Rosa (Ticket) */
+        /* Ticket Rosa (Tarjeta Real) */
         #ticket-wrapper { position: absolute; left: -9999px; }
-        .pink-ticket { width: 350px; background: #ffc0cb; padding: 25px; color: #000; font-family: Arial, sans-serif; border: 1px solid #000; text-align: left; }
-        .pink-header { border-bottom: 2px solid #000; margin-bottom: 15px; padding-bottom: 10px; }
-        .pink-header div { border-bottom: 1px solid #000; margin-bottom: 5px; padding-bottom: 2px; font-weight: bold; text-transform: uppercase; font-size: 13px; }
-        .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pink-table th, .pink-table td { border: 1px solid #000; padding: 6px; text-align: center; font-size: 12px; height: 22px; }
+        .pink-ticket { width: 350px; background: #ffc0cb; padding: 20px; color: #000; font-family: Arial, sans-serif; border: 1px solid #000; }
+        .pink-header { border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; font-size: 13px; }
+        .pink-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        .pink-table th, .pink-table td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 11px; height: 20px; }
 
-        /* Modal */
+        /* Modal Personalizado */
         #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center; }
         .modal-box { background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; }
     </style>
@@ -68,7 +65,7 @@
     <div class="sidebar-header" id="side-brand">ABONERO APP</div>
     <div class="sidebar-menu">
         <div class="sidebar-item" onclick="showView('v-ruta')">📍 Mi Ruta de Cobro</div>
-        <div class="sidebar-item" onclick="showView('v-nueva')">➕ Registro de Cliente Nuevo</div>
+        <div class="sidebar-item" onclick="showView('v-nueva')">➕ Nuevo Cliente</div>
         <div class="sidebar-item" onclick="showView('v-config')">⚙️ Personalizar Mueblería</div>
     </div>
 </div>
@@ -81,7 +78,7 @@
 
 <div class="container">
     <div id="v-ruta" class="view active">
-        <button class="btn" style="background:#00b894; color:white; margin-bottom:20px;" onclick="ordenarRuta()">📍 ACTIVAR RUTA INTELIGENTE (CP)</button>
+        <button class="btn" style="background:#00b894; color:white; margin-bottom:15px;" onclick="ordenarRuta()">📍 ACTIVAR RUTA INTELIGENTE (CP)</button>
         <div id="lista-clientes"></div>
     </div>
 
@@ -92,10 +89,7 @@
             <input type="text" id="reg-calle" placeholder="Calle y Número">
             <input type="text" id="reg-col" placeholder="Colonia">
             <input type="number" id="reg-cp" placeholder="Código Postal">
-            <input type="text" id="reg-mun" placeholder="Municipio/Estado">
-            <hr>
-            <h4>Primer Artículo</h4>
-            <input type="text" id="reg-art" placeholder="Descripción (ej. Refrigerador)">
+            <input type="text" id="reg-art" placeholder="Primer Artículo (ej. Sala)">
             <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
             <button class="btn btn-main" onclick="guardarClienteNuevo()">GUARDAR REGISTRO</button>
         </div>
@@ -103,33 +97,30 @@
 
     <div id="v-config" class="view">
         <div class="box">
-            <h4>Configurar Mi Mueblería</h4>
-            <label style="font-size:12px; font-weight:bold;">Nombre Comercial:</label>
+            <h4>Personalizar Mi Negocio</h4>
+            <label>Nombre de la Mueblería:</label>
             <input type="text" id="cfg-nom" placeholder="Ej. Mueblería Olimpo">
-            
-            <label style="font-size:12px; font-weight:bold; margin-top:10px; display:block;">Logotipo:</label>
+            <label>Logotipo:</label>
             <input type="file" accept="image/*" onchange="cargarLogo(event)">
-            <img id="logo-v" style="max-height:80px; display:none; margin:15px auto; border: 1px solid #ddd; padding: 5px; border-radius: 5px;">
-            
-            <button class="btn btn-main" onclick="guardarConfig()">APLICAR Y CONFIRMAR CAMBIOS</button>
+            <img id="logo-v" style="max-height:60px; display:none; margin:10px auto;">
+            <button class="btn btn-main" onclick="guardarConfig()">APLICAR CAMBIOS</button>
         </div>
     </div>
 </div>
 
 <div id="modal-ov">
     <div class="modal-box">
-        <div id="m-head" style="background:var(--header); padding:15px; font-weight:800; text-align:center; font-size:14px;">AboneroApp</div>
-        <div id="m-body" style="padding:25px; text-align:center; font-weight:600; color:#333;"></div>
+        <div style="background:var(--header); padding:15px; font-weight:bold; text-align:center;">AboneroApp</div>
+        <div id="m-body" style="padding:20px; text-align:center;"></div>
         <div id="m-foot" style="padding:10px; border-top:1px solid #eee;"></div>
     </div>
 </div>
 
 <div id="ticket-wrapper">
     <div class="pink-ticket" id="final-ticket">
-        <div style="text-align: center; margin-bottom: 10px;">
-            <img id="t-logo" style="max-height: 45px; display: none; margin: 0 auto;">
-            <h3 id="t-brand-name" style="margin: 5px 0 0 0; text-transform: uppercase; font-size: 16px;">MUEBLERÍA</h3>
-            <div style="font-size: 10px;">Comprobante de Abono</div>
+        <div style="text-align:center;">
+            <img id="t-logo" style="max-height:40px; display:none; margin:0 auto;">
+            <h3 id="t-muebleria" style="margin:5px 0;">MUEBLERÍA</h3>
         </div>
         <div class="pink-header">
             <div>Nombre: <span id="t-nom"></span></div>
@@ -137,30 +128,19 @@
             <div>Artículo: <span id="t-art"></span></div>
         </div>
         <table class="pink-table">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Abono</th>
-                    <th>Resta</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Fecha</th><th>Abono</th><th>Resta</th></tr></thead>
             <tbody id="t-rows"></tbody>
         </table>
-        <div style="font-size: 9px; text-align: center; margin-top: 10px;">DOCUMENTO NO FISCAL - GRACIAS POR SU PAGO</div>
     </div>
 </div>
 
 <script>
-    // MEMORIA MAESTRA
-    const DB_KEY = "ABONERO_V1_MASTER";
-    const CFG_KEY = "ABONERO_V1_CONFIG";
-
-    let database = JSON.parse(localStorage.getItem(DB_KEY)) || {};
-    let config = JSON.parse(localStorage.getItem(CFG_KEY)) || { nombre: "ABONERO APP", logo: "" };
+    // MEMORIA DE LARGO PLAZO
+    let db = JSON.parse(localStorage.getItem('abo_master_db')) || {};
+    let config = JSON.parse(localStorage.getItem('abo_master_cfg')) || { nombre: "ABONERO APP", logo: "" };
 
     function init() {
         document.getElementById('header-title').innerText = config.nombre;
-        document.getElementById('side-brand').innerText = config.nombre;
         document.getElementById('cfg-nom').value = config.nombre;
         if(config.logo) {
             document.getElementById('logo-v').src = config.logo;
@@ -171,21 +151,18 @@
         renderRuta();
     }
 
-    // Navegación
+    // Funciones de Interfaz
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
     function showView(v) {
         document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
         document.getElementById(v).classList.add('active');
         toggleSidebar();
     }
-
-    // Modales
-    function avisar(m, f = '') {
+    function avisar(m, f='') {
         document.getElementById('m-body').innerText = m;
-        document.getElementById('m-foot').innerHTML = f || `<button class="btn btn-main" onclick="cerrarAviso()">ACEPTAR</button>`;
+        document.getElementById('m-foot').innerHTML = f || `<button class="btn btn-main" onclick="document.getElementById('modal-ov').style.display='none'">ACEPTAR</button>`;
         document.getElementById('modal-ov').style.display = 'flex';
     }
-    function cerrarAviso() { document.getElementById('modal-ov').style.display = 'none'; }
 
     // Configuración
     function cargarLogo(e) {
@@ -197,129 +174,122 @@
         };
         reader.readAsDataURL(e.target.files[0]);
     }
-
     function guardarConfig() {
         config.nombre = document.getElementById('cfg-nom').value.toUpperCase();
-        localStorage.setItem(CFG_KEY, JSON.stringify(config));
-        avisar("✅ Cambios aplicados. Reiniciando...", `<button class="btn btn-main" onclick="location.reload()">SÍ, REINICIAR</button>`);
+        localStorage.setItem('abo_master_cfg', JSON.stringify(config));
+        location.reload();
     }
 
-    // Gestión de Clientes y Artículos
+    // Lógica de Negocio
     function guardarClienteNuevo() {
         const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
         const calle = document.getElementById('reg-calle').value;
         const col = document.getElementById('reg-col').value;
         const cp = document.getElementById('reg-cp').value;
-        const mun = document.getElementById('reg-mun').value;
         const art = document.getElementById('reg-art').value;
         const saldo = parseFloat(document.getElementById('reg-saldo').value);
 
         if(!nom || isNaN(saldo)) return avisar("⚠️ Nombre y Saldo requeridos.");
 
-        if(!database[nom]) {
-            database[nom] = { nom, dir: `${calle}, Col. ${col}, ${mun}`, cp, items: [] };
+        if(!db[nom]) {
+            db[nom] = { nom, dir: `${calle}, Col. ${col}`, cp, articulos: [] };
         }
-        database[nom].items.push({ id: Date.now(), desc: art, saldo: saldo, history: [] });
+        db[nom].articulos.push({ id: Date.now(), mueble: art, saldo: saldo, historial: [] });
         
-        saveAndReload();
-        avisar("✅ Cliente registrado exitosamente.");
+        localStorage.setItem('abo_master_db', JSON.stringify(db));
+        renderRuta();
         showView('v-ruta');
     }
 
-    function agregarOtroArticulo(nomCli) {
-        const desc = prompt("Descripción del nuevo artículo (ej. Comedor):");
-        const saldo = parseFloat(prompt("Saldo inicial de este artículo:"));
-        if(!desc || isNaN(saldo)) return;
+    function agregarArticulo(nomCli) {
+        const mueble = prompt("Descripción del nuevo mueble:");
+        const saldo = parseFloat(prompt("Saldo inicial:"));
+        if(!mueble || isNaN(saldo)) return;
 
-        database[nomCli].items.push({ id: Date.now(), desc: desc, saldo: saldo, history: [] });
-        saveAndReload();
+        db[nomCli].articulos.push({ id: Date.now(), mueble, saldo, historial: [] });
+        localStorage.setItem('abo_master_db', JSON.stringify(db));
+        renderRuta();
     }
 
     function renderRuta() {
-        const list = document.getElementById('lista-clientes');
-        list.innerHTML = "";
-        Object.values(database).forEach(cli => {
-            let itemsHTML = cli.items.map(art => `
+        const root = document.getElementById('lista-clientes');
+        root.innerHTML = "";
+        Object.values(db).forEach(cli => {
+            let artsHTML = cli.articulos.map(a => `
                 <div class="art-card">
-                    <div class="art-header" onclick="toggleEl('cont-${art.id}')">
-                        <span>📦 ${art.desc}</span>
-                        <b style="color:var(--accent)">$${art.saldo}</b>
+                    <div class="art-header" onclick="toggle('c-${a.id}')">
+                        <span>📦 ${a.mueble}</span>
+                        <b style="color:var(--accent)">$${a.saldo}</b>
                     </div>
-                    <div id="cont-${art.id}" class="art-content">
-                        <input type="number" id="inp-${art.id}" placeholder="Cantidad a abonar $">
-                        <button class="btn btn-main" onclick="procesarPago('${cli.nom}', ${art.id})">PROCESAR ABONO</button>
-                        <div style="font-size:11px; margin-top:10px; color:#666;">
-                            ${art.history.map(h => `<div>${h.f.split(',')[0]} - Pago: $${h.m} | Resta: $${h.r}</div>`).reverse().join('')}
-                        </div>
+                    <div id="c-${a.id}" class="art-content">
+                        <input type="number" id="inp-${a.id}" placeholder="Monto abono $">
+                        <button class="btn btn-main" onclick="abonar('${cli.nom}', ${a.id})">COBRAR ABONO</button>
                     </div>
                 </div>
             `).join('');
 
-            list.innerHTML += `
+            root.innerHTML += `
                 <div class="cli-card">
-                    <div class="cli-head" onclick="toggleEl('body-${cli.nom.replace(/\s/g,'')}')">
+                    <div class="cli-head" onclick="toggle('cli-${cli.nom.replace(/\s/g,'')}')">
                         <div><strong>${cli.nom}</strong><br><small>${cli.dir}</small></div>
                         <span>▼</span>
                     </div>
-                    <div id="body-${cli.nom.replace(/\s/g,'')}" class="cli-body">
-                        ${itemsHTML}
-                        <button class="btn btn-add-item" onclick="agregarOtroArticulo('${cli.nom}')">➕ AGREGAR OTRO ARTÍCULO A ESTE CLIENTE</button>
+                    <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
+                        ${artsHTML}
+                        <button class="btn btn-add-item" onclick="agregarArticulo('${cli.nom}')">➕ AGREGAR OTRO ARTÍCULO</button>
                     </div>
                 </div>
             `;
         });
     }
 
-    function procesarPago(nomCli, artId) {
+    function abonar(nomCli, artId) {
         const input = document.getElementById(`inp-${artId}`);
         const monto = parseFloat(input.value);
-        if(!monto || isNaN(monto)) return;
+        if(!monto) return;
 
-        const art = database[nomCli].items.find(x => x.id === artId);
-        const ant = art.saldo;
-        art.saldo = (ant - monto).toFixed(2);
-        const fecha = new Date().toLocaleString();
+        const art = db[nomCli].articulos.find(x => x.id === artId);
+        art.saldo = (art.saldo - monto).toFixed(2);
+        art.historial.push({ f: new Date().toLocaleDateString(), m: monto, r: art.saldo });
 
-        art.history.push({ f: fecha, m: monto, r: art.saldo, a: ant });
-        saveAndReload();
-        generarTicketRosa(nomCli, art);
+        localStorage.setItem('abo_master_db', JSON.stringify(db));
+        renderRuta();
+        imprimir(nomCli, art);
     }
 
-    function generarTicketRosa(nomCli, art) {
-        document.getElementById('t-brand-name').innerText = config.nombre;
+    function imprimir(nomCli, art) {
+        document.getElementById('t-muebleria').innerText = config.nombre;
         document.getElementById('t-nom').innerText = nomCli;
-        document.getElementById('t-dir').innerText = database[nomCli].dir;
-        document.getElementById('t-art').innerText = art.desc;
+        document.getElementById('t-dir').innerText = db[nomCli].dir;
+        document.getElementById('t-art').innerText = art.mueble;
 
-        const rows = document.getElementById('t-rows');
-        rows.innerHTML = "";
-        for(let i = 0; i < 15; i++) {
-            const h = art.history[i] || { f: "", m: "", r: "" };
-            rows.innerHTML += `<tr><td>${h.f.split(' ')[0]}</td><td>${h.m ? '$'+h.m : ""}</td><td>${h.r ? '$'+h.r : ""}</td></tr>`;
+        const tbody = document.getElementById('t-rows');
+        tbody.innerHTML = "";
+        for(let i=0; i<15; i++) {
+            const h = art.historial[i] || { f:"", m:"", r:"" };
+            tbody.innerHTML += `<tr><td>${h.f}</td><td>${h.m?'$'+h.m:''}</td><td>${h.r?'$'+h.r:''}</td></tr>`;
         }
 
-        avisar("🖼️ Generando Tarjeta Digital...");
+        avisar("🖼️ Generando Tarjeta de Abono...");
         setTimeout(() => {
             html2canvas(document.getElementById('final-ticket')).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Recibo_${nomCli}_${art.desc}.png`;
+                link.download = `Ticket_${nomCli}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
-                cerrarAviso();
+                document.getElementById('modal-ov').style.display='none';
             });
         }, 800);
     }
 
     function ordenarRuta() {
-        let sorted = Object.values(database).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
-        let nDB = {}; sorted.forEach(x => nDB[x.nom] = x);
-        database = nDB;
-        saveAndReload();
+        let arr = Object.values(db).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
+        let nDB = {}; arr.forEach(x => nDB[x.nom] = x);
+        db = nDB; renderRuta();
         avisar("📍 Ruta ordenada por Código Postal.");
     }
 
-    function saveAndReload() { localStorage.setItem(DB_KEY, JSON.stringify(database)); renderRuta(); }
-    function toggleEl(id) { 
+    function toggle(id) {
         const el = document.getElementById(id);
         el.style.display = (el.style.display === 'block') ? 'none' : 'block';
     }
