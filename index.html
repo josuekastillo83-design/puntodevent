@@ -280,7 +280,21 @@
     function setTheme(t) { db.cfg.theme = t; applyVIP(); save(); }
     function renderInv() { let v=0, q=0; document.getElementById('inv-list-container').innerHTML = db.inv.map(p => { v+=(p.buy*p.stock); q+=p.stock; return `<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><div>${p.img?`<img src='${p.img}' class='thumb'>`:`<div class='thumb'></div>`}<span>${p.name}</span></div><span>${p.stock} pzas</span></div><div class='accordion-content'>SKU: ${p.sku}<br>Venta: $${p.sell}</div></div>`; }).join(''); document.getElementById('inv-val').innerText=`$${v.toFixed(2)}`; document.getElementById('inv-qty').innerText=q; }
     function addInv() { const s=document.getElementById('s-sku').value, n=document.getElementById('s-nom').value, b=parseFloat(document.getElementById('s-buy').value), se=parseFloat(document.getElementById('s-sell').value), st=parseInt(document.getElementById('s-sto').value), f=document.getElementById('s-img').files[0]; if(!s) return; const hS=(i='')=>{ const ex=db.inv.find(x=>x.sku===s); if(ex){ ex.stock+=st; ex.buy=b; ex.sell=se; if(i) ex.img=i; } else db.inv.push({sku:s, name:n, buy:b, sell:se, stock:st, img:i}); save(); renderInv(); showNxConfirm("Stock listo", ()=>{}); }; if(f){ const r=new FileReader(); r.onload=(e)=>hS(e.target.result); r.readAsDataURL(f); } else hS(); }
-    function renderFiados() { const q=document.getElementById('f-search').value.toLowerCase(); document.getElementById('fiados-list').innerHTML = db.fiados.filter(f=>f.n.toLowerCase().includes(q)).map(f=>`<div class='accordion'><div class='accordion-header' onclick='toggleAccordion(this)'><span>${f.n}</span><span style='color:red'>$${f.m.toFixed(2)}</span></div><div class='accordion-content'>${f.detalles}</div></div>`).join(''); }
+    function renderFiados() { const q=document.getElementById('fiados-list').innerHTML = db.fiados.filter(f => f.n.toLowerCase().includes(q)).map((f, i) => `
+    <div class="accordion">
+        <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('open')">
+            <span><b>${f.n}</b></span>
+            <span style="color:var(--danger); font-weight:bold;">$${f.m.toFixed(2)}</span>
+        </div>
+        <div class="accordion-content">
+            <p style="font-size:12px; margin-bottom:15px; color:#888;">${f.detalles}</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn-main" style="background:var(--accent); color:#000; padding:12px; font-size:12px;" onclick="openAbonoModal('${f.n}')">ABONAR</button>
+                <button class="btn-main" style="background:var(--success); color:#000; padding:12px; font-size:12px;" onclick="payFiado('${f.n}')">LIQUIDAR</button>
+            </div>
+        </div>
+    </div>`).join('');
+ }
     function toggleAccordion(h) { h.nextElementSibling.classList.toggle('open'); }
     function renderCart() { let t=0; document.getElementById('cart-body').innerHTML = cart.map((i,idx)=> { t+=(i.sell*i.q); return`<tr><td style='padding:10px'>${i.name}</td><td><button onclick='updateQty(${idx},-1)'>-</button> ${i.q} <button onclick='updateQty(${idx},1)'>+</button></td><td style='text-align:right'>$${(i.sell*i.q).toFixed(2)}</td></tr>`; }).join(''); document.getElementById('total-val').innerText=`$${t.toFixed(2)}`; }
     function updateQty(idx, d) { const item=cart[idx], orig=db.inv.find(x=>x.sku===item.sku); if(d>0 && item.q>=orig.stock) return; item.q+=d; if(item.q<=0) cart.splice(idx,1); renderCart(); }
