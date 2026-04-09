@@ -3,276 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AboneroApp Pro - Cloud Master</title>
+    <title>AboneroApp Pro - Firebase</title>
     
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
-    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Tus credenciales según la imagen 1000123521.jpg
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7xEDb_sa_C76G6KA5cQMsd3w-h83hpb0",
+            authDomain: "bitacoregust.firebaseapp.com",
+            databaseURL: "https://bitacoregust-default-rtdb.firebaseio.com",
+            projectId: "bitacoregust",
+            storageBucket: "bitacoregust.firebasestorage.app",
+            messagingSenderId: "155618684015",
+            appId: "1:155618684015:web:ebea5a55a678395c9df19a",
+            measurementId: "G-93RTQWDMTR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Funciones Globales para los botones
+        window.handleLogin = () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            signInWithEmailAndPassword(auth, email, pass).catch(() => alert("Error de acceso."));
+        };
+
+        window.handleLogout = () => signOut(auth);
+
+        window.saveClient = () => {
+            const user = auth.currentUser;
+            const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
+            const saldo = parseFloat(document.getElementById('reg-saldo').value);
+            if(!nom || isNaN(saldo)) return alert("Datos incompletos.");
+
+            set(ref(db, `users/${user.uid}/clientes/${nom.replace(/\./g, '_')}`), {
+                nombre: nom,
+                direccion: document.getElementById('reg-dir').value,
+                articulo: document.getElementById('reg-art').value,
+                saldo: saldo,
+                historial: []
+            }).then(() => { alert("Guardado."); showView('v-ruta'); });
+        };
+
+        window.registrarAbono = (nom) => {
+            const user = auth.currentUser;
+            const id = nom.replace(/\s/g,'');
+            const monto = parseFloat(document.getElementById(`inp-${id}`).value);
+            if(!monto) return;
+
+            const path = `users/${user.uid}/clientes/${nom.replace(/\./g, '_')}`;
+            get(ref(db, path)).then(snap => {
+                const cli = snap.val();
+                const nSaldo = (cli.saldo - monto).toFixed(2);
+                const h = cli.historial || [];
+                h.push({ f: new Date().toLocaleDateString(), a: monto, r: nSaldo });
+                update(ref(db, path), { saldo: nSaldo, historial: h }).then(() => {
+                    alert("Abono registrado.");
+                    descargarTicket(cli, h);
+                });
+            });
+        };
+
+        onAuthStateChanged(auth, user => {
+            document.getElementById('splash-screen').style.display = 'none';
+            if (user) {
+                document.getElementById('view-login').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                onValue(ref(db, `users/${user.uid}/clientes`), s => renderClients(s.val()));
+            } else {
+                document.getElementById('view-login').style.display = 'flex';
+                document.getElementById('app-content').style.display = 'none';
+            }
+        });
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root {
-            --primary-blue: #1a73e8;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --pink-ticket: #ffb6c1;
-            --header-gradient: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-        }
+        :root { --primary: #1a73e8; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        
+        /* Splash Screen */
+        #splash-screen { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        #splash-logo { width: 150px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            background-color: var(--dark-bg);
-            color: var(--text-color);
-            overflow-x: hidden;
-        }
+        /* Login */
+        #view-login { height: 100vh; flex-direction: column; justify-content: center; align-items: center; background: white; padding: 20px; box-sizing: border-box; }
+        .login-box { width: 100%; max-width: 350px; text-align: center; color: #333; }
 
-        /* Pantalla Splash Animada */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.6s ease;
-        }
-        #splash-logo { width: 180px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* Header Profesional */
-        header {
-            background: var(--header-gradient);
-            padding: 15px;
-            display: flex; align-items: center; justify-content: space-between;
-            position: sticky; top: 0; z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        .header-title { font-weight: 800; letter-spacing: 1px; font-size: 1.1rem; color: white; }
-
-        /* Contenedores y Vistas */
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .view { display: none; animation: fadeIn 0.4s ease; }
+        /* App UI */
+        header { background: var(--primary); padding: 15px; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .view { display: none; padding: 15px; }
         .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #333; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #444; background: #2c2c2c; color: white; box-sizing: border-box; }
+        .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-main { background: var(--primary); color: white; }
 
-        /* Tarjetas de Clientes */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-        input, select {
-            width: 100%; padding: 14px; margin-bottom: 12px;
-            background: #2c2c2c; border: 1px solid #444;
-            border-radius: 12px; color: white; font-size: 16px; box-sizing: border-box;
-        }
-        .btn {
-            border: none; padding: 16px; border-radius: 12px;
-            font-weight: bold; width: 100%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.2s;
-        }
-        .btn-main { background: var(--primary-blue); color: white; }
-        .btn-main:active { transform: scale(0.98); }
-
-        /* Tarjeta Rosa (Basada en tu imagen) */
+        /* Ticket Rosa */
         #ticket-wrapper { position: absolute; left: -9999px; }
-        .pink-ticket {
-            width: 350px; background: var(--pink-ticket);
-            padding: 20px; color: #000; font-family: Arial, sans-serif;
-            border: 1px solid #000;
-        }
-        .pink-header { border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 10px; font-weight: bold; }
-        .pink-table { width: 100%; border-collapse: collapse; }
-        .pink-table th, .pink-table td { 
-            border: 1px solid #000; padding: 6px; text-align: center; font-size: 11px; 
-        }
-
-        /* Modal de Confirmación */
-        #modal-ov {
-            display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center;
-        }
-        .modal-box { 
-            background: #252525; width: 85%; max-width: 350px; 
-            border-radius: 20px; overflow: hidden; border: 1px solid var(--primary-blue); 
-        }
+        .pink-ticket { width: 350px; background: #ffb6c1; padding: 20px; color: #000; border: 1px solid #000; }
+        .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+        .pink-table td, th { border: 1px solid #000; padding: 4px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="splash-screen">
-        <img id="splash-logo" src="https://i.ibb.co/68Z4rY3/logo.png" alt="Abonero App Logo">
-        <p style="color: #666; font-weight: bold; margin-top: 20px; font-family: sans-serif;">CONECTANDO A CLOUD...</p>
-    </div>
+    <div id="splash-screen"><img id="splash-logo" src="1000123395.png"></div>
 
-    <header>
-        <div onclick="showView('v-ruta')" style="font-size: 24px; cursor:pointer; color:white;"><i class="fas fa-home"></i></div>
-        <div class="header-title">ABONEROAPP PRO</div>
-        <div onclick="showView('v-nueva')" style="font-size: 22px; cursor:pointer; color:white;"><i class="fas fa-user-plus"></i></div>
-    </header>
-
-    <div class="container">
-        <div id="v-ruta" class="view active">
-            <div class="card">
-                <input type="text" id="search" placeholder="🔍 Buscar cliente..." onkeyup="filterClients()">
-            </div>
-            <div id="lista-clientes"></div>
-        </div>
-
-        <div id="v-nueva" class="view">
-            <div class="card">
-                <h4 style="margin-top:0; color:var(--primary-blue);">Nuevo Registro de Venta</h4>
-                <input type="text" id="reg-nom" placeholder="Nombre completo">
-                <input type="text" id="reg-dir" placeholder="Dirección">
-                <input type="text" id="reg-art" placeholder="Artículo">
-                <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
-                <button class="btn btn-main" onclick="saveToCloud()">REGISTRAR VENTA</button>
-            </div>
+    <div id="view-login" style="display:none;">
+        <div class="login-box">
+            <img src="1000123395.png" style="width:100px; margin-bottom:20px;">
+            <h2>Cobro Inteligente</h2>
+            <input type="email" id="login-email" placeholder="Correo" style="background:#f0f0f0; color:#000;">
+            <input type="password" id="login-pass" placeholder="Contraseña" style="background:#f0f0f0; color:#000;">
+            <button class="btn btn-main" onclick="handleLogin()">INICIAR SESIÓN</button>
         </div>
     </div>
 
-    <div id="modal-ov">
-        <div class="modal-box">
-            <div style="background: var(--primary-blue); padding: 15px; text-align: center; font-weight: bold; color:white;">AboneroApp</div>
-            <div id="m-body" style="padding: 25px; text-align: center; color:white;"></div>
-            <div id="m-foot" style="padding: 15px; border-top: 1px solid #333;">
-                <button class="btn btn-main" onclick="closeModal()">ACEPTAR</button>
+    <div id="app-content" style="display:none;">
+        <header>
+            <div style="font-weight: 900;">ABONEROAPP PRO</div>
+            <i class="fas fa-sign-out-alt" onclick="handleLogout()"></i>
+        </header>
+
+        <div class="container">
+            <div id="v-ruta" class="view active">
+                <input type="text" id="search" placeholder="🔍 Buscar cliente..." onkeyup="filter()">
+                <div id="lista-clientes"></div>
+                <button class="btn btn-main" style="position:fixed; bottom:20px; right:20px; width:60px; height:60px; border-radius:30px;" onclick="showView('v-nueva')"><i class="fas fa-plus"></i></button>
+            </div>
+
+            <div id="v-nueva" class="view">
+                <div class="card">
+                    <h3>Registrar Venta</h3>
+                    <input type="text" id="reg-nom" placeholder="Nombre completo">
+                    <input type="text" id="reg-dir" placeholder="Dirección">
+                    <input type="text" id="reg-art" placeholder="Artículo">
+                    <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
+                    <button class="btn btn-main" onclick="saveClient()">GUARDAR CLOUD</button>
+                    <button class="btn" style="background:#444; color:white; margin-top:10px;" onclick="showView('v-ruta')">CANCELAR</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="ticket-wrapper">
         <div class="pink-ticket" id="final-ticket">
-            <div style="text-align: center; font-size: 14px; margin-bottom: 10px;"><b>TARJETA DE ABONOS</b></div>
-            <div class="pink-header">
-                <div>Nombre: <span id="t-nom"></span></div>
-                <div>Dirección: <span id="t-dir"></span></div>
-                <div>Artículo: <span id="t-art"></span></div>
+            <div style="text-align:center; font-weight:bold;">TARJETA DE ABONOS</div>
+            <div style="font-size:12px; margin-top:10px;">
+                Nombre: <span id="t-nom"></span><br>
+                Dirección: <span id="t-dir"></span><br>
+                Artículo: <span id="t-art"></span>
             </div>
             <table class="pink-table">
-                <thead>
-                    <tr><th>FECHA</th><th>ABONO</th><th>RESTA</th></tr>
-                </thead>
+                <thead><tr><th>FECHA</th><th>ABONO</th><th>RESTA</th></tr></thead>
                 <tbody id="t-rows"></tbody>
             </table>
         </div>
     </div>
 
 <script>
-    // --- INTEGRACIÓN CON TUS CREDENCIALES DE FIREBASE ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyD7xEDb_sa_C76G6KA5cQMsd3w-h83hpb0",
-      authDomain: "bitacoregust.firebaseapp.com",
-      databaseURL: "https://bitacoregust-default-rtdb.firebaseio.com",
-      projectId: "bitacoregust",
-      storageBucket: "bitacoregust.firebasestorage.app",
-      messagingSenderId: "155618684015",
-      appId: "1:155618684015:web:ebea5a55a678395c9df19a",
-      measurementId: "G-93RTQWDMTR"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Splash y Carga
-    window.onload = () => {
-        setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 600);
-        }, 2000);
-        fetchData();
-    };
-
-    function saveToCloud() {
-        const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
-        const saldo = parseFloat(document.getElementById('reg-saldo').value);
-
-        if(!nom || isNaN(saldo)) {
-            showModal("⚠️ Completa los campos obligatorios.");
-            return;
-        }
-
-        const path = nom.replace(/\./g, '_');
-        db.ref('clientes/' + path).set({
-            nombre: nom,
-            direccion: document.getElementById('reg-dir').value,
-            articulo: document.getElementById('reg-art').value,
-            saldo: saldo,
-            historial: []
-        }).then(() => {
-            showModal("Venta registrada correctamente");
-            document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
-            showView('v-ruta');
-        });
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
 
-    function fetchData() {
-        db.ref('clientes').on('value', (snap) => {
-            const list = document.getElementById('lista-clientes');
-            list.innerHTML = "";
-            const data = snap.val();
-            if(!data) return;
-
-            Object.values(data).forEach(cli => {
-                const id = cli.nombre.replace(/\s/g,'');
-                list.innerHTML += `
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between;">
-                            <strong>${cli.nombre}</strong>
-                            <b style="color:var(--primary-blue);">$${cli.saldo}</b>
-                        </div>
-                        <p style="margin:5px 0; font-size:0.85rem; color:#aaa;">${cli.articulo} | ${cli.direccion}</p>
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <input type="number" id="inp-${id}" placeholder="Abonar $" style="margin-bottom:0; flex:1;">
-                            <button class="btn btn-main" style="width:auto; padding:0 20px;" onclick="registrarAbono('${cli.nombre}')">ABONAR</button>
-                        </div>
+    function renderClients(data) {
+        const list = document.getElementById('lista-clientes');
+        list.innerHTML = "";
+        if(!data) return;
+        Object.values(data).forEach(cli => {
+            const id = cli.nombre.replace(/\s/g,'');
+            list.innerHTML += `
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${cli.nombre}</strong>
+                        <b style="color:var(--primary);">$${cli.saldo}</b>
                     </div>
-                `;
-            });
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <input type="number" id="inp-${id}" placeholder="Abono $" style="margin-bottom:0; flex:1;">
+                        <button class="btn btn-main" style="width:auto; padding:0 20px;" onclick="registrarAbono('${cli.nombre}')">COBRAR</button>
+                    </div>
+                </div>
+            `;
         });
     }
 
-    function registrarAbono(nom) {
-        const id = nom.replace(/\s/g,'');
-        const monto = parseFloat(document.getElementById(`inp-${id}`).value);
-        if(!monto || monto <= 0) return;
-
-        const path = nom.replace(/\./g, '_');
-        db.ref('clientes/' + path).once('value', (snap) => {
-            const cli = snap.val();
-            const nuevoSaldo = (cli.saldo - monto).toFixed(2);
-            const fecha = new Date().toLocaleDateString();
-
-            const hist = cli.historial || [];
-            hist.push({ f: fecha, a: monto, r: nuevoSaldo });
-
-            db.ref('clientes/' + path).update({
-                saldo: nuevoSaldo,
-                historial: hist
-            }).then(() => {
-                showModal("Abono registrado exitosamente");
-                descargarTicket(cli, hist);
-            });
-        });
+    function filter() {
+        const q = document.getElementById('search').value.toUpperCase();
+        document.querySelectorAll('.card').forEach(c => c.style.display = c.innerText.toUpperCase().includes(q) ? 'block' : 'none');
     }
 
     function descargarTicket(cli, hist) {
         document.getElementById('t-nom').innerText = cli.nombre;
         document.getElementById('t-dir').innerText = cli.direccion;
         document.getElementById('t-art').innerText = cli.articulo;
-        
         const rows = document.getElementById('t-rows');
         rows.innerHTML = "";
         for(let i=0; i<15; i++) {
             const h = hist[i] || { f: "", a: "", r: "" };
             rows.innerHTML += `<tr><td>${h.f}</td><td>${h.a ? '$'+h.a : ""}</td><td>${h.r ? '$'+h.r : ""}</td></tr>`;
         }
-
         setTimeout(() => {
             html2canvas(document.getElementById('final-ticket')).then(canvas => {
                 const link = document.createElement('a');
@@ -280,26 +219,8 @@
                 link.href = canvas.toDataURL();
                 link.click();
             });
-        }, 800);
+        }, 500);
     }
-
-    function showView(id) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function filterClients() {
-        const q = document.getElementById('search').value.toUpperCase();
-        document.querySelectorAll('.card').forEach(c => {
-            if(c.id !== "search") c.style.display = c.innerText.toUpperCase().includes(q) ? 'block' : 'none';
-        });
-    }
-
-    function showModal(txt) {
-        document.getElementById('m-body').innerText = txt;
-        document.getElementById('modal-ov').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('modal-ov').style.display = 'none'; }
 </script>
 </body>
 </html>
