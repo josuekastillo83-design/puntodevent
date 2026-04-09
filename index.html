@@ -3,54 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp Pro - Blue Dark</title>
+    <title>AboneroApp Pro - Master</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #2979ff; /* Azul vibrante */
-            --header-bg: #1a237e; /* Azul oscuro para barra */
-            --bg-dark: #121212; /* Fondo oscuro total */
-            --card-dark: #1e1e1e; /* Tarjetas oscuras */
+            --primary: #2979ff; 
+            --header-bg: #1a237e; 
+            --bg-dark: #121212; 
+            --card-dark: #1e1e1e; 
             --text-light: #e0e0e0;
             --success: #00c853;
             --pink-card: #ffc0cb;
         }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: var(--bg-dark); 
-            color: var(--text-light);
-            margin: 0; 
-            overflow-x: hidden; 
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-light); margin: 0; overflow-x: hidden; }
 
-        /* HEADER */
-        header { 
-            background: var(--header-bg); 
-            padding: 15px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5); 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000; 
-        }
-        .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; color: white; letter-spacing: 1px; }
+        header { background: var(--header-bg); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 1000; }
+        .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; color: white; }
         
-        /* SIDEBAR */
         .sidebar { position: fixed; left: -100%; top: 0; width: 280px; height: 100%; background: #1a1a1a; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
         .sidebar.open { left: 0; }
-        .sidebar-header { background: var(--header-bg); padding: 30px; color: white; text-align: center; font-weight: 900; }
+        .sidebar-header { background: var(--header-bg); padding: 30px; color: white; text-align: center; }
         .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 15px; color: white; }
 
         .container { padding: 15px; max-width: 600px; margin: auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* TARJETAS */
+        /* BUSCADOR */
+        .search-box { position: relative; margin-bottom: 15px; }
+        .search-box input { padding-left: 40px; margin-bottom: 0; }
+        .search-box i { position: absolute; left: 15px; top: 15px; color: var(--primary); }
+
         .card { background: var(--card-dark); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #333; }
         input, select { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; margin-bottom: 12px; outline: none; font-size: 16px; background: #2c2c2c; color: white; }
         
@@ -59,24 +45,19 @@
         .btn-liquidar { background: #d32f2f; color: white; margin-top: 10px; }
         .btn-route { background: var(--primary); color: white; margin-bottom: 20px; }
 
-        /* CLIENTES */
         .cli-box { background: var(--card-dark); border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; }
         .cli-box.liquidado { border-left-color: var(--success); opacity: 0.8; }
         .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #333; }
         .cli-body { display: none; padding: 15px; background: #181818; border-top: 1px solid #333; }
 
-        /* ARTÍCULOS */
         .art-card { background: #252525; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
         .art-card.pagado { background: #1b5e20; border-color: var(--success); }
-        .art-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 
-        /* MODAL PERSONALIZADO */
         #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center; }
         .modal-box { background: #252525; width:85%; max-width:350px; border-radius:20px; overflow:hidden; border: 1px solid var(--primary); color: white; }
-        .modal-header-app { background: var(--header-bg); padding: 15px; font-weight: 900; text-align: center; color: white; }
+        .modal-header-app { background: var(--header-bg); padding: 15px; font-weight: 900; text-align: center; }
 
-        /* TICKET */
         #ticket-wrapper { position: absolute; left: -9999px; }
         .pink-ticket { width: 350px; background: var(--pink-card); padding: 25px; color: #000; font-family: 'Arial', sans-serif; border: 1px solid #000; }
         .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -102,7 +83,12 @@
 
 <div class="container">
     <div id="v-ruta" class="view active">
-        <button class="btn btn-route" onclick="smartRoute()">📍 ORDENAR POR RUTA (CP)</button>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="main-search" placeholder="Buscar cliente por nombre..." onkeyup="filterClients()">
+        </div>
+        
+        <button class="btn btn-route" onclick="smartRoute()">📍 ORDENAR POR DISTANCIA (GPS)</button>
         <div id="lista-clientes"></div>
     </div>
 
@@ -114,9 +100,11 @@
                 <img id="prev-reg" src="" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:50%;">
             </label>
             <input type="text" id="reg-nom" placeholder="Nombre Completo">
+            
+            <input type="number" id="reg-cp" placeholder="Código Postal" onchange="buscarColonias(this.value)">
+            <select id="reg-col" style="display:none;"></select>
             <input type="text" id="reg-calle" placeholder="Calle y Número">
-            <input type="text" id="reg-col" placeholder="Colonia">
-            <input type="number" id="reg-cp" placeholder="Código Postal">
+            
             <select id="reg-dia">
                 <option value="Lunes">Lunes</option><option value="Martes">Martes</option>
                 <option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option>
@@ -144,7 +132,7 @@
 <div id="modal-ov">
     <div class="modal-box">
         <div class="modal-header-app">ABONERO APP</div>
-        <div id="m-body" style="padding:25px; text-align:center; font-size:1.1rem; line-height:1.4;"></div>
+        <div id="m-body" style="padding:25px; text-align:center; font-size:1.1rem;"></div>
         <div id="m-foot" style="padding:15px; border-top:1px solid #333; display:flex; gap:10px;"></div>
     </div>
 </div>
@@ -160,15 +148,13 @@
             <div>Dirección: <span id="t-dir"></span></div>
             <div>Artículo: <span id="t-art"></span></div>
         </div>
-        <table class="pink-table">
-            <tbody id="t-rows"></tbody>
-        </table>
+        <table class="pink-table"><tbody id="t-rows"></tbody></table>
     </div>
 </div>
 
 <script>
-    const KEY_DB = "ABO_PRO_V2_DARK";
-    const KEY_CFG = "ABO_CFG_V2_DARK";
+    const KEY_DB = "ABO_PRO_V3_FINAL";
+    const KEY_CFG = "ABO_CFG_V3_FINAL";
     let db = JSON.parse(localStorage.getItem(KEY_DB)) || {};
     let config = JSON.parse(localStorage.getItem(KEY_CFG)) || { nombre: "ABONERO APP", logo: "" };
     let tempLogo = config.logo;
@@ -182,6 +168,58 @@
             document.getElementById('t-logo').style.display = 'block';
         }
         renderClients();
+    }
+
+    // BUSCAR COLONIAS POR CP (Simulación de API para que funcione Offline/Local)
+    function buscarColonias(cp) {
+        if(cp.length < 5) return;
+        const colSelect = document.getElementById('reg-col');
+        colSelect.innerHTML = "<option value=''>Selecciona Colonia...</option>";
+        
+        // Simulación: En una App real aquí llamarías a una API de Correos
+        const coloniasFalsas = ["Centro", "Industrial", "Residencial", "Villas", "Lomas"];
+        coloniasFalsas.forEach(col => {
+            colSelect.innerHTML += `<option value="${col}">${col}</option>`;
+        });
+        colSelect.style.display = "block";
+    }
+
+    // FILTRO DE BUSQUEDA
+    function filterClients() {
+        const query = document.getElementById('main-search').value.toLowerCase();
+        const boxes = document.querySelectorAll('.cli-box');
+        boxes.forEach(box => {
+            const nombre = box.querySelector('strong').innerText.toLowerCase();
+            box.style.display = nombre.includes(query) ? 'block' : 'none';
+        });
+    }
+
+    // RUTA INTELIGENTE POR DISTANCIA REAL GPS
+    function smartRoute() {
+        avisar("📍 Obteniendo tu ubicación actual...");
+        navigator.geolocation.getCurrentPosition(pos => {
+            const myLat = pos.coords.latitude;
+            const myLon = pos.coords.longitude;
+
+            let arr = Object.values(db);
+            arr.forEach(c => {
+                // Cálculo de distancia euclidiana simple
+                c.dist = Math.sqrt(Math.pow(c.lat - myLat, 2) + Math.pow(c.lon - myLon, 2));
+            });
+
+            arr.sort((a, b) => (a.dist || 0) - (b.dist || 0));
+            let newDb = {};
+            arr.forEach(c => newDb[c.nom] = c);
+            db = newDb;
+            renderClients();
+            closeAviso();
+            avisar("✅ Ruta optimizada por cercanía real.");
+        }, () => {
+            avisar("⚠️ No se pudo obtener GPS. Ordenando por CP.");
+            let sorted = Object.values(db).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
+            let newDb = {}; sorted.forEach(c => newDb[c.nom] = c);
+            db = newDb; renderClients();
+        });
     }
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -208,18 +246,25 @@
         reader.readAsDataURL(e.target.files[0]);
     }
 
-    // CONFIRMACIÓN DE REGISTRO
     function confirmarRegistro() {
         const nom = document.getElementById('reg-nom').value.trim();
-        if(!nom) return avisar("⚠️ Por favor ingresa el nombre del cliente.");
+        if(!nom) return avisar("⚠️ Ingresa el nombre.");
         
-        avisar(`¿Estás seguro de registrar a <b>${nom.toUpperCase()}</b>?`, `
-            <button class="btn btn-main" onclick="saveClient()">SÍ, GUARDAR</button>
-            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">CANCELAR</button>
+        avisar(`¿Registrar a <b>${nom.toUpperCase()}</b>?`, `
+            <button class="btn btn-main" onclick="obtenerGpsYGuardar()">SÍ, GUARDAR</button>
+            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
         `);
     }
 
-    function saveClient() {
+    function obtenerGpsYGuardar() {
+        navigator.geolocation.getCurrentPosition(pos => {
+            saveClient(pos.coords.latitude, pos.coords.longitude);
+        }, () => {
+            saveClient(0, 0); // Guardar sin GPS si falla
+        });
+    }
+
+    function saveClient(lat, lon) {
         const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
         const street = document.getElementById('reg-calle').value;
         const col = document.getElementById('reg-col').value;
@@ -230,15 +275,16 @@
         const photo = document.getElementById('prev-reg').src;
 
         if(!db[nom]) {
-            db[nom] = { nom, street, col, cp, dia, photo, cuentas: [] };
+            db[nom] = { nom, street, col, cp, dia, photo, lat, lon, cuentas: [] };
         }
         db[nom].cuentas.push({ id: Date.now(), mueble: art, saldo: bal, historial: [], liquidado: false });
         
         localStorage.setItem(KEY_DB, JSON.stringify(db));
         closeAviso();
-        avisar("✅ Cliente guardado exitosamente.");
+        avisar("✅ Cliente guardado.");
         document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
-        document.getElementById('prev-reg').style.display = 'none';
+        document.getElementById('reg-col').style.display = "none";
+        document.getElementById('prev-reg').style.display = "none";
         renderClients();
         changeView('v-ruta');
     }
@@ -250,15 +296,15 @@
             let accountsHTML = cli.cuentas.map(c => `
                 <div class="art-card ${c.liquidado ? 'pagado' : ''}">
                     <div class="art-head" onclick="toggleDisplay('acc-${c.id}')">
-                        <span>${c.liquidado ? '✅' : '📦'} ${c.mueble}</span>
+                        <span>📦 ${c.mueble}</span>
                         <b>${c.liquidado ? 'LIQUIDADO' : '$'+c.saldo}</b>
                     </div>
                     <div id="acc-${c.id}" style="display:none; padding-top:15px; border-top:1px solid #444; margin-top:10px;">
                         ${!c.liquidado ? `
-                            <input type="number" id="inp-${c.id}" placeholder="Cantidad $">
+                            <input type="number" id="inp-${c.id}" placeholder="Monto $">
                             <button class="btn btn-main" onclick="confirmarAbono('${cli.nom}', ${c.id})">ABONAR</button>
-                            <button class="btn btn-liquidar" onclick="confirmarLiquidacion('${cli.nom}', ${c.id})">LIQUIDAR TOTAL</button>
-                        ` : '<p style="text-align:center; color:#fff;">Cuenta pagada en su totalidad.</p>'}
+                            <button class="btn btn-liquidar" onclick="confirmarLiquidacion('${cli.nom}', ${c.id})">LIQUIDAR</button>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
@@ -269,10 +315,13 @@
                         <img src="${cli.photo || ''}" class="cli-photo">
                         <div class="cli-info">
                             <strong>${cli.nom}</strong>
-                            <small>Cobro: ${cli.dia}</small>
+                            <small>${cli.col} | Cobro: ${cli.dia}</small>
                         </div>
                     </div>
-                    <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">${accountsHTML}</div>
+                    <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
+                        ${accountsHTML}
+                        <button class="btn" style="background:#e17055; color:white; margin-top:10px;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col)}')">🗺️ GOOGLE MAPS</button>
+                    </div>
                 </div>
             `;
         });
@@ -280,8 +329,8 @@
 
     function confirmarAbono(cli, id) {
         const monto = document.getElementById(`inp-${id}`).value;
-        if(!monto) return avisar("⚠️ Ingresa un monto.");
-        avisar(`¿Está seguro de abonar <b>$${monto}</b>?`, `
+        if(!monto) return;
+        avisar(`¿Abonar <b>$${monto}</b>?`, `
             <button class="btn btn-main" onclick="registrarAbono('${cli}', ${id})">SÍ, ABONAR</button>
             <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
         `);
@@ -294,35 +343,32 @@
         const ant = cuenta.saldo;
         cuenta.saldo = (ant - monto).toFixed(2);
         cuenta.historial.push({ f: new Date().toLocaleDateString(), m: monto, r: cuenta.saldo });
-        
         localStorage.setItem(KEY_DB, JSON.stringify(db));
         closeAviso();
-        avisar(`✅ Monto $${monto} abonado exitosamente.`);
+        avisar("✅ Abono realizado.");
         renderClients();
         generarTicket(cliName, cuenta);
     }
 
     function confirmarLiquidacion(cli, id) {
-        avisar(`¿Confirmas que el cliente ha <b>LIQUIDADO</b> esta cuenta?`, `
-            <button class="btn btn-main" onclick="liquidarCuenta('${cli}', ${id})">SÍ, LIQUIDAR</button>
-            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">CANCELAR</button>
+        avisar(`¿Liquidar cuenta?`, `
+            <button class="btn btn-main" onclick="liquidarCuenta('${cli}', ${id})">SÍ</button>
+            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
         `);
     }
 
     function liquidarCuenta(cli, id) {
         const cuenta = db[cli].cuentas.find(a => a.id === id);
-        cuenta.saldo = 0;
-        cuenta.liquidado = true;
+        cuenta.saldo = 0; cuenta.liquidado = true;
         localStorage.setItem(KEY_DB, JSON.stringify(db));
         closeAviso();
-        avisar("🏆 Cuenta marcada como LIQUIDADA.");
         renderClients();
     }
 
     function generarTicket(cliName, cuenta) {
         const cli = db[cliName];
         document.getElementById('t-nom').innerText = cliName;
-        document.getElementById('t-dir').innerText = cli.street + " " + cli.col;
+        document.getElementById('t-dir').innerText = cli.street + ", " + cli.col;
         document.getElementById('t-art').innerText = cuenta.mueble;
         const tbody = document.getElementById('t-rows');
         tbody.innerHTML = "";
@@ -338,13 +384,6 @@
                 link.click();
             });
         }, 500);
-    }
-
-    function smartRoute() {
-        let sorted = Object.values(db).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
-        let newDb = {}; sorted.forEach(c => newDb[c.nom] = c);
-        db = newDb; renderClients();
-        avisar("📍 Ruta ordenada por Código Postal.");
     }
 
     function toggleDisplay(id) {
