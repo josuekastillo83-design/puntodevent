@@ -1,318 +1,238 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp - Nexpen Style</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style id="main-styles">
-        :root { --p-color: #3483fa; --s-color: #fff159; --bg: #f5f5f5; --card: #ffffff; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; color: #333; }
-        
-        /* Header & Sidebar */
-        header { background: var(--s-color); padding: 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .brand { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
-        .sidebar { position: fixed; left: -100%; top: 0; width: 85%; max-width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
-        .sidebar.open { left: 0; }
-        .sidebar-item { padding: 20px; border-bottom: 1px solid #f0f0f0; font-weight: 600; cursor: pointer; }
-
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .view { display: none; }
-        .active { display: block; }
-
-        /* Form Estilo Nexpen */
-        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .full { grid-column: 1 / 3; }
-        label { font-size: 0.8rem; font-weight: 700; color: #777; margin-bottom: 5px; display: block; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; margin-bottom: 15px; outline: none; }
-        input:focus { border-color: var(--p-color); }
-        
-        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .btn-main { background: var(--p-color); color: white; }
-        .btn-route { background: #00d1b2; color: white; margin-bottom: 15px; }
-
-        /* Acordeones */
-        .client-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 8px solid var(--p-color); overflow: hidden; }
-        .client-top { padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .item-box { background: #f9f9f9; margin: 10px; border-radius: 12px; padding: 15px; border: 1px solid #eee; }
-        .history-table { width: 100%; font-size: 0.75rem; border-collapse: collapse; margin-top: 10px; }
-        .history-table th { text-align: left; color: #888; padding-bottom: 5px; }
-
-        /* Modales */
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center; }
-        .modal-body { background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; animation: zoom 0.3s; }
-        @keyframes zoom { from { transform: scale(0.8); } to { transform: scale(1); } }
-
-        /* Ticket */
-        #ticket { position: absolute; left: -9999px; width: 350px; background: white; padding: 30px; text-align: center; }
-    </style>
-</head>
-<body>
-
-<div id="sidebar" class="sidebar">
-    <div style="background:var(--s-color); padding:30px; font-weight:800;">MENÚ ABONEROAPP</div>
-    <div class="sidebar-item" onclick="changeView('view-list')">📍 Mi Ruta de Hoy</div>
-    <div class="sidebar-item" onclick="changeView('view-add')">➕ Nueva Venta</div>
-    <div class="sidebar-item" onclick="changeView('view-settings')">⚙️ Configuración y Logo</div>
-</div>
-
-<header>
-    <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer;">☰</div>
-    <div class="brand" id="header-name">ABONERO APP</div>
-    <div style="width:30px"></div>
-</header>
-
-<div class="container">
-    
-    <div id="view-list" class="view active">
-        <button class="btn btn-route" onclick="smartRoute()">📍 ACTIVAR RUTA INTELIGENTE</button>
-        <div id="clients-render"></div>
-    </div>
-
-    <div id="view-add" class="view">
-        <div class="card">
-            <h4>Registro de Venta</h4>
-            <label>Nombre del Cliente</label>
-            <input type="text" id="in-name" placeholder="Ej. Juan Pérez">
-            
-            <div class="grid-form">
-                <div class="full"><label>Calle y Número</label><input type="text" id="in-street"></div>
-                <div><label>Colonia</label><input type="text" id="in-col"></div>
-                <div><label>Código Postal</label><input type="number" id="in-cp"></div>
-                <div><label>Municipio</label><input type="text" id="in-mun"></div>
-                <div><label>Estado</label><input type="text" id="in-est"></div>
-            </div>
-
-            <label>Artículo Fiado</label>
-            <input type="text" id="in-item" placeholder="Ej. Comedor Minimalista">
-            <label>Saldo Inicial $</label>
-            <input type="number" id="in-balance" placeholder="0.00">
-            <button class="btn btn-main" onclick="saveSale()">GUARDAR VENTA</button>
-        </div>
-    </div>
-
-    <div id="view-settings" class="view">
-        <div class="card">
-            <h4>Personalización</h4>
-            <label>Nombre de la Mueblería</label>
-            <input type="text" id="cfg-name">
-            <label>Color Principal</label>
-            <input type="color" id="cfg-color-p" style="height:50px">
-            <label>Logo de la Empresa</label>
-            <input type="file" id="cfg-file" accept="image/*" onchange="handleLogo(event)">
-            <img id="cfg-preview" style="max-width:100px; display:none; margin:10px auto;">
-            
-            <button class="btn btn-main" onclick="applySettings()">APLICAR Y CONFIRMAR CAMBIOS</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal">
-    <div class="modal-body">
-        <div id="modal-title" style="background:var(--s-color); padding:15px; font-weight:800; text-align:center;">AboneroApp</div>
-        <div id="modal-text" style="padding:25px; text-align:center; font-weight:600;"></div>
-        <div id="modal-actions" style="padding:10px; border-top:1px solid #eee;"></div>
-    </div>
-</div>
-
-<div id="ticket">
-    <img id="t-logo" style="max-height:80px; margin-bottom:15px; display:none;">
-    <h2 id="t-brand" style="margin:0; text-transform:uppercase;"></h2>
-    <p style="font-size:12px; color:#666;">Comprobante Oficial de Abono</p>
-    <hr>
-    <div style="text-align:left; font-size:13px; line-height:1.5;">
-        <p><strong>FECHA:</strong> <span id="t-date"></span></p>
-        <p><strong>CLIENTE:</strong> <span id="t-c-name"></span></p>
-        <p><strong>DIRECCIÓN:</strong> <span id="t-c-dir"></span></p>
-        <p><strong>ARTÍCULO:</strong> <span id="t-c-item"></span></p>
-        <hr>
-        <p>SALDO ANTERIOR: <span id="t-c-ant"></span></p>
-        <p>ABONO RECIBIDO: <span id="t-c-abo"></span></p>
-        <div style="background:#f0f0f0; padding:15px; text-align:center; border-radius:10px; margin-top:10px;">
-            <span style="font-size:22px; font-weight:900;">SALDO ACTUAL: <span id="t-c-act"></span></span>
-        </div>
-    </div>
-</div>
-
 <script>
-    // SISTEMA DE MEMORIA REFORZADO
-    const STORE_KEY = "ABONERO_PRO_DATABASE_V1";
-    const CONFIG_KEY = "ABONERO_PRO_CONFIG_V1";
+const STORE_KEY = "ABONERO_PRO_DATABASE_V1";
+const CONFIG_KEY = "ABONERO_PRO_CONFIG_V1";
 
-    let database = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
-    let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {
-        name: "ABONERO APP",
-        color: "#3483fa",
-        logo: ""
+let database = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {
+    name: "ABONERO APP",
+    color: "#3483fa",
+    logo: ""
+};
+
+function init() {
+    document.documentElement.style.setProperty('--p-color', config.color);
+    document.getElementById('header-name').innerText = config.name;
+    document.getElementById('cfg-name').value = config.name;
+    document.getElementById('cfg-color-p').value = config.color;
+
+    if(config.logo){
+        document.getElementById('cfg-preview').src = config.logo;
+        document.getElementById('cfg-preview').style.display = 'block';
+    }
+
+    renderList();
+}
+
+function toggleMenu() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+function changeView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    toggleMenu();
+}
+
+function showModal(msg, footer = '') {
+    document.getElementById('modal-text').innerHTML = msg;
+    document.getElementById('modal-actions').innerHTML =
+        footer || `<button class="btn btn-main" onclick="closeModal()">OK</button>`;
+    document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+}
+
+function handleLogo(e) {
+    if(!e.target.files[0]) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        config.logo = reader.result;
+        document.getElementById('cfg-preview').src = config.logo;
+        document.getElementById('cfg-preview').style.display = 'block';
     };
+    reader.readAsDataURL(e.target.files[0]);
+}
 
-    function init() {
-        document.documentElement.style.setProperty('--p-color', config.color);
-        document.getElementById('header-name').innerText = config.name;
-        document.getElementById('cfg-name').value = config.name;
-        document.getElementById('cfg-color-p').value = config.color;
-        if(config.logo) document.getElementById('cfg-preview').src = config.logo, document.getElementById('cfg-preview').style.display = 'block';
-        renderList();
+function applySettings() {
+    config.name = document.getElementById('cfg-name').value.toUpperCase();
+    config.color = document.getElementById('cfg-color-p').value;
+
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+
+    showModal("✅ Cambios guardados", `
+        <button class="btn btn-main" onclick="location.reload()">REINICIAR</button>
+    `);
+}
+
+function saveSale() {
+    const name = document.getElementById('in-name').value.trim().toUpperCase();
+    const street = document.getElementById('in-street').value;
+    const col = document.getElementById('in-col').value;
+    const cp = document.getElementById('in-cp').value;
+    const mun = document.getElementById('in-mun').value;
+    const est = document.getElementById('in-est').value;
+    const item = document.getElementById('in-item').value;
+    const bal = parseFloat(document.getElementById('in-balance').value);
+
+    if(!name || !item || isNaN(bal)){
+        return showModal("⚠️ Completa los campos obligatorios");
     }
 
-    function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
-    function changeView(id) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        toggleMenu();
+    if(!database[name]){
+        database[name] = { name, street, col, cp, mun, est, accounts: [] };
     }
 
-    function showModal(msg, footer = '') {
-        document.getElementById('modal-text').innerText = msg;
-        document.getElementById('modal-actions').innerHTML = footer || `<button class="btn btn-main" onclick="closeModal()">ENTENDIDO</button>`;
-        document.getElementById('modal').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    database[name].accounts.push({
+        id: Date.now(),
+        item,
+        balance: bal,
+        history: []
+    });
 
-    function handleLogo(e) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            config.logo = reader.result;
-            document.getElementById('cfg-preview').src = config.logo;
-            document.getElementById('cfg-preview').style.display = 'block';
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    }
+    localStorage.setItem(STORE_KEY, JSON.stringify(database));
 
-    function applySettings() {
-        config.name = document.getElementById('cfg-name').value.toUpperCase();
-        config.color = document.getElementById('cfg-color-p').value;
-        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-        showModal("✅ Cambios confirmados. Reiniciando interfaz...", `<button class="btn btn-main" onclick="location.reload()">SÍ, REINICIAR</button>`);
-    }
+    // LIMPIAR CAMPOS
+    document.querySelectorAll('#view-add input').forEach(i => i.value = "");
 
-    function saveSale() {
-        const name = document.getElementById('in-name').value.toUpperCase().trim();
-        const street = document.getElementById('in-street').value;
-        const col = document.getElementById('in-col').value;
-        const cp = document.getElementById('in-cp').value;
-        const mun = document.getElementById('in-mun').value;
-        const est = document.getElementById('in-est').value;
-        const item = document.getElementById('in-item').value;
-        const bal = parseFloat(document.getElementById('in-balance').value);
+    showModal("✅ Venta guardada correctamente");
+    renderList();
+    changeView('view-list');
+}
 
-        if(!name || !item || isNaN(bal)) return showModal("⚠️ Nombre, Artículo y Saldo son obligatorios.");
+function renderList() {
+    const root = document.getElementById('clients-render');
+    root.innerHTML = "";
 
-        if(!database[name]) {
-            database[name] = { name, street, col, cp, mun, est, accounts: [] };
-        }
-        database[name].accounts.push({ id: Date.now(), item, balance: bal, history: [] });
-        
-        localStorage.setItem(STORE_KEY, JSON.stringify(database));
-        showModal("✅ Venta registrada con éxito.");
-        renderList();
-        changeView('view-list');
-    }
-
-    function renderList() {
-        const root = document.getElementById('clients-render');
-        root.innerHTML = "";
-        Object.values(database).forEach(cli => {
-            let accountsHtml = cli.accounts.map(acc => `
-                <div class="item-box">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>📦 ${acc.item}</strong>
-                        <b style="color:var(--p-color)">$${acc.balance}</b>
-                    </div>
-                    <button class="btn btn-main" style="padding:10px; margin-top:10px;" onclick="openAbono('${cli.name}', ${acc.id})">REGISTRAR ABONO</button>
-                    <table class="history-table">
-                        <thead><tr><th>Fecha</th><th>Abono</th><th>Saldo</th></tr></thead>
-                        <tbody>
-                            ${acc.history.map(h => `<tr><td>${h.date.split(',')[0]}</td><td>$${h.amount}</td><td>$${h.current}</td></tr>`).reverse().join('')}
-                        </tbody>
-                    </table>
+    Object.values(database).forEach(cli => {
+        let accountsHtml = cli.accounts.map(acc => `
+            <div class="item-box">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${acc.item}</strong>
+                    <b style="color:var(--p-color)">$${acc.balance}</b>
                 </div>
-            `).join('');
 
-            root.innerHTML += `
-                <div class="client-box">
-                    <div class="client-top" onclick="toggleAcc('c-${cli.name.replace(/\s/g,'')}')">
-                        <div><strong>${cli.name}</strong><br><small style="color:#999">${cli.street}, ${cli.col}</small></div>
-                        <span>▼</span>
+                <button class="btn btn-main" style="padding:10px; margin-top:10px;"
+                onclick="openAbono('${cli.name}', ${acc.id})">ABONAR</button>
+
+                <table class="history-table">
+                    <tbody>
+                        ${acc.history.map(h => `
+                        <tr>
+                            <td>${h.date}</td>
+                            <td>$${h.amount}</td>
+                            <td>$${h.current}</td>
+                        </tr>`).reverse().join('')}
+                    </tbody>
+                </table>
+            </div>
+        `).join('');
+
+        const safeId = "c-" + cli.name.replace(/[^a-zA-Z0-9]/g,'');
+
+        root.innerHTML += `
+            <div class="client-box">
+                <div class="client-top" onclick="toggleAcc('${safeId}')">
+                    <div>
+                        <strong>${cli.name}</strong><br>
+                        <small>${cli.street}, ${cli.col}</small>
                     </div>
-                    <div id="c-${cli.name.replace(/\s/g,'')}" style="display:none">
-                        ${accountsHtml}
-                    </div>
+                    ▼
                 </div>
-            `;
-        });
+
+                <div id="${safeId}" style="display:none">
+                    ${accountsHtml}
+                </div>
+            </div>
+        `;
+    });
+}
+
+function openAbono(cli, id) {
+    showModal(`
+        Abonar a <b>${cli}</b><br><br>
+        <input type="number" id="modal-amount" placeholder="Monto">
+    `, `
+        <button class="btn btn-main" onclick="processAbono('${cli}', ${id})">PAGAR</button>
+    `);
+}
+
+function processAbono(cliName, accId) {
+    const amount = parseFloat(document.getElementById('modal-amount').value);
+
+    if(isNaN(amount) || amount <= 0){
+        return alert("Monto inválido");
     }
 
-    function openAbono(cli, id) {
-        showModal(`Abonar a ${cli}`, `
-            <input type="number" id="modal-amount" placeholder="Monto $0.00" style="margin-bottom:10px">
-            <button class="btn btn-main" onclick="processAbono('${cli}', ${id})">PROCESAR PAGO</button>
-        `);
+    const acc = database[cliName].accounts.find(a => a.id === accId);
+
+    let prev = parseFloat(acc.balance);
+    let newBalance = prev - amount;
+
+    acc.balance = parseFloat(newBalance.toFixed(2));
+
+    const date = new Date().toLocaleString();
+
+    acc.history.push({
+        date,
+        amount,
+        previous: prev,
+        current: acc.balance
+    });
+
+    localStorage.setItem(STORE_KEY, JSON.stringify(database));
+
+    closeModal();
+    renderList();
+
+    generateTicket(cliName, acc.item, prev, amount, acc.balance, date);
+}
+
+function generateTicket(cli, item, ant, abo, act, date) {
+    const c = database[cli];
+
+    document.getElementById('t-brand').innerText = config.name;
+    document.getElementById('t-date').innerText = date;
+    document.getElementById('t-c-name').innerText = cli;
+    document.getElementById('t-c-dir').innerText = `${c.street}, ${c.col}`;
+    document.getElementById('t-c-item').innerText = item;
+    document.getElementById('t-c-ant').innerText = "$" + ant;
+    document.getElementById('t-c-abo').innerText = "$" + abo;
+    document.getElementById('t-c-act').innerText = "$" + act;
+
+    if(config.logo){
+        document.getElementById('t-logo').src = config.logo;
+        document.getElementById('t-logo').style.display = "block";
     }
 
-    function processAbono(cliName, accId) {
-        const amount = parseFloat(document.getElementById('modal-amount').value);
-        if(!amount) return;
+    html2canvas(document.getElementById('ticket')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `ticket_${cli}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
 
-        const acc = database[cliName].accounts.find(a => a.id === accId);
-        const prev = acc.balance;
-        acc.balance = (prev - amount).toFixed(2);
-        const date = new Date().toLocaleString();
+function smartRoute() {
+    let sorted = Object.values(database).sort((a, b) =>
+        (parseInt(a.cp)||0) - (parseInt(b.cp)||0)
+    );
 
-        acc.history.push({ date, amount, previous: prev, current: acc.balance });
-        localStorage.setItem(STORE_KEY, JSON.stringify(database));
-        closeModal();
-        renderList();
-        generateTicket(cliName, acc.item, prev, amount, acc.balance, date);
-    }
+    let newDb = {};
+    sorted.forEach(c => newDb[c.name] = c);
 
-    function generateTicket(cli, item, ant, abo, act, date) {
-        const c = database[cli];
-        document.getElementById('t-brand').innerText = config.name;
-        document.getElementById('t-date').innerText = date;
-        document.getElementById('t-c-name').innerText = cli;
-        document.getElementById('t-c-dir').innerText = `${c.street}, ${c.col}, CP ${c.cp}`;
-        document.getElementById('t-c-item').innerText = item;
-        document.getElementById('t-c-ant').innerText = "$" + ant;
-        document.getElementById('t-c-abo').innerText = "$" + abo;
-        document.getElementById('t-c-act').innerText = "$" + act;
-        
-        if(config.logo) {
-            document.getElementById('t-logo').src = config.logo;
-            document.getElementById('t-logo').style.display = "inline-block";
-        }
+    database = newDb;
 
-        showModal("🖼️ Generando comprobante...");
-        setTimeout(() => {
-            html2canvas(document.getElementById('ticket')).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Comprobante_${cli}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-                closeModal();
-            });
-        }, 1000);
-    }
+    renderList();
+    showModal("📍 Ruta optimizada");
+}
 
-    function smartRoute() {
-        // Ordena por CP y luego por Nombre
-        let sorted = Object.values(database).sort((a, b) => {
-            return (parseInt(a.cp) || 0) - (parseInt(b.cp) || 0) || a.name.localeCompare(b.name);
-        });
-        let newDb = {};
-        sorted.forEach(c => newDb[c.name] = c);
-        database = newDb;
-        renderList();
-        showModal("📍 Ruta inteligente aplicada por códigos postales.");
-    }
+function toggleAcc(id) {
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+}
 
-    function toggleAcc(id) {
-        const el = document.getElementById(id);
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
-
-    init();
+init();
 </script>
-</body>
-</html>
