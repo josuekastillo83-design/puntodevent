@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AboneroApp Multi-Negocio</title>
+    <title>AboneroApp - Control Maestro</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Tus credenciales reales de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD7xEDb_sa_C76G6KA5cQMsd3w-h83hpb0",
             authDomain: "bitacoregust.firebaseapp.com",
@@ -25,71 +24,96 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- SISTEMA INDEPENDIENTE ---
-        
-        // Registro de Mueblería Nueva
-        window.handleRegister = () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            const nombreMuebleria = document.getElementById('login-biz').value.toUpperCase();
+        // --- SISTEMA DE USUARIOS PERSONALIZADOS ---
 
-            if(!nombreMuebleria || pass.length < 6) return alert("Nombre de mueblería y clave (mín. 6) requeridos.");
+        // Función para que el Dueño cree un cobrador (Nombre de usuario en lugar de correo)
+        window.crearCobrador = () => {
+            const user = auth.currentUser;
+            const nuevoUser = document.getElementById('new-user').value.toLowerCase().trim();
+            const nuevaPass = document.getElementById('new-pass').value.trim();
 
-            createUserWithEmailAndPassword(auth, email, pass)
-                .then((userCredential) => {
-                    // Guardamos el nombre de su mueblería en su perfil privado
-                    set(ref(db, `users/${userCredential.user.uid}/config`), {
-                        mueblería: nombreMuebleria,
-                        adminEmail: email
-                    });
-                    alert("✅ Mueblería registrada con éxito.");
-                })
-                .catch(err => alert("Error: " + err.message));
+            if(!nuevoUser || !nuevaPass) return alert("Completa los datos del cobrador.");
+
+            // Guardamos el cobrador bajo el ID del dueño
+            set(ref(db, `mueblerias/${user.uid}/staff/${nuevoUser}`), {
+                password: nuevaPass,
+                nombre: nuevoUser
+            }).then(() => {
+                alert(`✅ Cobrador "${nuevoUser}" creado. Ya puede iniciar sesión.`);
+                document.getElementById('new-user').value = "";
+                document.getElementById('new-pass').value = "";
+            });
         };
 
-        window.handleLogin = () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            signInWithEmailAndPassword(auth, email, pass).catch(() => alert("Acceso denegado."));
+        // Login Especial (Detecta si es Dueño o Cobrador por nombre)
+        window.handleLoginMaster = async () => {
+            const inputUser = document.getElementById('login-email').value.toLowerCase().trim();
+            const inputPass = document.getElementById('login-pass').value;
+
+            // Si el input contiene @, intentamos login como Dueño (Firebase Auth)
+            if(inputUser.includes('@')) {
+                signInWithEmailAndPassword(auth, inputUser, inputPass).catch(() => alert("Error en cuenta maestra."));
+            } else {
+                // Si no tiene @, buscamos en la base de datos de Staff
+                const bizId = document.getElementById('login-biz-id').value.trim(); // Necesitamos el ID del dueño
+                if(!bizId) return alert("Ingresa el ID de la Mueblería proporcionado por tu patrón.");
+
+                const path = `mueblerias/${bizId}/staff/${inputUser}`;
+                const snapshot = await get(ref(db, path));
+                
+                if(snapshot.exists() && snapshot.val().password === inputPass) {
+                    // Login simulado para cobradores usando una sesión persistente local
+                    localStorage.setItem('abonero_staff_session', JSON.stringify({
+                        bizId: bizId,
+                        user: inputUser
+                    }));
+                    location.reload(); // Recargamos para activar la sesión de staff
+                } else {
+                    alert("❌ Usuario o clave de cobrador incorrecta.");
+                }
+            }
         };
 
-        window.handleLogout = () => signOut(auth);
+        window.handleLogout = () => {
+            localStorage.removeItem('abonero_staff_session');
+            signOut(auth);
+        };
 
-        // Monitor de Sesión: Carga datos SOLO del usuario logueado
+        // Monitor de Sesión Dual
         onAuthStateChanged(auth, user => {
+            const staffSession = JSON.parse(localStorage.getItem('abonero_staff_session'));
             const splash = document.getElementById('splash-screen');
-            if (user) {
+
+            if (user || staffSession) {
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
-                // 1. Cargar nombre de la mueblería
-                get(ref(db, `users/${user.uid}/config`)).then(s => {
-                    if(s.exists()) document.getElementById('biz-name').innerText = s.val().mueblería;
-                });
-
-                // 2. Escuchar CLIENTES PRIVADOS (Olimpo no ve a Méndez)
-                onValue(ref(db, `users/${user.uid}/clientes`), snapshot => {
-                    renderClients(snapshot.val(), user.uid);
+                const finalId = user ? user.uid : staffSession.bizId;
+                
+                // Si es dueño, mostrar panel de control de staff
+                if(user) document.getElementById('panel-admin').style.display = 'block';
+                
+                // Cargar Clientes
+                onValue(ref(db, `mueblerias/${finalId}/clientes`), snap => {
+                    renderClients(snap.val(), finalId);
                 });
             } else {
                 document.getElementById('view-login').style.display = 'flex';
                 document.getElementById('app-content').style.display = 'none';
             }
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 600);
+            splash.style.display = 'none';
         });
 
-        // Guardar Cliente (Se va directo a la carpeta del usuario actual)
         window.saveClient = () => {
-            const user = auth.currentUser;
+            const staffSession = JSON.parse(localStorage.getItem('abonero_staff_session'));
+            const finalId = auth.currentUser ? auth.currentUser.uid : staffSession.bizId;
+            
             const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
             const saldo = parseFloat(document.getElementById('reg-saldo').value);
-            if(!nom || isNaN(saldo)) return alert("Datos incompletos.");
 
-            set(ref(db, `users/${user.uid}/clientes/${nom.replace(/\./g, '_')}`), {
+            set(ref(db, `mueblerias/${finalId}/clientes/${nom.replace(/\./g, '_')}`), {
                 nombre: nom,
                 direccion: document.getElementById('reg-dir').value,
-                articulo: document.getElementById('reg-art').value,
                 saldo: saldo,
                 historial: []
             }).then(() => {
@@ -97,71 +121,59 @@
                 document.querySelectorAll('input').forEach(i => i.value = "");
             });
         };
-
-        window.registrarAbono = (nom, uid) => {
-            const id = nom.replace(/\s/g,'');
-            const monto = parseFloat(document.getElementById(`inp-${id}`).value);
-            if(!monto) return;
-
-            const path = `users/${uid}/clientes/${nom.replace(/\./g, '_')}`;
-            get(ref(db, path)).then(snap => {
-                const cli = snap.val();
-                const nSaldo = (cli.saldo - monto).toFixed(2);
-                const h = cli.historial || [];
-                h.push({ f: new Date().toLocaleDateString(), a: monto, r: nSaldo });
-                update(ref(db, path), { saldo: nSaldo, historial: h });
-            });
-        };
     </script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --bg: #f8f9fa; --dark: #202124; }
+        :root { --primary: #1a73e8; --bg: #f1f3f4; --dark: #202124; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
-        
-        /* Splash & Login */
-        #splash-screen { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: 0.6s; }
-        #view-login { height: 100vh; flex-direction: column; justify-content: center; align-items: center; padding: 30px; box-sizing: border-box; text-align: center; background: white; }
-        
         header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
-        
-        .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; color: #333; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #dadce0; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        
+        .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #ddd; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
         .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-main { background: var(--primary); color: white; }
-        .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); margin-top: 10px; }
-        
         .view { display: none; padding: 15px; }
         .view.active { display: block; }
+        #view-login { height: 100vh; flex-direction: column; justify-content: center; align-items: center; padding: 30px; background: white; text-align: center; }
+        .badge-admin { background: #e8f0fe; color: var(--primary); padding: 5px 10px; border-radius: 5px; font-size: 11px; margin-top: 5px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <div id="splash-screen"><img src="1000123395.png" style="width:150px;"></div>
+    <div id="splash-screen" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; justify-content:center; align-items:center;">
+        <img src="1000123395.png" style="width:150px;">
+    </div>
 
     <div id="view-login" style="display:none;">
         <img src="1000123395.png" style="width:100px; margin-bottom:15px;">
-        <h2 style="margin:0;">AboneroApp Pro</h2>
-        <p style="color:#666; margin-bottom:25px;">Sistema Cloud para Mueblerías</p>
+        <h2>AboneroApp Pro</h2>
         
-        <input type="text" id="login-biz" placeholder="Nombre de tu Mueblería (ej: Olimpo)">
-        <input type="email" id="login-email" placeholder="Correo electrónico">
-        <input type="password" id="login-pass" placeholder="Contraseña">
-        
-        <button class="btn btn-main" onclick="handleLogin()">ENTRAR A MI MUEBLERÍA</button>
-        <button class="btn btn-outline" onclick="handleRegister()">REGISTRAR MI NEGOCIO</button>
+        <div id="staff-fields" style="width:100%; max-width:320px;">
+            <input type="text" id="login-biz-id" placeholder="ID de la Mueblería (Solo cobradores)">
+            <input type="text" id="login-email" placeholder="Usuario o Correo">
+            <input type="password" id="login-pass" placeholder="Contraseña">
+            <button class="btn btn-main" onclick="handleLoginMaster()">INICIAR SESIÓN</button>
+            <p style="font-size: 11px; color: #666; margin-top: 15px;">DUEÑOS: Usen su correo y clave.<br>COBRADORES: Usen su nombre de usuario e ID de negocio.</p>
+        </div>
     </div>
 
     <div id="app-content" style="display:none;">
         <header>
-            <div style="font-weight: 900;" id="biz-name">CARGANDO...</div>
+            <div style="font-weight: 900;">ABONEROAPP PRO</div>
             <i class="fas fa-sign-out-alt" onclick="handleLogout()"></i>
         </header>
 
-        <div id="v-ruta" class="view active">
-            <input type="text" id="search" placeholder="🔍 Buscar cliente..." onkeyup="filter()">
-            <div id="lista-clientes"></div>
+        <div class="view active" id="v-ruta">
+            <div id="panel-admin" style="display:none;" class="card">
+                <h4 style="margin:0; color:var(--primary);">Panel de Dueño</h4>
+                <p style="font-size:11px; color:#666;">Crea cuentas para tus cobradores sin correos:</p>
+                <input type="text" id="new-user" placeholder="Nombre de usuario (ej: juan01)">
+                <input type="text" id="new-pass" placeholder="Contraseña para él">
+                <button class="btn btn-main" style="padding:10px;" onclick="crearCobrador()">+ CREAR COBRADOR</button>
+            </div>
+
+            <div id="lista-clientes" style="margin-top:15px;"></div>
+            
             <button class="btn btn-main" style="position:fixed; bottom:20px; right:20px; width:60px; height:60px; border-radius:30px; box-shadow:0 4px 10px rgba(0,0,0,0.3);" onclick="showView('v-nueva')">
                 <i class="fas fa-plus"></i>
             </button>
@@ -170,11 +182,10 @@
         <div id="v-nueva" class="view">
             <div class="card">
                 <h3>Nueva Venta</h3>
-                <input type="text" id="reg-nom" placeholder="Nombre del Cliente">
+                <input type="text" id="reg-nom" placeholder="Nombre">
                 <input type="text" id="reg-dir" placeholder="Dirección">
-                <input type="text" id="reg-art" placeholder="Artículo">
-                <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
-                <button class="btn btn-main" onclick="saveClient()">GUARDAR EN NUBE</button>
+                <input type="number" id="reg-saldo" placeholder="Saldo $">
+                <button class="btn btn-main" onclick="saveClient()">GUARDAR</button>
                 <button class="btn" style="background:#eee; margin-top:10px;" onclick="showView('v-ruta')">CANCELAR</button>
             </div>
         </div>
@@ -184,33 +195,15 @@
     function renderClients(data, uid) {
         const list = document.getElementById('lista-clientes');
         list.innerHTML = "";
-        if(!data) return list.innerHTML = "<p style='text-align:center;color:#999;'>No hay clientes registrados en esta mueblería.</p>";
-        
+        if(!data) return list.innerHTML = "<p style='text-align:center;'>Sin clientes.</p>";
         Object.values(data).forEach(cli => {
-            const id = cli.nombre.replace(/\s/g,'');
-            list.innerHTML += `
-                <div class="card">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${cli.nombre}</strong>
-                        <b style="color:var(--primary);">$${cli.saldo}</b>
-                    </div>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <input type="number" id="inp-${id}" placeholder="Abono $" style="margin-bottom:0; flex:1;">
-                        <button class="btn btn-main" style="width:auto; padding:0 20px;" onclick="registrarAbono('${cli.nombre}', '${uid}')">COBRAR</button>
-                    </div>
-                </div>
-            `;
+            list.innerHTML += `<div class="card"><strong>${cli.nombre}</strong><br>Saldo: $${cli.saldo}</div>`;
         });
     }
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-    }
-
-    function filter() {
-        const q = document.getElementById('search').value.toUpperCase();
-        document.querySelectorAll('.card').forEach(c => c.style.display = c.innerText.toUpperCase().includes(q) ? 'block' : 'none');
     }
 </script>
 </body>
