@@ -3,133 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp Pro - Reparado</title>
+    <title>AboneroApp Pro - Blue Dark</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #1a73e8;
-            --secondary: #fff159; /* Tu amarillo característico */
-            --bg: #f8f9fa;
+            --primary: #2979ff; /* Azul vibrante */
+            --header-bg: #1a237e; /* Azul oscuro para barra */
+            --bg-dark: #121212; /* Fondo oscuro total */
+            --card-dark: #1e1e1e; /* Tarjetas oscuras */
+            --text-light: #e0e0e0;
+            --success: #00c853;
             --pink-card: #ffc0cb;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg-dark); 
+            color: var(--text-light);
+            margin: 0; 
+            overflow-x: hidden; 
+        }
 
-        /* HEADER Y SIDEBAR ORIGINAL */
-        header { background: var(--secondary); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
-        .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+        /* HEADER */
+        header { 
+            background: var(--header-bg); 
+            padding: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+        }
+        .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; color: white; letter-spacing: 1px; }
         
-        .sidebar { position: fixed; left: -100%; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: -100%; top: 0; width: 280px; height: 100%; background: #1a1a1a; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
         .sidebar.open { left: 0; }
-        .sidebar-header { background: var(--secondary); padding: 30px; font-weight: 900; text-align: center; }
-        .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #f0f0f0; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 15px; }
+        .sidebar-header { background: var(--header-bg); padding: 30px; color: white; text-align: center; font-weight: 900; }
+        .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 15px; color: white; }
 
         .container { padding: 15px; max-width: 600px; margin: auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* TARJETAS Y FORMULARIOS */
-        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        input, select { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 10px; margin-bottom: 12px; outline: none; font-size: 16px; }
+        /* TARJETAS */
+        .card { background: var(--card-dark); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #333; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; margin-bottom: 12px; outline: none; font-size: 16px; background: #2c2c2c; color: white; }
         
-        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
         .btn-main { background: var(--primary); color: white; }
-        .btn-route { background: #00b894; color: white; margin-bottom: 20px; }
-        .btn-add-item { background: #f0f4ff; color: var(--primary); border: 1px dashed var(--primary); margin-top: 10px; }
+        .btn-liquidar { background: #d32f2f; color: white; margin-top: 10px; }
+        .btn-route { background: var(--primary); color: white; margin-bottom: 20px; }
 
-        /* ACORDEONES REPARADOS */
-        .cli-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* CLIENTES */
+        .cli-box { background: var(--card-dark); border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; }
+        .cli-box.liquidado { border-left-color: var(--success); opacity: 0.8; }
         .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #eee; }
-        .cli-body { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+        .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #333; }
+        .cli-body { display: none; padding: 15px; background: #181818; border-top: 1px solid #333; }
 
-        /* DÍAS DE COBRO Y ALERTAS */
-        .dia-alerta { font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; background: #ffeaa7; color: #d35400; font-weight: bold; margin-top: 5px; display: inline-block; }
-        .hoy-toca { background: #55efc4; color: #00b894; }
+        /* ARTÍCULOS */
+        .art-card { background: #252525; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
+        .art-card.pagado { background: #1b5e20; border-color: var(--success); }
+        .art-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 
-        /* ARTÍCULOS E HISTORIAL MOVIMIENTOS */
-        .art-card { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
-        .historial-toggle { background: #f1f3f4; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; color: var(--primary); cursor: pointer; margin-top: 10px; display: flex; justify-content: space-between; }
-        .historial-desglose { display: none; padding: 10px 0; font-size: 0.85rem; }
+        /* MODAL PERSONALIZADO */
+        #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center; }
+        .modal-box { background: #252525; width:85%; max-width:350px; border-radius:20px; overflow:hidden; border: 1px solid var(--primary); color: white; }
+        .modal-header-app { background: var(--header-bg); padding: 15px; font-weight: 900; text-align: center; color: white; }
 
-        /* MODAL PERSONALIZADO ABONEROAPP */
-        #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center; }
-        .modal-box { background:white; width:85%; max-width:350px; border-radius:20px; overflow:hidden; animation: pop 0.2s; }
-        .modal-header-app { background: var(--secondary); padding: 15px; font-weight: 900; text-align: center; }
-        @keyframes pop { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
-
-        /* TICKET TARJETA ROSA ACUMULABLE */
+        /* TICKET */
         #ticket-wrapper { position: absolute; left: -9999px; }
         .pink-ticket { width: 350px; background: var(--pink-card); padding: 25px; color: #000; font-family: 'Arial', sans-serif; border: 1px solid #000; }
         .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pink-table th, .pink-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; height: 22px; }
+        .pink-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; height: 22px; }
 
-        .photo-label { display: block; width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; overflow: hidden; border: 2px dashed var(--primary); }
+        .photo-label { display: block; width: 80px; height: 80px; background: #333; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; border: 2px dashed var(--primary); }
     </style>
 </head>
 <body>
 
 <header>
-    <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer;"><i class="fas fa-bars"></i></div>
+    <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer; color:white;"><i class="fas fa-bars"></i></div>
     <div class="brand" id="header-title">ABONERO APP</div>
     <div style="width:30px"></div>
 </header>
 
 <div id="sidebar" class="sidebar">
-    <div class="sidebar-header">MENU</div>
-    <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta Diaria</div>
-    <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Registrar Cliente</div>
-    <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cogs"></i> Personalizar App</div>
+    <div class="sidebar-header">ABONERO APP</div>
+    <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta</div>
+    <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Nuevo Cliente</div>
+    <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cogs"></i> Personalizar</div>
 </div>
 
 <div class="container">
     <div id="v-ruta" class="view active">
-        <button class="btn btn-route" onclick="smartRoute()">📍 RUTA INTELIGENTE (CP)</button>
+        <button class="btn btn-route" onclick="smartRoute()">📍 ORDENAR POR RUTA (CP)</button>
         <div id="lista-clientes"></div>
     </div>
 
     <div id="v-nueva" class="view">
         <div class="card">
-            <h4>Nuevo Cliente</h4>
+            <h4>Registro de Nuevo Cliente</h4>
             <label class="photo-label">
                 <input type="file" id="reg-photo" accept="image/*" style="display:none" onchange="previewImg(event, 'prev-reg')">
-                <img id="prev-reg" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+                <img id="prev-reg" src="" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:50%;">
             </label>
             <input type="text" id="reg-nom" placeholder="Nombre Completo">
             <input type="text" id="reg-calle" placeholder="Calle y Número">
             <input type="text" id="reg-col" placeholder="Colonia">
-            <input type="number" id="reg-cp" placeholder="C.P.">
+            <input type="number" id="reg-cp" placeholder="Código Postal">
             <select id="reg-dia">
                 <option value="Lunes">Lunes</option><option value="Martes">Martes</option>
                 <option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option>
                 <option value="Viernes">Viernes</option><option value="Sábado">Sábado</option>
                 <option value="Domingo">Domingo</option>
             </select>
-            <hr>
-            <input type="text" id="reg-art" placeholder="Artículo">
-            <input type="number" id="reg-saldo" placeholder="Saldo inicial $">
-            <button class="btn btn-main" onclick="saveClient()">GUARDAR VENTA</button>
+            <hr style="border-color:#333">
+            <input type="text" id="reg-art" placeholder="Mueble / Artículo">
+            <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
+            <button class="btn btn-main" onclick="confirmarRegistro()">GUARDAR CLIENTE</button>
         </div>
     </div>
 
     <div id="v-config" class="view">
         <div class="card">
-            <h4>Ajustes de Marca</h4>
+            <h4>Personalizar App</h4>
             <input type="text" id="cfg-nom" placeholder="Nombre de la Mueblería">
             <input type="file" accept="image/*" onchange="previewImg(event, 'prev-logo', true)">
             <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto;">
-            <button class="btn btn-main" onclick="applySettings()">CONFIRMAR CAMBIOS</button>
+            <button class="btn btn-main" onclick="applySettings()">GUARDAR CAMBIOS</button>
         </div>
     </div>
 </div>
 
 <div id="modal-ov">
     <div class="modal-box">
-        <div class="modal-header-app">AboneroApp</div>
-        <div id="m-body" style="padding:25px; text-align:center;"></div>
-        <div id="m-foot" style="padding:15px; border-top:1px solid #eee;"></div>
+        <div class="modal-header-app">ABONERO APP</div>
+        <div id="m-body" style="padding:25px; text-align:center; font-size:1.1rem; line-height:1.4;"></div>
+        <div id="m-foot" style="padding:15px; border-top:1px solid #333; display:flex; gap:10px;"></div>
     </div>
 </div>
 
@@ -137,7 +153,7 @@
     <div class="pink-ticket" id="final-ticket">
         <div style="text-align: center;">
             <img id="t-logo" style="max-height:40px; display:none; margin:0 auto;">
-            <h3 id="t-brand" style="margin:5px 0; text-transform:uppercase; font-size:14px;">ABONERO APP</h3>
+            <h3 id="t-brand" style="margin:5px 0; text-transform:uppercase;">ABONERO APP</h3>
         </div>
         <div style="font-size:11px; margin:10px 0; border-bottom:1px solid #000; padding-bottom:5px;">
             <div>Cliente: <span id="t-nom"></span></div>
@@ -145,22 +161,20 @@
             <div>Artículo: <span id="t-art"></span></div>
         </div>
         <table class="pink-table">
-            <thead><tr><th>Fecha</th><th>Abono</th><th>Resta</th></tr></thead>
             <tbody id="t-rows"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const KEY_DB = "ABO_APP_MASTER_REPAIR";
-    const KEY_CFG = "ABO_APP_CFG_REPAIR";
+    const KEY_DB = "ABO_PRO_V2_DARK";
+    const KEY_CFG = "ABO_CFG_V2_DARK";
     let db = JSON.parse(localStorage.getItem(KEY_DB)) || {};
     let config = JSON.parse(localStorage.getItem(KEY_CFG)) || { nombre: "ABONERO APP", logo: "" };
     let tempLogo = config.logo;
 
     function init() {
         document.getElementById('header-title').innerText = config.nombre;
-        document.getElementById('cfg-nom').value = config.nombre;
         if(config.logo) {
             document.getElementById('prev-logo').src = config.logo;
             document.getElementById('prev-logo').style.display = 'block';
@@ -177,9 +191,9 @@
         toggleMenu();
     }
 
-    function avisar(msg, foot = '') {
-        document.getElementById('m-body').innerText = msg;
-        document.getElementById('m-foot').innerHTML = foot || `<button class="btn btn-main" onclick="closeAviso()">ACEPTAR</button>`;
+    function avisar(msg, buttons = null) {
+        document.getElementById('m-body').innerHTML = msg;
+        document.getElementById('m-foot').innerHTML = buttons || `<button class="btn btn-main" onclick="closeAviso()">ACEPTAR</button>`;
         document.getElementById('modal-ov').style.display = 'flex';
     }
     function closeAviso() { document.getElementById('modal-ov').style.display = 'none'; }
@@ -194,11 +208,15 @@
         reader.readAsDataURL(e.target.files[0]);
     }
 
-    function applySettings() {
-        config.nombre = document.getElementById('cfg-nom').value.toUpperCase();
-        config.logo = tempLogo;
-        localStorage.setItem(KEY_CFG, JSON.stringify(config));
-        location.reload();
+    // CONFIRMACIÓN DE REGISTRO
+    function confirmarRegistro() {
+        const nom = document.getElementById('reg-nom').value.trim();
+        if(!nom) return avisar("⚠️ Por favor ingresa el nombre del cliente.");
+        
+        avisar(`¿Estás seguro de registrar a <b>${nom.toUpperCase()}</b>?`, `
+            <button class="btn btn-main" onclick="saveClient()">SÍ, GUARDAR</button>
+            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">CANCELAR</button>
+        `);
     }
 
     function saveClient() {
@@ -211,46 +229,36 @@
         const bal = parseFloat(document.getElementById('reg-saldo').value);
         const photo = document.getElementById('prev-reg').src;
 
-        if(!nom || isNaN(bal)) return avisar("⚠️ Por favor completa los datos.");
-
         if(!db[nom]) {
             db[nom] = { nom, street, col, cp, dia, photo, cuentas: [] };
         }
-        db[nom].cuentas.push({ id: Date.now(), mueble: art, saldo: bal, historial: [] });
+        db[nom].cuentas.push({ id: Date.now(), mueble: art, saldo: bal, historial: [], liquidado: false });
         
         localStorage.setItem(KEY_DB, JSON.stringify(db));
+        closeAviso();
+        avisar("✅ Cliente guardado exitosamente.");
+        document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
+        document.getElementById('prev-reg').style.display = 'none';
         renderClients();
-        avisar("✅ ¡Venta registrada con éxito!");
         changeView('v-ruta');
     }
 
     function renderClients() {
         const list = document.getElementById('lista-clientes');
         list.innerHTML = "";
-        const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][new Date().getDay()];
-
         Object.values(db).forEach(cli => {
-            const esHoy = cli.dia === hoy;
             let accountsHTML = cli.cuentas.map(c => `
-                <div class="art-card">
-                    <div style="display:flex; justify-content:space-between; font-weight:700;">
-                        <span>📦 ${c.mueble}</span>
-                        <b style="color:var(--primary)">$${c.saldo}</b>
+                <div class="art-card ${c.liquidado ? 'pagado' : ''}">
+                    <div class="art-head" onclick="toggleDisplay('acc-${c.id}')">
+                        <span>${c.liquidado ? '✅' : '📦'} ${c.mueble}</span>
+                        <b>${c.liquidado ? 'LIQUIDADO' : '$'+c.saldo}</b>
                     </div>
-                    <div style="margin-top:10px;">
-                        <input type="number" id="inp-${c.id}" placeholder="Cantidad $">
-                        <button class="btn btn-main" onclick="registrarAbono('${cli.nom}', ${c.id})">ABONAR</button>
-                    </div>
-                    <div class="historial-toggle" onclick="toggleDisplay('hist-${c.id}')">
-                        <span>Ver movimientos recientes</span> <i class="fas fa-history"></i>
-                    </div>
-                    <div id="hist-${c.id}" class="historial-desglose">
-                        ${c.historial.map(h => `
-                            <div style="border-bottom:1px solid #f0f0f0; padding:5px 0;">
-                                <strong>${h.f.split(',')[0]}</strong> | Abono: $${h.m}<br>
-                                <small style="color:gray">Antes: $${h.ant} → Nuevo: $${h.r}</small>
-                            </div>
-                        `).reverse().join('') || '<small>Sin abonos</small>'}
+                    <div id="acc-${c.id}" style="display:none; padding-top:15px; border-top:1px solid #444; margin-top:10px;">
+                        ${!c.liquidado ? `
+                            <input type="number" id="inp-${c.id}" placeholder="Cantidad $">
+                            <button class="btn btn-main" onclick="confirmarAbono('${cli.nom}', ${c.id})">ABONAR</button>
+                            <button class="btn btn-liquidar" onclick="confirmarLiquidacion('${cli.nom}', ${c.id})">LIQUIDAR TOTAL</button>
+                        ` : '<p style="text-align:center; color:#fff;">Cuenta pagada en su totalidad.</p>'}
                     </div>
                 </div>
             `).join('');
@@ -258,71 +266,85 @@
             list.innerHTML += `
                 <div class="cli-box">
                     <div class="cli-head" onclick="toggleDisplay('cli-${cli.nom.replace(/\s/g,'')}')">
-                        <img src="${cli.photo || 'https://via.placeholder.com/50'}" class="cli-photo">
+                        <img src="${cli.photo || ''}" class="cli-photo">
                         <div class="cli-info">
                             <strong>${cli.nom}</strong>
-                            <span class="dia-alerta ${esHoy ? 'hoy-toca' : ''}">Cobro: ${cli.dia} ${esHoy ? '(TOCA HOY)' : ''}</span>
+                            <small>Cobro: ${cli.dia}</small>
                         </div>
                     </div>
-                    <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
-                        ${accountsHTML}
-                        <button class="btn btn-add-item" onclick="agregarOtro('${cli.nom}')">➕ AGREGAR OTRO ARTÍCULO</button>
-                        <button class="btn" style="margin-top:10px; background:#e17055; color:white; font-size:11px;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col)}')">IR AL MAPA</button>
-                    </div>
+                    <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">${accountsHTML}</div>
                 </div>
             `;
         });
     }
 
+    function confirmarAbono(cli, id) {
+        const monto = document.getElementById(`inp-${id}`).value;
+        if(!monto) return avisar("⚠️ Ingresa un monto.");
+        avisar(`¿Está seguro de abonar <b>$${monto}</b>?`, `
+            <button class="btn btn-main" onclick="registrarAbono('${cli}', ${id})">SÍ, ABONAR</button>
+            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
+        `);
+    }
+
     function registrarAbono(cliName, accId) {
         const inp = document.getElementById(`inp-${accId}`);
         const monto = parseFloat(inp.value);
-        if(!monto) return;
-
         const cuenta = db[cliName].cuentas.find(a => a.id === accId);
-        const anterior = cuenta.saldo;
-        cuenta.saldo = (anterior - monto).toFixed(2);
-        const fecha = new Date().toLocaleString();
-
-        cuenta.historial.push({ f: fecha, m: monto, r: cuenta.saldo, ant: anterior });
+        const ant = cuenta.saldo;
+        cuenta.saldo = (ant - monto).toFixed(2);
+        cuenta.historial.push({ f: new Date().toLocaleDateString(), m: monto, r: cuenta.saldo });
+        
         localStorage.setItem(KEY_DB, JSON.stringify(db));
+        closeAviso();
+        avisar(`✅ Monto $${monto} abonado exitosamente.`);
         renderClients();
         generarTicket(cliName, cuenta);
     }
 
+    function confirmarLiquidacion(cli, id) {
+        avisar(`¿Confirmas que el cliente ha <b>LIQUIDADO</b> esta cuenta?`, `
+            <button class="btn btn-main" onclick="liquidarCuenta('${cli}', ${id})">SÍ, LIQUIDAR</button>
+            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">CANCELAR</button>
+        `);
+    }
+
+    function liquidarCuenta(cli, id) {
+        const cuenta = db[cli].cuentas.find(a => a.id === id);
+        cuenta.saldo = 0;
+        cuenta.liquidado = true;
+        localStorage.setItem(KEY_DB, JSON.stringify(db));
+        closeAviso();
+        avisar("🏆 Cuenta marcada como LIQUIDADA.");
+        renderClients();
+    }
+
     function generarTicket(cliName, cuenta) {
         const cli = db[cliName];
-        document.getElementById('t-brand').innerText = config.nombre;
         document.getElementById('t-nom').innerText = cliName;
-        document.getElementById('t-dir').innerText = `${cli.street}, Col. ${cli.col}`;
+        document.getElementById('t-dir').innerText = cli.street + " " + cli.col;
         document.getElementById('t-art').innerText = cuenta.mueble;
-
         const tbody = document.getElementById('t-rows');
         tbody.innerHTML = "";
-        for(let i = 0; i < 15; i++) {
+        for(let i=0; i<15; i++) {
             const h = cuenta.historial[i] || { f: "", m: "", r: "" };
-            tbody.innerHTML += `<tr><td>${h.f.split(' ')[0]}</td><td>${h.m ? '$'+h.m : ""}</td><td>${h.r ? '$'+h.r : ""}</td></tr>`;
+            tbody.innerHTML += `<tr><td>${h.f}</td><td>${h.m ? '$'+h.m : ''}</td><td>${h.r ? '$'+h.r : ''}</td></tr>`;
         }
-
-        avisar("🖼️ Generando imagen...");
         setTimeout(() => {
             html2canvas(document.getElementById('final-ticket')).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `Recibo_${cliName}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
-                closeAviso();
             });
-        }, 800);
+        }, 500);
     }
 
     function smartRoute() {
         let sorted = Object.values(db).sort((a,b) => (parseInt(a.cp)||0) - (parseInt(b.cp)||0));
-        let newDb = {};
-        sorted.forEach(c => newDb[c.nom] = c);
-        db = newDb;
-        renderClients();
-        avisar("📍 Ruta ordenada por C.P.");
+        let newDb = {}; sorted.forEach(c => newDb[c.nom] = c);
+        db = newDb; renderClients();
+        avisar("📍 Ruta ordenada por Código Postal.");
     }
 
     function toggleDisplay(id) {
@@ -330,22 +352,11 @@
         el.style.display = el.style.display === 'block' ? 'none' : 'block';
     }
 
-    function agregarOtro(nom) {
-        avisar(`Nuevo mueble para ${nom}`, `
-            <input type="text" id="add-art" placeholder="Mueble">
-            <input type="number" id="add-saldo" placeholder="Saldo $">
-            <button class="btn btn-main" onclick="confirmarAdd('${nom}')">GUARDAR</button>
-        `);
-    }
-
-    function confirmarAdd(nom) {
-        const m = document.getElementById('add-art').value;
-        const s = parseFloat(document.getElementById('add-saldo').value);
-        if(!m || isNaN(s)) return;
-        db[nom].cuentas.push({ id: Date.now(), mueble: m, saldo: s, historial: [] });
-        localStorage.setItem(KEY_DB, JSON.stringify(db));
-        renderClients();
-        closeAviso();
+    function applySettings() {
+        config.nombre = document.getElementById('cfg-nom').value.toUpperCase();
+        config.logo = tempLogo;
+        localStorage.setItem(KEY_CFG, JSON.stringify(config));
+        location.reload();
     }
 
     init();
