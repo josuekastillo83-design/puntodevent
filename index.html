@@ -1,228 +1,498 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXVENTA PRO</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ABONERO APP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --secondary: #fbbc04;
+            --success: #34a853;
+            --danger: #ea4335;
+            --dark: #202124;
+            --light: #f8f9fa;
+            --gray: #5f6368;
+            --white: #ffffff;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
 
-<style>
-:root{
-    --color:#3483fa;
-}
-body{
-    font-family:Arial;
-    margin:0;
-    background:#f5f5f5;
-}
-header{
-    background:var(--color);
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-weight:bold;
-}
-.container{padding:15px;}
-.card{
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:15px;
-}
-input,button{
-    width:100%;
-    padding:12px;
-    margin-bottom:10px;
-    border-radius:8px;
-    border:1px solid #ccc;
-}
-button{
-    background:var(--color);
-    color:white;
-    border:none;
-}
-.client{
-    background:white;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:10px;
-}
-img{max-width:100%;border-radius:10px;}
-</style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: #f1f3f4;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Navegación */
+        .navbar {
+            background: var(--primary);
+            color: var(--white);
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Vistas */
+        .view {
+            display: none;
+            padding: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tarjetas */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Formularios */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--gray); font-weight: 500; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: var(--primary); }
+
+        /* Botones */
+        .btn {
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: var(--primary); color: var(--white); }
+        .btn-success { background: var(--success); color: var(--white); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+
+        /* Lista de Clientes */
+        .client-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            cursor: pointer;
+        }
+        .client-item:last-child { border-bottom: none; }
+        .client-photo {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+        }
+        .client-info h3 { margin: 0; font-size: 1.1rem; }
+        .client-info p { margin: 3px 0 0; font-size: 0.85rem; color: var(--gray); }
+
+        /* Ticket / Tarjeta Real Style */
+        #ticket-container {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+        .real-card {
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .chip {
+            width: 50px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .card-number { font-size: 1.4rem; letter-spacing: 2px; margin-bottom: 15px; display: block; }
+        .card-holder { text-transform: uppercase; font-size: 0.9rem; }
+        .card-details { position: absolute; bottom: 25px; right: 25px; text-align: right; font-size: 0.8rem; }
+
+        /* Modal / Historial */
+        .history-item {
+            font-size: 0.85rem;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 10px auto;
+            display: block;
+            border: 2px dashed var(--primary);
+            object-fit: cover;
+        }
+    </style>
 </head>
-
 <body>
 
-<header>NEXVENTA PRO</header>
+    <div class="navbar">
+        <i class="fas fa-chevron-left" id="btn-back" style="visibility: hidden; cursor:pointer;" onclick="showView('view-list')"></i>
+        <span>ABONERO APP</span>
+        <i class="fas fa-sort-amount-down" onclick="sortByCP()" title="Ruta Inteligente (CP)"></i>
+    </div>
 
-<div class="container">
+    <div id="view-list" class="view active">
+        <div class="card">
+            <input type="text" id="search" placeholder="Buscar cliente..." onkeyup="filterClients()">
+        </div>
+        <div class="card" id="client-list">
+            </div>
+        <button class="btn btn-primary btn-fab" onclick="showView('view-add')">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
 
-<!-- LOGIN -->
-<div id="login">
-<div class="card">
-<h3>Iniciar sesión</h3>
-<input id="email" placeholder="Correo">
-<input id="pass" type="password" placeholder="Contraseña">
-<button onclick="login()">Entrar</button>
+    <div id="view-add" class="view">
+        <div class="card">
+            <h3>Nuevo Crédito</h3>
+            <div class="form-group">
+                <label>Foto del Cliente</label>
+                <input type="file" id="client-photo-input" accept="image/*" onchange="previewFile()">
+                <img id="preview-img" class="photo-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ccc' d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E">
+            </div>
+            <div class="form-group">
+                <input type="text" id="name" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+                <input type="text" id="street" placeholder="Calle y número">
+            </div>
+            <div class="form-group">
+                <input type="text" id="colony" placeholder="Colonia">
+            </div>
+            <div class="form-group">
+                <input type="number" id="cp" placeholder="Código Postal">
+            </div>
+            <div class="form-group">
+                <input type="text" id="city" placeholder="Municipio/Ciudad">
+            </div>
+            <div class="form-group">
+                <input type="text" id="state" placeholder="Estado">
+            </div>
+            <div class="form-group">
+                <input type="text" id="item" placeholder="Artículo vendido">
+            </div>
+            <div class="form-group">
+                <input type="number" id="balance" placeholder="Saldo inicial ($)">
+            </div>
+            <button class="btn btn-primary" onclick="saveClient()">
+                <i class="fas fa-save"></i> GUARDAR CLIENTE
+            </button>
+        </div>
+    </div>
 
-<h4>Registro</h4>
-<input id="remail" placeholder="Correo">
-<input id="rpass" type="password" placeholder="Contraseña">
-<button onclick="register()">Crear cuenta</button>
-</div>
-</div>
+    <div id="view-detail" class="view">
+        <div class="card" id="detail-card">
+            </div>
+        
+        <div class="card">
+            <h3>Registrar Abono</h3>
+            <div class="form-group">
+                <input type="number" id="payment-amount" placeholder="Monto del abono ($)">
+            </div>
+            <button class="btn btn-success" onclick="processPayment()">
+                <i class="fas fa-money-bill-wave"></i> PROCESAR PAGO
+            </button>
+        </div>
 
-<!-- APP -->
-<div id="app" style="display:none;">
+        <div class="card">
+            <h3>Historial de Pagos</h3>
+            <div id="payment-history"></div>
+        </div>
+    </div>
 
-<div class="card">
-<h3>Nueva venta</h3>
-<input id="name" placeholder="Cliente">
-<input id="address" placeholder="Dirección">
-<input id="item" placeholder="Artículo">
-<input id="price" type="number" placeholder="Saldo">
+    <div id="ticket-container">
+        <div id="final-ticket" class="real-card">
+            <div class="chip"></div>
+            <span class="card-number" id="t-balance">0000 0000 0000 0000</span>
+            <div class="card-holder">
+                <small>CLIENTE</small><br>
+                <strong id="t-name">NOMBRE DEL CLIENTE</strong>
+            </div>
+            <div class="card-details">
+                <span id="t-item">ARTICULO</span><br>
+                <span id="t-date">00/00/0000</span><br>
+                <strong>ABONO: <span id="t-pay">$0</span></strong>
+            </div>
+            <div style="position: absolute; top: 25px; right: 25px; font-size: 0.7rem; text-align: right; opacity: 0.8;">
+                ABONERO APP<br>COMPROBANTE OFICIAL
+            </div>
+        </div>
+    </div>
 
-<input type="file" id="photo">
-<img id="preview" style="display:none;">
+    <script>
+        let clients = JSON.parse(localStorage.getItem('abonero_clients')) || [];
+        let currentClientIndex = null;
+        let base64Photo = "";
 
-<button onclick="save()">Guardar</button>
-</div>
+        // Navegación
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            const backBtn = document.getElementById('btn-back');
+            backBtn.style.visibility = (viewId === 'view-list') ? 'hidden' : 'visible';
+            
+            if(viewId === 'view-list') {
+                renderClients();
+                currentClientIndex = null;
+            }
+        }
 
-<button onclick="logout()">Cerrar sesión</button>
+        // Previsualizar Foto
+        function previewFile() {
+            const file = document.getElementById('client-photo-input').files[0];
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                base64Photo = reader.result;
+                document.getElementById('preview-img').src = base64Photo;
+            }
+            if (file) reader.readAsDataURL(file);
+        }
 
-<div id="list"></div>
+        // Guardar Cliente
+        function saveClient() {
+            const name = document.getElementById('name').value;
+            const street = document.getElementById('street').value;
+            const colony = document.getElementById('colony').value;
+            const cp = document.getElementById('cp').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const item = document.getElementById('item').value;
+            const balance = parseFloat(document.getElementById('balance').value);
 
-</div>
+            if(!name || !street || !colony || !cp || !item || isNaN(balance)) {
+                alert("Por favor rellene todos los campos obligatorios");
+                return;
+            }
 
-</div>
+            const newClient = {
+                name, street, colony, cp, city, state, item, 
+                balance, initialBalance: balance,
+                photo: base64Photo,
+                history: []
+            };
 
-<script>
-// STORAGE
-let users = JSON.parse(localStorage.getItem("users")) || {};
-let db = JSON.parse(localStorage.getItem("db")) || {};
-let session = localStorage.getItem("session");
+            clients.push(newClient);
+            localStorage.setItem('abonero_clients', JSON.stringify(clients));
+            
+            // Limpiar
+            document.querySelectorAll('#view-add input').forEach(i => i.value = "");
+            document.getElementById('preview-img').src = "";
+            base64Photo = "";
+            
+            showView('view-list');
+        }
 
-// INIT
-if(session){
-    showApp();
-}
+        // Renderizar Lista
+        function renderClients(data = clients) {
+            const list = document.getElementById('client-list');
+            list.innerHTML = data.length === 0 ? '<p style="text-align:center; color:#999;">No hay clientes registrados</p>' : '';
+            
+            data.forEach((c, index) => {
+                const div = document.createElement('div');
+                div.className = 'client-item';
+                div.onclick = () => openClient(index);
+                div.innerHTML = `
+                    <img src="${c.photo || 'https://via.placeholder.com/150'}" class="client-photo">
+                    <div class="client-info">
+                        <h3>${c.name}</h3>
+                        <p>${c.item} - <strong>$${c.balance.toFixed(2)}</strong></p>
+                        <p><i class="fas fa-map-marker-alt"></i> ${c.colony}, ${c.cp}</p>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
 
-// LOGIN
-function login(){
-    let e=email.value;
-    let p=pass.value;
-
-    if(users[e]===p){
-        localStorage.setItem("session",e);
-        showApp();
-    }else{
-        alert("Error");
-    }
-}
-
-// REGISTRO
-function register(){
-    let e=remail.value;
-    let p=rpass.value;
-
-    users[e]=p;
-    localStorage.setItem("users",JSON.stringify(users));
-    alert("Usuario creado");
-}
-
-// APP
-function showApp(){
-    loginDiv=document.getElementById("login");
-    appDiv=document.getElementById("app");
-
-    loginDiv.style.display="none";
-    appDiv.style.display="block";
-
-    render();
-}
-
-// LOGOUT
-function logout(){
-    localStorage.removeItem("session");
-    location.reload();
-}
-
-// FOTO
-photo.onchange=e=>{
-    let reader=new FileReader();
-    reader.onload=()=>{
-        preview.src=reader.result;
-        preview.style.display="block";
-    }
-    reader.readAsDataURL(e.target.files[0]);
-}
-
-// GUARDAR
-function save(){
-    let n=name.value;
-    let a=address.value;
-    let i=item.value;
-    let p=parseFloat(price.value);
-
-    if(!n||!i||isNaN(p)) return alert("Faltan datos");
-
-    if(!db[n]){
-        db[n]={name:n,address:a,photo:preview.src,items:[]};
-    }
-
-    db[n].items.push({item:i,balance:p});
-
-    localStorage.setItem("db",JSON.stringify(db));
-
-    name.value="";
-    address.value="";
-    item.value="";
-    price.value="";
-    preview.style.display="none";
-
-    render();
-}
-
-// RENDER
-function render(){
-    let list=document.getElementById("list");
-    list.innerHTML="";
-
-    Object.values(db).forEach(c=>{
-
-        let html=`
-        <div class="client">
-        <h4>${c.name}</h4>
-        <p>${c.address}</p>
-        ${c.photo?`<img src="${c.photo}">`:""}
-        `;
-
-        c.items.forEach(it=>{
-            html+=`
-            <p>${it.item} - $${it.balance}</p>
-            <button onclick="pay('${c.name}','${it.item}')">Abonar</button>
+        // Abrir Detalle
+        function openClient(index) {
+            currentClientIndex = index;
+            const c = clients[index];
+            showView('view-detail');
+            
+            document.getElementById('detail-card').innerHTML = `
+                <div style="text-align:center; margin-bottom:15px;">
+                    <img src="${c.photo || 'https://via.placeholder.com/150'}" style="width:100px; height:100px; border-radius:50%; object-fit:cover;">
+                    <h2 style="margin:10px 0 5px;">${c.name}</h2>
+                    <span style="color:var(--primary); font-weight:bold; font-size:1.5rem;">$${c.balance.toFixed(2)}</span>
+                    <p style="margin:5px 0; color:var(--gray);">${c.item}</p>
+                </div>
+                <p style="font-size:0.9rem; margin:5px 0;"><strong>Dirección:</strong> ${c.street}, ${c.colony}, CP ${c.cp}, ${c.city}, ${c.state}</p>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn btn-outline" onclick="openMaps('${c.street}, ${c.colony}, ${c.city}')">
+                        <i class="fas fa-directions"></i> MAPA
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteClient(${index})" style="background:#ea4335; color:white; border:none;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             `;
-        });
+            renderHistory();
+        }
 
-        html+="</div>";
+        function renderHistory() {
+            const hDiv = document.getElementById('payment-history');
+            const h = clients[currentClientIndex].history;
+            hDiv.innerHTML = h.length === 0 ? '<p style="color:#999; font-size:0.8rem;">No hay pagos registrados</p>' : '';
+            
+            h.slice().reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>PAGO: $${item.amount}</span>
+                        <span>${item.date}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--gray); margin-top:4px;">
+                        Saldo Anterior: $${item.prev} | Saldo Actual: $${item.curr}
+                    </div>
+                `;
+                hDiv.appendChild(div);
+            });
+        }
 
-        list.innerHTML+=html;
-    });
-}
+        // Procesar Pago y Ticket
+        function processPayment() {
+            const amount = parseFloat(document.getElementById('payment-amount').value);
+            if(isNaN(amount) || amount <= 0) return alert("Ingrese un monto válido");
 
-// ABONO
-function pay(client,item){
-    let amount=parseFloat(prompt("Monto"));
+            const c = clients[currentClientIndex];
+            if(amount > c.balance) return alert("El abono no puede ser mayor al saldo pendiente");
 
-    if(isNaN(amount)) return;
+            const prevBalance = c.balance;
+            c.balance -= amount;
+            const now = new Date();
+            const dateStr = now.toLocaleDateString() + " " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-    let acc=db[client].items.find(i=>i.item===item);
+            const paymentRecord = {
+                amount: amount.toFixed(2),
+                prev: prevBalance.toFixed(2),
+                curr: c.balance.toFixed(2),
+                date: dateStr
+            };
 
-    acc.balance=(acc.balance-amount).toFixed(2);
+            c.history.push(paymentRecord);
+            localStorage.setItem('abonero_clients', JSON.stringify(clients));
+            
+            generateVisualTicket(c, amount, dateStr);
+            
+            document.getElementById('payment-amount').value = "";
+            openClient(currentClientIndex); // Refrescar vista
+        }
 
-    localStorage.setItem("db",JSON.stringify(db));
-    render();
-}
-</script>
+        // Generar Tarjeta Visual
+        function generateVisualTicket(client, payment, date) {
+            document.getElementById('t-name').innerText = client.name;
+            document.getElementById('t-balance').innerText = `**** **** **** ${client.balance.toFixed(0).padStart(4, '0')}`;
+            document.getElementById('t-item').innerText = client.item;
+            document.getElementById('t-pay').innerText = `$${payment.toFixed(2)}`;
+            document.getElementById('t-date').innerText = date;
 
+            const ticket = document.getElementById('final-ticket');
+            
+            html2canvas(ticket, {
+                backgroundColor: null,
+                scale: 2
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Ticket_${client.name.replace(/\s/g, '_')}_${Date.now()}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+
+        // Extras
+        function openMaps(address) {
+            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+            window.open(url, '_blank');
+        }
+
+        function filterClients() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = clients.filter(c => c.name.toLowerCase().includes(query) || c.item.toLowerCase().includes(query));
+            renderClients(filtered);
+        }
+
+        function sortByCP() {
+            clients.sort((a, b) => parseInt(a.cp) - parseInt(b.cp));
+            localStorage.setItem('abonero_clients', JSON.stringify(clients));
+            renderClients();
+            alert("Ruta optimizada por Código Postal");
+        }
+
+        function deleteClient(index) {
+            if(confirm("¿Seguro que desea eliminar este cliente y todo su historial?")) {
+                clients.splice(index, 1);
+                localStorage.setItem('abonero_clients', JSON.stringify(clients));
+                showView('view-list');
+            }
+        }
+
+        // Init
+        window.onload = () => renderClients();
+    </script>
 </body>
 </html>
