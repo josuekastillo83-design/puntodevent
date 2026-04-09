@@ -2,422 +2,852 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp Pro - Pesquería & Zuazua</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AboneroApp Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #2979ff; 
-            --header-bg: #1a237e; 
-            --bg-dark: #121212; 
-            --card-dark: #1e1e1e; 
-            --text-light: #e0e0e0;
-            --success: #00c853;
-            --pink-card: #ffc0cb;
+            /* Paleta de colores elegante tipo App Profesional */
+            --primary: #1a73e8; /* Azul Google */
+            --primary-dark: #1557b0;
+            --secondary: #e8f0fe;
+            --success: #34a853; /* Verde Google */
+            --danger: #ea4335; /* Rojo Google */
+            --dark: #202124;
+            --light: #f8f9fa;
+            --white: #ffffff;
+            --gray-100: #f1f3f4;
+            --gray-300: #dadce0;
+            --gray-600: #5f6368;
+            --gray-900: #202124;
+            
+            /* Sombreados y bordes elegantes */
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            
+            /* Altura segura para notch en móviles */
+            --safe-top: env(safe-area-inset-top, 0px);
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-light); margin: 0; overflow-x: hidden; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Quita el flash al tocar en iOS */
+            outline: none;
+        }
 
-        header { background: var(--header-bg); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 1000; }
-        .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; color: white; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--gray-100);
+            color: var(--gray-900);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 1. PANTALLA SPLASH (BIENVENIDA) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--white);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
         
-        .sidebar { position: fixed; left: -100%; top: 0; width: 280px; height: 100%; background: #1a1a1a; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-        .sidebar.open { left: 0; }
-        .sidebar-header { background: var(--header-bg); padding: 30px; color: white; text-align: center; }
-        .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 15px; color: white; }
-
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .view { display: none; }
-        .view.active { display: block; }
-
-        .search-box { position: relative; margin-bottom: 15px; }
-        .search-box input { padding-left: 40px; margin-bottom: 0; }
-        .search-box i { position: absolute; left: 15px; top: 15px; color: var(--primary); }
-
-        .card { background: var(--card-dark); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #333; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; margin-bottom: 12px; outline: none; font-size: 16px; background: #2c2c2c; color: white; }
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
         
-        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-liquidar { background: #d32f2f; color: white; margin-top: 10px; }
-        .btn-route { background: var(--primary); color: white; margin-bottom: 20px; }
+        #splash-logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 30px;
+            animation: logoPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        #splash-loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--secondary);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes logoPop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-        .cli-box { background: var(--card-dark); border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; }
-        .cli-box.liquidado { border-left-color: var(--success); opacity: 0.8; }
-        .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #333; }
-        .cli-body { display: none; padding: 15px; background: #181818; border-top: 1px solid #333; }
+        /* --- 2. INTERFAZ MAESTRA --- */
+        
+        /* Header elegante */
+        header {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: calc(var(--safe-top) + 15px) 15px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
 
-        .art-card { background: #252525; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
-        .art-card.pagado { background: #1b5e20; border-color: var(--success); }
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-logo {
+            height: 24px;
+            width: auto;
+            filter: brightness(0) invert(1); /* Logo blanco */
+        }
 
-        #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center; }
-        .modal-box { background: #252525; width:85%; max-width:350px; border-radius:20px; overflow:hidden; border: 1px solid var(--primary); color: white; }
-        .modal-header-app { background: var(--header-bg); padding: 15px; font-weight: 900; text-align: center; }
+        .header-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+        }
 
-        #ticket-wrapper { position: absolute; left: -9999px; }
-        .pink-ticket { width: 350px; background: var(--pink-card); padding: 25px; color: #000; font-family: 'Arial', sans-serif; border: 1px solid #000; }
-        .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pink-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; height: 22px; }
+        /* Contenedor principal de vistas */
+        #main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px; /* Espacio para el menú inferior */
+        }
 
-        .photo-label { display: block; width: 80px; height: 80px; background: #333; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; border: 2px dashed var(--primary); }
+        .view {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 15px;
+            animation: viewSlideIn 0.3s ease-out;
+        }
+
+        .view.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        @keyframes viewSlideIn {
+            from { transform: translateY(15px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- 3. COMPONENTES ELEGANTES (Nexpen Style) --- */
+        
+        /* Tarjetas modernas */
+        .card {
+            background-color: var(--white);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            border: 1px solid var(--gray-100);
+        }
+        
+        .card:active {
+            transform: scale(0.99);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+
+        .card-header-app {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        /* Formularios profesionales */
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 14px 14px 40px; /* Espacio para el icono */
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            background-color: var(--gray-100);
+            font-size: 1rem;
+            color: var(--dark);
+            transition: border 0.3s, background-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background-color: var(--white);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 17px;
+            color: var(--gray-600);
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+        
+        input:focus + .input-icon {
+            color: var(--primary);
+        }
+
+        /* Botones grandes y táctiles */
+        .btn {
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-main {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-main:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .btn-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            background-color: var(--secondary);
+            color: var(--primary);
+            z-index: 999;
+            animation: fabEnter 0.5s ease-out 0.8s both;
+        }
+        
+        @keyframes fabEnter {
+            from { transform: scale(0) rotate(-90deg); opacity: 0; }
+            to { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        /* --- 4. LISTA DE CLIENTES Y DETALLES (Nido) --- */
+        .client-box {
+            background-color: var(--white);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 1px solid var(--gray-100);
+        }
+        
+        .cli-head {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        
+        .cli-head::after {
+            content: '\f078'; /* Icono chevron down */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 25px;
+            color: var(--gray-600);
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+        
+        .cli-head.expanded::after {
+            transform: rotate(180deg);
+        }
+
+        .client-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            object-fit: cover;
+            border: 2px solid var(--white);
+            box-shadow: 0 0 0 2px var(--gray-100);
+        }
+        
+        .cli-info h3 { margin: 0; font-size: 1rem; color: var(--gray-900); }
+        .cli-info p { margin: 2px 0 0; font-size: 0.8rem; color: var(--gray-600); }
+
+        .cli-body {
+            display: none;
+            padding: 15px;
+            background-color: var(--gray-100);
+            border-top: 1px solid #eee;
+        }
+        
+        .cli-body.expanded {
+            display: block;
+        }
+
+        /* Artículos dentro del cliente */
+        .art-nest-card {
+            background-color: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .art-nest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--gray-300);
+        }
+        
+        .art-nest-title { font-weight: 700; color: var(--dark); font-size: 0.9rem; }
+        .art-nest-price { font-weight: 700; color: var(--primary); }
+
+        /* --- 5. TICKET "TARJETA REAL" (Moderno) --- */
+        #ticket-wrapper {
+            position: absolute;
+            left: -9999px; /* Oculto en vista normal */
+            top: 0;
+        }
+        
+        .real-card-ticket {
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 18px;
+            position: relative;
+            font-family: 'OCR A Extended', 'Courier New', monospace; /* Tipo de letra de tarjeta */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+        
+        .ticket-chip {
+            width: 50px;
+            height: 38px;
+            background: linear-gradient(135deg, #f0ca1d 0%, #b8910d 100%);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .ticket-chip::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNMCA1MGgxMDBNMCAtNTBoMTAwTTAgMTUwaDEwME0wIC0xNTBoMTAwTTAgMjUwaDEwME0wIC0yNTBoMTAwTTUwIDB2MTAwTTUwIC0xMDB2MTAwTTUwIDEwMHYxMDBNNSAtMTUwdjEwME01MCAyNTB2MTAwTTUwIC0yNTB2MTAwTTAgMGw1MCA1ME0wIDEwMGw1MCAtNTBNMCAyMDBsNTAgLTUwTTAgLTEwMGw1MCA1ME0wIC0yMDBsNTAgNTBNMCAzMDBsNTAgLTUwIiBzdHJva2U9IiNhYWEiIHN0cm9rZS13aWR0aD0iMSIIGZpbGw9Im5vbmUiLz48L3N2Zz4=');
+            opacity: 0.3;
+        }
+        
+        .card-number {
+            font-size: 1.4rem;
+            letter-spacing: 2.5px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .holder-label {
+            font-family: 'Segoe UI', sans-serif;
+            text-transform: capitalize;
+            font-size: 0.65rem;
+            opacity: 0.7;
+            margin-bottom: 2px;
+            display: block;
+        }
+        
+        .card-holder-name {
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 70%;
+        }
+        
+        .card-details {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            text-align: right;
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+        
+        .t-brand {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-align: right;
+            text-transform: none;
+        }
+        
+        .t-brand img {
+            height: 25px;
+            margin-bottom: 2px;
+        }
+
+        /* --- 6. MODAL DE AVISO PERSONALIZADO --- */
+        #modal-avisos {
+            display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.8);
+            z-index:3000;
+            align-items:center;
+            justify-content:center;
+        }
+        
+        .modal-body {
+            background: var(--white);
+            width: 85%;
+            max-width: 380px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .modal-header-aviso {
+            background-color: var(--secondary);
+            color: var(--primary);
+            padding: 15px;
+            font-weight: 800;
+            text-align: center;
+        }
+        
+        .modal-content-aviso {
+            padding: 25px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+        
+        .modal-footer {
+            padding: 15px;
+            border-top: 1px solid var(--gray-300);
+            display: flex;
+            gap: 10px;
+        }
+        
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
 
-<header>
-    <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer; color:white;"><i class="fas fa-bars"></i></div>
-    <div class="brand" id="header-title">ABONERO APP</div>
-    <div style="width:30px"></div>
-</header>
-
-<div id="sidebar" class="sidebar">
-    <div class="sidebar-header">ABONERO APP</div>
-    <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta</div>
-    <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Nuevo Cliente</div>
-    <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cogs"></i> Personalizar</div>
-</div>
-
-<div class="container">
-    <div id="v-ruta" class="view active">
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="main-search" placeholder="Buscar por nombre..." onkeyup="filterClients()">
-        </div>
-        <button class="btn btn-route" onclick="smartRoute()">📍 ORDENAR POR DISTANCIA (GPS)</button>
-        <div id="lista-clientes"></div>
+    <div id="splash-screen">
+        <img id="splash-logo" src="image_2.png" alt="AboneroApp Logo">
+        <div id="splash-loader"></div>
+        <p style="color:var(--gray-600); font-weight:600; font-size: 1.1rem; margin-top: 20px;">Cargando AboneroApp Pro...</p>
     </div>
 
-    <div id="v-nueva" class="view">
-        <div class="card">
-            <h4>Registro de Cliente</h4>
-            <label class="photo-label">
-                <input type="file" id="reg-photo" accept="image/*" style="display:none" onchange="previewImg(event, 'prev-reg')">
-                <img id="prev-reg" src="" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:50%;">
-            </label>
-            <input type="text" id="reg-nom" placeholder="Nombre Completo">
-            
-            <label>Código Postal:</label>
-            <input type="number" id="reg-cp" placeholder="Ingresa CP de Pesquería o Zuazua..." oninput="filtrarColoniasLocales(this.value)">
-            
-            <label>Colonia / Asentamiento:</label>
-            <select id="reg-col" disabled><option value="">Ingresa CP primero</option></select>
-            
-            <label>Calle y Número:</label>
-            <input type="text" id="reg-calle" placeholder="Calle y No.">
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div><label>Municipio:</label><input type="text" id="reg-mun" readonly></div>
-                <div><label>Estado:</label><input type="text" id="reg-est" readonly></div>
+    <header>
+        <div class="brand-container">
+            <img class="header-logo" src="image_2.png" alt="Logo Small">
+            <div class="header-title">AboneroApp Pro</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <i class="fas fa-sort-amount-down" id="sort-gps" style="cursor:pointer;" onclick="orderByGps()"></i>
+        </div>
+    </header>
+
+    <div id="main-content">
+        
+        <div id="view-list" class="view active">
+            <div class="card">
+                <div class="card-header-app">Gestión de Cobro</div>
+                <div id="lista-clientes">
+                    </div>
             </div>
+            
+            <button class="btn-fab" onclick="showView('view-add')">
+                <i class="fas fa-plus" style="font-size: 1.5rem;"></i>
+            </button>
+        </div>
 
-            <label>Día de Cobro:</label>
-            <select id="reg-dia">
-                <option value="Lunes">Lunes</option><option value="Martes">Martes</option>
-                <option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option>
-                <option value="Viernes">Viernes</option><option value="Sábado">Sábado</option>
-                <option value="Domingo">Domingo</option>
-            </select>
-            <hr style="border-color:#333">
-            <input type="text" id="reg-art" placeholder="Mueble / Artículo">
-            <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
-            <button class="btn btn-main" onclick="confirmarRegistro()">GUARDAR CLIENTE</button>
+        <div id="view-add" class="view">
+            <div class="card">
+                <div class="card-header-app">Nuevo Registro de Venta</div>
+                
+                <div class="input-group">
+                    <input type="text" id="reg-nom" placeholder="Nombre completo del cliente" required>
+                    <i class="fas fa-user input-icon"></i>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="reg-dir" placeholder="Dirección completa">
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="reg-mueble" placeholder="Artículo o mueble vendido" required>
+                    <i class="fas fa-couch input-icon"></i>
+                </div>
+                
+                <div class="input-group">
+                    <input type="number" id="reg-saldo" placeholder="Saldo Inicial (ej. 5000)" required>
+                    <i class="fas fa-dollar-sign input-icon"></i>
+                </div>
+                
+                <p style="font-size: 0.8rem; color: var(--gray-600); margin: -5px 0 15px;">La foto y ubicación GPS se capturan automáticamente al guardar.</p>
+
+                <button class="btn btn-main" onclick="registrarVenta()">
+                    <i class="fas fa-save"></i> GUARDAR EN EL SISTEMA
+                </button>
+            </div>
         </div>
     </div>
 
-    <div id="v-config" class="view">
-        <div class="card">
-            <h4>Configurar Mueblería</h4>
-            <input type="text" id="cfg-nom" placeholder="Nombre de la Mueblería">
-            <input type="file" accept="image/*" onchange="previewImg(event, 'prev-logo', true)">
-            <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto;">
-            <button class="btn btn-main" onclick="applySettings()">GUARDAR CAMBIOS</button>
+    <div id="ticket-wrapper">
+        <div id="real-card-print" class="real-card-ticket">
+            <div class="t-brand">
+                <img src="image_2.png" alt="App Logo Small">
+                <div>ABONEROAPP PRO</div>
+            </div>
+            <div class="ticket-chip"></div>
+            <span class="card-number" id="t-card-num">**** **** **** 0000</span>
+            <div style="display:flex; justify-content:space-between; align-items:end;">
+                <div>
+                    <span class="holder-label">Cliente</span>
+                    <span class="card-holder-name" id="t-holder">NOMBRE DEL CLIENTE</span>
+                </div>
+            </div>
+            <div class="card-details">
+                VALID THRU <br>
+                <span id="t-date">MM/YY</span> <br>
+                ART: <span id="t-art">SALÓN</span>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="modal-ov">
-    <div class="modal-box">
-        <div class="modal-header-app">ABONERO APP</div>
-        <div id="m-body" style="padding:25px; text-align:center;"></div>
-        <div id="m-foot" style="padding:15px; border-top:1px solid #333; display:flex; gap:10px;"></div>
-    </div>
-</div>
-
-<div id="ticket-wrapper">
-    <div class="pink-ticket" id="final-ticket">
-        <div style="text-align: center;">
-            <img id="t-logo" style="max-height:40px; display:none; margin:0 auto;">
-            <h3 id="t-brand" style="margin:5px 0; text-transform:uppercase;">ABONERO APP</h3>
+    <div id="modal-avisos">
+        <div class="modal-body">
+            <div class="modal-header-aviso" id="modal-header">Aviso</div>
+            <div class="modal-content-aviso" id="modal-text">Mensaje.</div>
+            <div class="modal-footer" id="modal-actions">
+                <button class="btn btn-main" style="flex:1;" onclick="closeAviso()">ACEPTAR</button>
+            </div>
         </div>
-        <div style="font-size:11px; margin:10px 0; border-bottom:1px solid #000; padding-bottom:5px;">
-            <div>Cliente: <span id="t-nom"></span></div>
-            <div>Dirección: <span id="t-dir"></span></div>
-            <div>Artículo: <span id="t-art"></span></div>
-        </div>
-        <table class="pink-table"><tbody id="t-rows"></tbody></table>
     </div>
-</div>
 
 <script>
-    // BASE DE DATOS AMPLIADA (PESQUERÍA + ZUAZUA)
-    const DATA_CP = {
-        // ZUAZUA
-        "65750": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Las Arboledas", "Colonia General Zuazua Centro"] },
-        "65760": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Privadas de Santa Clara", "Colonia Carrizalejo", "Colonia Ejido Zuazua", "Colonia Pedro Martínez", "Fraccionamiento Real Palmas", "Fraccionamiento Misión de Santa Elena", "Fraccionamiento Las Bugambilias"] },
-        "65776": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Valle de Santa Elena"] },
-        "65780": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Hacienda San Pedro", "Fraccionamiento Portal del Norte", "Fraccionamiento Real San Pedro", "Colonia Portal de Zuazua"] },
-        // PESQUERÍA
-        "66650": { mun: "Pesquería", est: "Nuevo León", cols: ["Pueblo Pesquería"] },
-        "66653": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Villas Regina", "Colonia Desarrollo Solidaridad", "Colonia Jardines Floridos", "Fraccionamiento Paseo Lindavista", "Colonia Valles de Pesquería"] },
-        "66655": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Las Haciendas", "Colonia Floresta Residencial", "Fraccionamiento Arcos del Parque", "Fraccionamiento Privadas del Roble", "Fraccionamiento El Llano", "Pueblo Ladrillera (Entronque Pesquería)", "Colonia Zacatecas", "Colonia Colinas de Santa Engracia", "Colonia Colinas del Aeropuerto"] },
-        "66657": { mun: "Pesquería", est: "Nuevo León", cols: ["Zona industrial Airport Technology Park"] },
-        "66658": { mun: "Pesquería", est: "Nuevo León", cols: ["Colonia La Arena"] },
-        "66660": { mun: "Pesquería", est: "Nuevo León", cols: ["Colonia Los Girasoles", "Fraccionamiento Real de Loreto", "Fraccionamiento Las Aves Residencial and Golf Resort"] },
-        "66670": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Madiba", "Pueblo Dulces Nombres (La Lajita)", "Colonia Dulces Nombres", "Fraccionamiento Valle de Santa María"] },
-        "66672": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Modena", "Fraccionamiento Las Palmas", "Fraccionamiento Siena", "Fraccionamiento Los Olmos", "Fraccionamiento Paseo de San Javier"] },
-        "66673": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Cantoral", "Fraccionamiento Lomas Diamante", "Zona comercial SIGMA Alimentos Noreste", "Fraccionamiento Lomas de San Martín"] },
-        "66674": { mun: "Pesquería", est: "Nuevo León", cols: ["Colonia Jesús María"] },
-        "66675": { mun: "Pesquería", est: "Nuevo León", cols: ["Ejido Francisco Villa"] },
-        "66679": { mun: "Pesquería", est: "Nuevo León", cols: ["Ejido La Victoria", "Zona industrial Kía Motors", "Zona industrial Ternium Planta Pesquería", "Ejido La Arena"] },
-        "66680": { mun: "Pesquería", est: "Nuevo León", cols: ["Hacienda Santa María la Floreña"] },
-        "66683": { mun: "Pesquería", est: "Nuevo León", cols: ["Ranchería La Providencia"] },
-        "66690": { mun: "Pesquería", est: "Nuevo León", cols: ["Paraje Estación Milpa"] },
-        "66693": { mun: "Pesquería", est: "Nuevo León", cols: ["Ejido Santa María Pesquería"] }
-    };
+    // --- PERSISTENCIA Y CONFIGURACIÓN ---
+    const DB_KEY = "abonero_pro_db_v1";
+    let db = JSON.parse(localStorage.getItem(DB_KEY)) || {};
 
-    const KEY_DB = "ABO_PRO_V6_PESQUERIA";
-    const KEY_CFG = "ABO_CFG_V6_PESQUERIA";
-    let db = JSON.parse(localStorage.getItem(KEY_DB)) || {};
-    let config = JSON.parse(localStorage.getItem(KEY_CFG)) || { nombre: "ABONERO APP", logo: "" };
-    let tempLogo = config.logo;
+    // Manejo de la pantalla Splash
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            splash.classList.add('fade-out');
+            setTimeout(() => splash.style.display = 'none', 500);
+        }, 1500); // 1.5s de splash
+    });
 
-    function init() {
-        document.getElementById('header-title').innerText = config.nombre;
-        if(config.logo) {
-            document.getElementById('prev-logo').src = config.logo;
-            document.getElementById('prev-logo').style.display = 'block';
-            document.getElementById('t-logo').src = config.logo;
-            document.getElementById('t-logo').style.display = 'block';
-        }
-        renderClients();
+    // --- FUNCIONALIDADES DE VISTA ---
+    function showView(viewId) {
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.remove('active');
+        });
+        document.getElementById(viewId).classList.add('active');
+        render(); // Re-renderiza al cambiar de vista
     }
 
-    function filtrarColoniasLocales(cp) {
-        const colSelect = document.getElementById('reg-col');
-        const munInput = document.getElementById('reg-mun');
-        const estInput = document.getElementById('reg-est');
-        
-        if(DATA_CP[cp]) {
-            const info = DATA_CP[cp];
-            munInput.value = info.mun;
-            estInput.value = info.est;
-            colSelect.innerHTML = "";
-            info.cols.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c; opt.textContent = c;
-                colSelect.appendChild(opt);
+    // --- GESTIÓN DE AVISOS ---
+    function lanzarAviso(text, header = "Aviso") {
+        document.getElementById('modal-header').innerText = header;
+        document.getElementById('modal-text').innerText = text;
+        document.getElementById('modal-avisos').style.display = 'flex';
+    }
+
+    function closeAviso() {
+        document.getElementById('modal-avisos').style.display = 'none';
+    }
+
+    // --- GESTIÓN GPS ---
+    function orderByGps() {
+        lanzarAviso("⏳ Solicitando ubicación GPS para ordenar la ruta...", "Ruta");
+        navigator.geolocation.getCurrentPosition(pos => {
+            const myLat = pos.coords.latitude;
+            const myLon = pos.coords.longitude;
+            
+            // Ordenar clientes por distancia euclidiana
+            const ordered = Object.values(db).sort((a, b) => {
+                const distA = Math.sqrt(Math.pow(a.lat - myLat, 2) + Math.pow(a.lon - myLon, 2));
+                const distB = Math.sqrt(Math.pow(b.lat - myLat, 2) + Math.pow(b.lon - myLon, 2));
+                return distA - distB;
             });
-            colSelect.disabled = false;
-        } else {
-            colSelect.innerHTML = "<option>CP no registrado</option>";
-            colSelect.disabled = true;
-            munInput.value = ""; estInput.value = "";
-        }
-    }
 
-    function filterClients() {
-        const query = document.getElementById('main-search').value.toLowerCase();
-        const boxes = document.querySelectorAll('.cli-box');
-        boxes.forEach(box => {
-            const nombre = box.querySelector('strong').innerText.toLowerCase();
-            box.style.display = nombre.includes(query) ? 'block' : 'none';
+            // Re-mapear base de datos ordenada (aunque es un objeto)
+            let newDb = {};
+            ordered.forEach(cli => { newDb[cli.nombre] = cli; });
+            db = newDb; 
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            render();
+            closeAviso();
+            setTimeout(() => lanzarAviso("📍 Ruta ordenada por cercanía GPS.", "Ruta Exitosa"), 600);
+        }, () => {
+            closeAviso();
+            setTimeout(() => lanzarAviso("❌ Error GPS. Asegúrate de tener activa la ubicación en tu móvil.", "Error"), 600);
         });
     }
 
-    function smartRoute() {
-        avisar("📍 Calculando cercanía...");
-        navigator.geolocation.getCurrentPosition(pos => {
-            const myLat = pos.coords.latitude, myLon = pos.coords.longitude;
-            let arr = Object.values(db);
-            arr.forEach(c => c.dist = Math.sqrt(Math.pow(c.lat - myLat, 2) + Math.pow(c.lon - myLon, 2)));
-            arr.sort((a, b) => (a.dist || 0) - (b.dist || 0));
-            let newDb = {}; arr.forEach(c => newDb[c.nom] = c);
-            db = newDb; renderClients(); closeAviso();
-        }, () => avisar("⚠️ Activa el GPS."));
-    }
-
-    function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
-    function changeView(v) {
-        document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
-        document.getElementById(v).classList.add('active');
-        toggleMenu();
-    }
-
-    function avisar(msg, buttons = null) {
-        document.getElementById('m-body').innerHTML = msg;
-        document.getElementById('m-foot').innerHTML = buttons || `<button class="btn btn-main" onclick="closeAviso()">ACEPTAR</button>`;
-        document.getElementById('modal-ov').style.display = 'flex';
-    }
-    function closeAviso() { document.getElementById('modal-ov').style.display = 'none'; }
-
-    function previewImg(e, id, isLogo = false) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            document.getElementById(id).src = reader.result;
-            document.getElementById(id).style.display = 'block';
-            if(isLogo) tempLogo = reader.result;
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    }
-
-    function confirmarRegistro() {
+    // --- GESTIÓN DE REGISTRO ---
+    async function registrarVenta() {
         const nom = document.getElementById('reg-nom').value.trim();
-        if(!nom) return;
-        avisar(`¿Registrar a <b>${nom.toUpperCase()}</b>?`, `
-            <button class="btn btn-main" onclick="obtenerGpsYGuardar()">SÍ</button>
-            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
-        `);
-    }
+        const mueble = document.getElementById('reg-mueble').value.trim();
+        const saldoString = document.getElementById('reg-saldo').value;
+        const saldo = parseFloat(saldoString);
 
-    function obtenerGpsYGuardar() {
-        navigator.geolocation.getCurrentPosition(pos => {
-            saveClient(pos.coords.latitude, pos.coords.longitude);
-        }, () => saveClient(0, 0));
-    }
+        if (!nom || !mueble || isNaN(saldo)) {
+            lanzarAviso("⚠️ Por favor, completa todos los campos obligatorios (Nombre, Artículo y Saldo).");
+            return;
+        }
 
-    function saveClient(lat, lon) {
-        const nom = document.getElementById('reg-nom').value.toUpperCase().trim();
-        const street = document.getElementById('reg-calle').value;
-        const col = document.getElementById('reg-col').value;
-        const cp = document.getElementById('reg-cp').value;
-        const mun = document.getElementById('reg-mun').value;
-        const est = document.getElementById('reg-est').value;
-        const dia = document.getElementById('reg-dia').value;
-        const art = document.getElementById('reg-art').value;
-        const bal = parseFloat(document.getElementById('reg-saldo').value);
-        const photo = document.getElementById('prev-reg').src;
+        // 1. GPS
+        let lat = 0; let lon = 0;
+        lanzarAviso("⏳ Capturando ubicación GPS y registro...", "Guardando");
+        try {
+            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej));
+            lat = pos.coords.latitude; lon = pos.coords.longitude;
+        } catch (e) { console.log("GPS falló."); }
 
-        if(!db[nom]) db[nom] = { nom, street, col, cp, mun, est, dia, photo, lat, lon, cuentas: [] };
-        db[nom].cuentas.push({ id: Date.now(), mueble: art, saldo: bal, historial: [], liquidado: false });
+        // 2. Foto genérica (Se elimina la cámara para estabilidad)
+        const photo = `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(nom)}`;
+
+        // 3. Estructura de datos Nido
+        if (!db[nom]) {
+            db[nom] = {
+                nombre: nom,
+                direccion: document.getElementById('reg-dir').value.trim(),
+                foto: photo,
+                lat: lat, lon: lon,
+                creacion: new Date().getTime(),
+                cuentas: [] // Nido de múltiples muebles
+            };
+        }
+
+        // Agregar nueva cuenta al nido
+        const ctaId = new Date().getTime();
+        db[nom].cuentas.push({
+            id: ctaId,
+            articulo: mueble,
+            saldoOriginal: saldo,
+            saldoActual: saldo,
+            abonos: [] // Historial de abonos
+        });
+
+        // Guardar
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
         
-        localStorage.setItem(KEY_DB, JSON.stringify(db));
+        // Limpiar campos
+        document.querySelectorAll('#view-add input').forEach(inpt => inpt.value = "");
+        
         closeAviso();
-        document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
-        renderClients();
-        changeView('v-ruta');
+        setTimeout(() => lanzarAviso(`✅ Venta de ${mueble} registrada correctamente para ${nom}.`), 600);
+        showView('view-list');
     }
 
-    function renderClients() {
-        const list = document.getElementById('lista-clientes');
-        list.innerHTML = "";
+    // --- GESTIÓN DE ABONOS ---
+    function abrirCobro(clienteNom, cuentaId) {
+        // En AboneroApp Pro, el cobro se hace directo en la lista, no abre ventana nueva.
+        // Solo enfocamos y preparamos el input de abono
+        const inputId = `in-abono-${cuentaId}`;
+        document.getElementById(inputId).focus();
+    }
+
+    function confirmarAbono(clienteNom, cuentaId) {
+        const inputId = `in-abono-${cuentaId}`;
+        const inpt = document.getElementById(inputId);
+        const abo = parseFloat(inpt.value);
+
+        if (isNaN(abo) || abo <= 0) {
+            lanzarAviso("⚠️ Ingresa un monto válido mayor a 0.");
+            return;
+        }
+
+        const cuenta = db[clienteNom].cuentas.find(c => c.id === cuentaId);
+        const ant = cuenta.saldoActual;
+        const act = ant - abo;
+
+        lanzarAviso("⏳ Procesando abono y generando tarjeta...", "Abonando");
+        
+        setTimeout(async () => {
+            // Actualizar DB
+            cuenta.saldoActual = act;
+            cuenta.abonos.push({
+                fecha: new Date().toLocaleDateString(),
+                timestamp: new Date().getTime(),
+                monto: abo,
+                saldoAnterior: ant,
+                saldoNuevo: act
+            });
+
+            // Guardar
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+
+            // Limpiar input y renderizar
+            inpt.value = "";
+            render();
+
+            // Generar Ticket moderno "Tarjeta Real"
+            generarTicketModerno(clienteNom, cuenta.articulo, ant, abo, act);
+
+        }, 1200); // Pequeño delay profesional
+    }
+
+    // --- GENERACIÓN DE TICKET (Moderno) ---
+    function generarTicketModerno(clienteNom, mueble, ant, abo, act) {
+        // Llenar datos ocultos del ticket
+        document.getElementById('t-nom').innerText = clienteNom;
+        // Limitar nombre a 20 caracteres para que quepa en la tarjeta
+        document.getElementById('t-holder').innerText = clienteNom.length > 20 ? clienteNom.substring(0,20) + '...' : clienteNom;
+        document.getElementById('t-art').innerText = mueble;
+        document.getElementById('t-date').innerText = new Date().toLocaleDateString('es-ES', { month: '2-digit', year: '2-digit' });
+        
+        // Formatear saldo como número de tarjeta (últimos dígitos = saldo actual)
+        const actStr = String(Math.round(act));
+        document.getElementById('t-card-num').innerText = `**** **** **** ${actStr.padStart(4, '0')}`;
+
+        // Llenar tabla acumulable rosa (con estilo profesional en ticket moderno)
+        // Se elimina la tabla rosa original por diseño, ahora el ticket es la tarjeta.
+        // Si se requiere historial acumulable, debe ser una tarjeta por cada mueble.
+
+        const printArea = document.getElementById('real-card-print');
+        
+        setTimeout(() => {
+            html2canvas(printArea, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Comprobante_Abono_${clienteNom.replace(/ /g, '_')}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                closeAviso();
+                setTimeout(() => lanzarAviso(`✅ Abono registrado. Saldo: ${actStr}. Tarjeta descargada.`), 600);
+            });
+        }, 500); // Delay para que carguen fuentes/estilos
+    }
+
+    // --- RENDERIZADO ---
+    function render() {
+        const root = document.getElementById('lista-clientes');
+        root.innerHTML = "";
+
         Object.values(db).forEach(cli => {
-            let accountsHTML = cli.cuentas.map(c => `
-                <div class="art-card ${c.liquidado ? 'pagado' : ''}">
-                    <div class="art-head" onclick="toggleDisplay('acc-${c.id}')">
-                        <span>📦 ${c.mueble}</span>
-                        <b>${c.liquidado ? 'LIQUIDADO' : '$'+c.saldo}</b>
+            // Acordeón para clientes con múltiples cuentas
+            const cliId = `cli-body-${cli.nombre.replace(/ /g, '_')}`;
+            const headId = `cli-head-${cli.nombre.replace(/ /g, '_')}`;
+            
+            let cuentasHtml = cli.cuentas.map(cta => `
+                <div class="art-nest-card">
+                    <div class="art-nest-header">
+                        <span class="art-nest-title">📦 ${cta.articulo}</span>
+                        <span class="art-nest-price">$${cta.saldoActual}</span>
                     </div>
-                    <div id="acc-${c.id}" style="display:none; padding-top:10px; border-top:1px solid #444; margin-top:10px;">
-                        ${!c.liquidado ? `
-                            <input type="number" id="inp-${c.id}" placeholder="Monto $">
-                            <button class="btn btn-main" onclick="confirmarAbono('${cli.nom}', ${c.id})">ABONAR</button>
-                            <button class="btn btn-liquidar" onclick="confirmarLiquidacion('${cli.nom}', ${c.id})">LIQUIDAR</button>
-                        ` : ''}
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="number" id="in-abono-${cta.id}" placeholder="Monto" style="margin-bottom:0; flex:1;">
+                        <button class="btn btn-main" style="width:auto; padding:10px;" onclick="confirmarAbono('${cli.nombre}', ${cta.id})">
+                            <i class="fas fa-money-bill-wave"></i> COBRAR
+                        </button>
                     </div>
+                    <p style="font-size:0.75rem; color:var(--gray-600); margin:5px 0 0;">Deuda orig: $${cta.saldoOriginal}</p>
                 </div>
             `).join('');
 
-            list.innerHTML += `
-                <div class="cli-box">
-                    <div class="cli-head" onclick="toggleDisplay('cli-${cli.nom.replace(/\s/g,'')}')">
-                        <img src="${cli.photo || ''}" class="cli-photo">
+            root.innerHTML += `
+                <div class="client-box">
+                    <div class="cli-head" id="${headId}" onclick="toggleEl('${cliId}', '${headId}')">
+                        <img class="client-photo" src="${cli.foto}" alt="Cli">
                         <div class="cli-info">
-                            <strong>${cli.nom}</strong>
-                            <small>${cli.col} | Cobro: ${cli.dia}</small>
+                            <h3>${cli.nombre}</h3>
+                            <p><i class="fas fa-map-marker-alt" style="color:var(--gray-600)"></i> ${cli.direccion.length > 25 ? cli.direccion.substring(0,25) + '...' : cli.direccion}</p>
                         </div>
                     </div>
-                    <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
-                        ${accountsHTML}
-                        <button class="btn" style="background:#e17055; color:white; margin-top:10px;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col + ' ' + cli.mun)}')">🗺️ MAPS</button>
+                    <div class="cli-body" id="${cliId}">
+                        ${cuentasHtml}
                     </div>
                 </div>
             `;
         });
     }
 
-    function registrarAbono(cliName, accId) {
-        const inp = document.getElementById(`inp-${accId}`);
-        const monto = parseFloat(inp.value);
-        const cuenta = db[cliName].cuentas.find(a => a.id === accId);
-        const ant = cuenta.saldo;
-        cuenta.saldo = (ant - monto).toFixed(2);
-        cuenta.historial.push({ f: new Date().toLocaleDateString(), m: monto, r: cuenta.saldo });
-        localStorage.setItem(KEY_DB, JSON.stringify(db));
-        closeAviso();
-        renderClients();
-        generarTicket(cliName, cuenta);
-    }
-
-    function confirmarAbono(cli, id) {
-        const monto = document.getElementById(`inp-${id}`).value;
-        if(!monto) return;
-        avisar(`¿Abonar <b>$${monto}</b>?`, `
-            <button class="btn btn-main" onclick="registrarAbono('${cli}', ${id})">SÍ</button>
-            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
-        `);
-    }
-
-    function confirmarLiquidacion(cli, id) {
-        avisar(`¿Liquidar cuenta?`, `
-            <button class="btn btn-main" onclick="liquidarCuenta('${cli}', ${id})">SÍ</button>
-            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
-        `);
-    }
-
-    function liquidarCuenta(cli, id) {
-        const cuenta = db[cli].cuentas.find(a => a.id === id);
-        cuenta.saldo = 0; cuenta.liquidado = true;
-        localStorage.setItem(KEY_DB, JSON.stringify(db));
-        closeAviso(); renderClients();
-    }
-
-    function generarTicket(cliName, cuenta) {
-        const cli = db[cliName];
-        document.getElementById('t-nom').innerText = cliName;
-        document.getElementById('t-dir').innerText = cli.street + ", " + cli.col;
-        document.getElementById('t-art').innerText = cuenta.mueble;
-        const tbody = document.getElementById('t-rows');
-        tbody.innerHTML = "";
-        for(let i=0; i<15; i++) {
-            const h = cuenta.historial[i] || { f: "", m: "", r: "" };
-            tbody.innerHTML += `<tr><td>${h.f}</td><td>${h.m ? '$'+h.m : ''}</td><td>${h.r ? '$'+h.r : ''}</td></tr>`;
-        }
-        setTimeout(() => {
-            html2canvas(document.getElementById('final-ticket')).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Recibo_${cliName}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        }, 500);
-    }
-
-    function toggleDisplay(id) {
+    function toggleEl(id, headId) {
         const el = document.getElementById(id);
-        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        const head = document.getElementById(headId);
+        if (el.style.display === "block") {
+            el.style.display = "none";
+            head.classList.remove('expanded');
+        } else {
+            // Cerrar otros abiertos para experiencia App fluida
+            document.querySelectorAll('.cli-body').forEach(body => body.style.display = 'none');
+            document.querySelectorAll('.cli-head').forEach(headItem => headItem.classList.remove('expanded'));
+            el.style.display = "block";
+            head.classList.add('expanded');
+        }
     }
 
-    function applySettings() {
-        config.nombre = document.getElementById('cfg-nom').value.toUpperCase();
-        config.logo = tempLogo;
-        localStorage.setItem(KEY_CFG, JSON.stringify(config));
-        location.reload();
-    }
-
+    // Inicio
     init();
+
 </script>
 </body>
 </html>
