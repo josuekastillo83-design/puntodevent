@@ -3,318 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp - Mueblería Olimpo</title>
+    <title>AboneroApp Pro - Mueblería</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { 
+            --accent-color: #3483fa; /* Color dinámico */
             --ml-yellow: #fff159; 
-            --ml-blue: #3483fa; 
             --bg: #ebebeb; 
-            --text: #333;
         }
 
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; color: var(--text); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
         
-        /* Header y Logo */
-        header { background: var(--ml-yellow); padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top:0; z-index: 100; }
-        #logo-preview { max-height: 50px; display: block; margin: 5px auto; border-radius: 4px; }
-        .brand-name { font-weight: bold; font-size: 20px; text-transform: uppercase; margin: 5px 0; }
+        header { background: var(--ml-yellow); padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); sticky; top:0; z-index: 100; }
+        .logo-img { max-height: 60px; max-width: 150px; display: none; margin: 5px auto; border-radius: 4px; }
+        .brand-name { font-weight: bold; font-size: 20px; text-transform: uppercase; color: #333; }
 
         .container { max-width: 600px; margin: auto; padding: 10px; }
-        .box { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        h4 { margin: 0 0 10px 0; border-left: 4px solid var(--ml-blue); padding-left: 10px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         
-        /* Botones */
-        .btn { border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; transition: 0.3s; }
-        .btn-blue { background: var(--ml-blue); color: white; }
-        .btn-gps { background: #00b894; color: white; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-maps { background: #e17055; color: white; font-size: 12px; padding: 8px; margin-bottom: 10px; }
+        .btn { border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-accent { background: var(--accent-color); color: white; }
+        .btn-gps { background: #00b894; color: white; margin-bottom: 15px; }
 
-        /* Acordeones Clientes/Artículos */
-        .cliente-group { background: white; border-radius: 8px; margin-bottom: 12px; overflow: hidden; border: 1px solid #ddd; }
-        .cliente-header { background: #fff; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .cliente-info h3 { margin: 0; font-size: 16px; color: var(--ml-blue); }
-        .cliente-info small { color: #777; font-size: 11px; }
+        /* Tarjeta de Abonos Estilo Real */
+        .tabla-abonos { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .tabla-abonos th { background: #f4f4f4; padding: 8px; border: 1px solid #ddd; text-align: left; }
+        .tabla-abonos td { padding: 8px; border: 1px solid #ddd; }
 
-        .articulo-card { margin: 10px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
-        .articulo-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
-        .articulo-body { display: none; padding: 15px; background: white; border-top: 1px solid #eee; }
+        /* Acordeones */
+        .cliente-card { background: white; border-radius: 12px; margin-bottom: 12px; overflow: hidden; border-left: 6px solid var(--accent-color); }
+        .cliente-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .cliente-header h3 { margin: 0; font-size: 17px; }
         
-        .historial-item { font-size: 12px; padding: 8px 0; border-bottom: 1px dotted #ccc; display: flex; justify-content: space-between; align-items: center; }
+        .articulo-body { display: none; padding: 15px; border-top: 1px solid #eee; }
         .active { display: block !important; }
 
-        /* Modal Personalizado */
-        #custom-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; }
-        .modal-content { background:white; width:85%; max-width:350px; border-radius:15px; overflow:hidden; text-align:center; animation: pop 0.3s ease; }
-        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* Modales */
+        #modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:2000; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box; }
+        .modal-box { background:white; width:100%; max-width:400px; border-radius:15px; overflow:hidden; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
 
-        /* Ticket de Pago (Oculto para captura) */
-        #ticket-print { position: absolute; left: -9999px; width: 350px; background: white; padding: 30px; text-align: center; color: black; }
+        /* Ticket de Pago */
+        #ticket-print { position: absolute; left: -9999px; width: 350px; background: white; padding: 25px; text-align: center; color: black; border: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<header>
-    <img id="logo-preview" src="" style="display:none">
-    <div class="brand-name" id="display-muebleria">ABONERO APP</div>
+<header id="app-header">
+    <img id="header-logo" class="logo-img" src="">
+    <div class="brand-name" id="header-title">ABONERO APP</div>
 </header>
 
 <div class="container">
-    <button class="btn btn-gps" onclick="optimizarRuta()">📍 INICIAR RUTA (ORDENAR POR GPS)</button>
+    <button class="btn btn-gps" onclick="optimizarRuta()">📍 ORDENAR RUTA INTELIGENTE</button>
 
     <div class="box">
-        <h4>⚙️ Configuración</h4>
-        <input type="text" id="cfg-nombre" placeholder="Nombre de la Mueblería" onchange="guardarNombre()">
-        <label style="font-size:12px; display:block; margin-top:5px;">Subir Logotipo:</label>
-        <input type="file" id="cfg-logo" accept="image/*" onchange="procesarLogo(event)">
+        <h4>🎨 Personalización</h4>
+        <input type="text" id="cfg-nombre" placeholder="Nombre de la Mueblería" onchange="actualizarConfig()">
+        <label style="font-size:12px">Color de la Mueblería:</label>
+        <input type="color" id="cfg-color" value="#3483fa" onchange="actualizarConfig()">
+        <label style="font-size:12px; margin-top:10px; display:block;">Cargar Logotipo:</label>
+        <input type="file" id="cfg-logo" accept="image/*" onchange="procesarImagen(event)">
     </div>
 
     <div class="box">
-        <h4>➕ Registro de Venta Nueva</h4>
+        <h4>➕ Nueva Venta</h4>
         <input type="text" id="reg-nombre" placeholder="Nombre del Cliente">
-        <input type="text" id="reg-dir" placeholder="Dirección Completa">
-        <button class="btn btn-maps" onclick="verificarMapa()">🌐 Verificar en Google Maps</button>
-        <input type="text" id="reg-mueble" placeholder="Artículo (ej. Sala, Comedor...)">
+        <input type="text" id="reg-dir" placeholder="Dirección">
+        <input type="text" id="reg-mueble" placeholder="Artículo">
         <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
-        <button class="btn btn-blue" id="btn-registrar" onclick="agregarVenta()">REGISTRAR VENTA</button>
+        <button class="btn btn-accent" id="btn-reg" onclick="registrarVenta()">REGISTRAR EN ABONEROAPP</button>
     </div>
 
-    <div id="lista-clientes-root"></div>
+    <div id="lista-clientes"></div>
+</div>
+
+<div id="modal-overlay">
+    <div class="modal-box">
+        <div id="modal-header" style="padding:15px; font-weight:bold; text-align:center; background:var(--ml-yellow);">AboneroApp</div>
+        <div id="modal-body" style="padding:20px;"></div>
+        <div id="modal-footer"></div>
+    </div>
 </div>
 
 <div id="ticket-print">
-    <img id="t-logo" src="" style="max-height:80px; margin-bottom:10px">
+    <img id="t-logo" src="" style="max-height:80px; margin-bottom:10px; display:none;">
     <h2 id="t-muebleria" style="margin:0; text-transform:uppercase;"></h2>
-    <p style="margin:5px 0; font-size:14px;">Comprobante de Abono</p>
     <hr>
-    <div style="text-align:left; font-size:14px; line-height:1.6;">
+    <div style="text-align:left; font-size:14px;">
         <p><strong>FECHA:</strong> <span id="t-fecha"></span></p>
         <p><strong>CLIENTE:</strong> <span id="t-cliente"></span></p>
         <p><strong>DIRECCIÓN:</strong> <span id="t-dir"></span></p>
-        <p><strong>ARTÍCULO:</strong> <span id="t-articulo"></span></p>
+        <p><strong>ARTÍCULO:</strong> <span id="t-art"></span></p>
         <hr>
         <p>SALDO ANTERIOR: <span id="t-ant"></span></p>
         <p>ABONO: <span id="t-abo"></span></p>
-        <div style="background:#f2f2f2; padding:15px; border-radius:8px; margin-top:10px; text-align:center;">
-            <p style="font-size:22px; margin:0"><strong>SALDO ACTUAL: <span id="t-act"></span></strong></p>
+        <div style="background:#eee; padding:10px; text-align:center; font-size:20px;">
+            <strong>SALDO ACTUAL: <span id="t-act"></span></strong>
         </div>
-    </div>
-    <p style="margin-top:20px; font-size:10px; color:#555;">¡Gracias por su pago! Conserve esta imagen.</p>
-</div>
-
-<div id="custom-modal">
-    <div class="modal-content">
-        <div style="background:var(--ml-yellow); padding:15px; font-weight:bold; font-size:18px;">AboneroApp</div>
-        <div id="modal-message" style="padding:25px; color:#444; font-size:15px;"></div>
-        <button onclick="cerrarModal()" style="width:100%; border:none; background:var(--ml-blue); color:white; padding:15px; font-weight:bold; font-size:16px;">ACEPTAR</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('abonero_db')) || {};
-    let logoData = localStorage.getItem('abonero_logo') || "";
-    let nombreMuebleria = localStorage.getItem('abonero_nombre_cfg') || "MUEBLERÍA";
+    let db = JSON.parse(localStorage.getItem('abo_db')) || {};
+    let config = JSON.parse(localStorage.getItem('abo_cfg')) || { nombre: "ABONERO APP", color: "#3483fa", logo: "" };
 
-    // Inicializar app
-    document.getElementById('display-muebleria').innerText = nombreMuebleria;
-    document.getElementById('cfg-nombre').value = nombreMuebleria;
-    mostrarLogo();
-    render();
-
-    function avisar(msg) {
-        document.getElementById('modal-message').innerText = msg;
-        document.getElementById('custom-modal').style.display = 'flex';
+    function init() {
+        document.documentElement.style.setProperty('--accent-color', config.color);
+        document.getElementById('header-title').innerText = config.nombre;
+        document.getElementById('cfg-nombre').value = config.nombre;
+        document.getElementById('cfg-color').value = config.color;
+        aplicarLogo();
+        render();
     }
 
-    function cerrarModal() {
-        document.getElementById('custom-modal').style.display = 'none';
+    function actualizarConfig() {
+        config.nombre = document.getElementById('cfg-nombre').value.toUpperCase();
+        config.color = document.getElementById('cfg-color').value;
+        document.documentElement.style.setProperty('--accent-color', config.color);
+        document.getElementById('header-title').innerText = config.nombre;
+        localStorage.setItem('abo_cfg', JSON.stringify(config));
     }
 
-    function procesarLogo(e) {
+    function procesarImagen(e) {
         const reader = new FileReader();
         reader.onload = function() {
-            logoData = reader.result;
-            localStorage.setItem('abonero_logo', logoData);
-            mostrarLogo();
+            config.logo = reader.result;
+            localStorage.setItem('abo_cfg', JSON.stringify(config));
+            aplicarLogo();
+            lanzarModal("✅ Logotipo actualizado correctamente.");
         };
         reader.readAsDataURL(e.target.files[0]);
     }
 
-    function mostrarLogo() {
-        if(logoData) {
-            document.getElementById('logo-preview').src = logoData;
-            document.getElementById('logo-preview').style.display = 'block';
-            document.getElementById('t-logo').src = logoData;
+    function aplicarLogo() {
+        const logoH = document.getElementById('header-logo');
+        const logoT = document.getElementById('t-logo');
+        if(config.logo) {
+            logoH.src = config.logo; logoH.style.display = 'block';
+            logoT.src = config.logo; logoT.style.display = 'inline-block';
         }
     }
 
-    function guardarNombre() {
-        nombreMuebleria = document.getElementById('cfg-nombre').value.toUpperCase();
-        localStorage.setItem('abonero_nombre_cfg', nombreMuebleria);
-        document.getElementById('display-muebleria').innerText = nombreMuebleria;
+    function lanzarModal(msg, footerHtml = '') {
+        document.getElementById('modal-body').innerHTML = msg;
+        document.getElementById('modal-footer').innerHTML = footerHtml || `<button class="btn btn-accent" onclick="cerrarModal()">ACEPTAR</button>`;
+        document.getElementById('modal-overlay').style.display = 'flex';
     }
 
-    function verificarMapa() {
-        const dir = document.getElementById('reg-dir').value;
-        if(dir) window.open(`https://www.google.com/maps/search/${encodeURIComponent(dir)}`, '_blank');
-        else avisar("Escribe una dirección primero");
-    }
+    function cerrarModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-    function agregarVenta() {
-        const btn = document.getElementById('btn-registrar');
-        const nombre = document.getElementById('reg-nombre').value.toUpperCase().trim();
-        const dir = document.getElementById('reg-dir').value.trim();
-        const mueble = document.getElementById('reg-mueble').value.trim();
-        const saldo = parseFloat(document.getElementById('reg-saldo').value);
+    function registrarVenta() {
+        const n = document.getElementById('reg-nombre').value.toUpperCase().trim();
+        const d = document.getElementById('reg-dir').value.trim();
+        const m = document.getElementById('reg-mueble').value.trim();
+        const s = parseFloat(document.getElementById('reg-saldo').value);
 
-        if(!nombre || !mueble || isNaN(saldo)) return avisar("⚠️ Por favor completa los campos obligatorios.");
+        if(!n || !m || isNaN(s)) return lanzarModal("⚠️ Completa los campos requeridos.");
 
-        btn.disabled = true;
-        btn.innerText = "⏳ REGISTRANDO...";
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => registrarFinal(pos, nombre, dir, mueble, saldo),
-            () => registrarFinal(null, nombre, dir, mueble, saldo),
-            { timeout: 5000 }
-        );
-    }
-
-    function registrarFinal(pos, nombre, dir, mueble, saldo) {
-        const lat = pos ? pos.coords.latitude : 0;
-        const lon = pos ? pos.coords.longitude : 0;
-
-        if(!db[nombre]) {
-            db[nombre] = { nombre, direccion: dir, lat, lon, articulos: [] };
-        }
+        document.getElementById('btn-reg').disabled = true;
         
-        db[nombre].articulos.push({
-            id: Date.now(),
-            descripcion: mueble,
-            saldo: saldo,
-            historial: []
-        });
-
-        localStorage.setItem('abonero_db', JSON.stringify(db));
-        
-        // Limpiar campos
-        document.getElementById('reg-nombre').value = "";
-        document.getElementById('reg-dir').value = "";
-        document.getElementById('reg-mueble').value = "";
-        document.getElementById('reg-saldo').value = "";
-        
-        const btn = document.getElementById('btn-registrar');
-        btn.disabled = false;
-        btn.innerText = "REGISTRAR VENTA";
-        
-        render();
-        avisar("✅ Venta registrada correctamente en AboneroApp");
+        navigator.geolocation.getCurrentPosition(pos => {
+            const lat = pos.coords.latitude, lon = pos.coords.longitude;
+            if(!db[n]) db[n] = { nombre: n, direccion: d, lat, lon, cuentas: [] };
+            db[n].cuentas.push({ id: Date.now(), articulo: m, saldo: s, historial: [] });
+            guardarYRender();
+            lanzarModal("✅ Venta registrada con éxito.");
+            document.getElementById('reg-nombre').value = ""; document.getElementById('reg-dir').value = "";
+            document.getElementById('reg-mueble').value = ""; document.getElementById('reg-saldo').value = "";
+            document.getElementById('btn-reg').disabled = false;
+        }, () => lanzarModal("❌ Error de GPS. Activa la ubicación."));
     }
 
     function render() {
-        const root = document.getElementById('lista-clientes-root');
-        root.innerHTML = "<h4>Ruta de Cobro Actual</h4>";
-        
-        Object.values(db).forEach(cliente => {
-            let articulosHTML = cliente.articulos.map(art => `
-                <div class="articulo-card">
-                    <div class="articulo-header" onclick="event.stopPropagation(); toggle('art-${art.id}')">
-                        <span>📦 ${art.descripcion}</span>
-                        <span style="color:var(--ml-blue)">$${art.saldo}</span>
+        const root = document.getElementById('lista-clientes');
+        root.innerHTML = "<h4>Ruta de Cobro</h4>";
+        Object.values(db).forEach(cli => {
+            let cuentasHtml = cli.cuentas.map(c => `
+                <div style="border:1px solid #eee; margin:10px; border-radius:8px; padding:10px; background:#fafafa">
+                    <div style="display:flex; justify-content:space-between">
+                        <strong>📦 ${c.articulo}</strong>
+                        <b style="color:var(--accent-color)">$${c.saldo}</b>
                     </div>
-                    <div class="articulo-body" id="art-${art.id}">
-                        <button class="btn btn-blue" onclick="cobrar('${cliente.nombre}', ${art.id})">REGISTRAR ABONO</button>
-                        <div style="margin-top:12px; border-top:1px solid #eee; padding-top:8px;">
-                            <strong>Movimientos:</strong>
-                            ${art.historial.map(h => `
-                                <div class="historial-item">
-                                    <span>${h.fecha.split(',')[0]}</span>
-                                    <span>$${h.monto}</span>
-                                    <button class="btn-maps" style="margin:0; padding:4px 8px;" onclick="generarTicket('${cliente.nombre}', '${art.descripcion}', ${h.anterior}, ${h.monto}, ${h.actual}, '${h.fecha}')">📸 Foto</button>
-                                </div>
-                            `).reverse().join('')}
-                        </div>
-                    </div>
+                    <button class="btn btn-accent" style="margin-top:10px; padding:8px" onclick="abrirCobro('${cli.nombre}', ${c.id})">ABONAR</button>
+                    <button class="btn" style="margin-top:5px; padding:8px; background:#ddd" onclick="verTarjeta('${cli.nombre}', ${c.id})">VER TARJETA DE ABONOS</button>
                 </div>
             `).join('');
 
             root.innerHTML += `
-                <div class="cliente-group">
-                    <div class="cliente-header" onclick="toggle('cli-${cliente.nombre.replace(/\s/g,'')}')">
-                        <div class="cliente-info">
-                            <h3>👤 ${cliente.nombre}</h3>
-                            <small>📍 ${cliente.direccion}</small>
-                        </div>
-                        <span style="font-size:18px">▶</span>
+                <div class="cliente-card">
+                    <div class="cliente-header" onclick="document.getElementById('c-${cli.nombre.replace(/\s/g,'')}').classList.toggle('active')">
+                        <div><b>${cli.nombre}</b><br><small>${cli.direccion}</small></div>
+                        <span>▼</span>
                     </div>
-                    <div class="articulo-body" id="cli-${cliente.nombre.replace(/\s/g,'')}">
-                        ${articulosHTML}
-                    </div>
+                    <div class="articulo-body" id="c-${cli.nombre.replace(/\s/g,'')}">${cuentasHtml}</div>
                 </div>
             `;
         });
     }
 
-    function cobrar(nombreCliente, artId) {
-        const art = db[nombreCliente].articulos.find(a => a.id === artId);
-        const monto = parseFloat(prompt(`Saldo actual: $${art.saldo}\n¿Cuánto abona el cliente?`));
-        if(!monto || isNaN(monto)) return;
-
-        const anterior = art.saldo;
-        art.saldo = (anterior - monto).toFixed(2);
-        const fecha = new Date().toLocaleString();
-
-        art.historial.push({ fecha, anterior, monto, actual: art.saldo });
-        localStorage.setItem('abonero_db', JSON.stringify(db));
-        render();
-        generarTicket(nombreCliente, art.descripcion, anterior, monto, art.saldo, fecha);
+    function abrirCobro(cliente, id) {
+        lanzarModal(`
+            <h3>Cobrar a ${cliente}</h3>
+            <input type="number" id="monto-abono" placeholder="Cantidad a abonar $">
+        `, `<button class="btn btn-accent" onclick="confirmarCobro('${cliente}', ${id})">CONFIRMAR ABONO</button>`);
     }
 
-    function generarTicket(cliente, mueble, ant, abo, act, fecha) {
-        document.getElementById('t-muebleria').innerText = nombreMuebleria;
-        document.getElementById('t-cliente').innerText = cliente;
-        document.getElementById('t-dir').innerText = db[cliente].direccion;
-        document.getElementById('t-articulo').innerText = mueble;
+    function confirmarCobro(cliente, id) {
+        const monto = parseFloat(document.getElementById('monto-abono').value);
+        if(!monto) return;
+        const c = db[cliente].cuentas.find(x => x.id === id);
+        const ant = c.saldo;
+        c.saldo = (ant - monto).toFixed(2);
+        const fecha = new Date().toLocaleString();
+        c.historial.push({ fecha, ant, monto, act: c.saldo });
+        guardarYRender();
+        generarTicket(cliente, c.articulo, ant, monto, c.saldo, fecha);
+    }
+
+    function verTarjeta(cliente, id) {
+        const c = db[cliente].cuentas.find(x => x.id === id);
+        let filas = c.historial.map(h => `
+            <tr><td>${h.fecha}</td><td>$${h.ant}</td><td>$${h.monto}</td><td>$${h.act}</td></tr>
+        `).join('');
+        lanzarModal(`
+            <h4>Historial: ${c.articulo}</h4>
+            <table class="tabla-abonos">
+                <tr><th>Fecha</th><th>Ant.</th><th>Abono</th><th>Actual</th></tr>
+                ${filas || '<tr><td colspan="4">Sin abonos</td></tr>'}
+            </table>
+        `);
+    }
+
+    function generarTicket(cli, art, ant, abo, act, f) {
+        document.getElementById('t-muebleria').innerText = config.nombre;
+        document.getElementById('t-cliente').innerText = cli;
+        document.getElementById('t-dir').innerText = db[cli].direccion;
+        document.getElementById('t-art').innerText = art;
         document.getElementById('t-ant').innerText = "$" + ant;
         document.getElementById('t-abo').innerText = "$" + abo;
         document.getElementById('t-act').innerText = "$" + act;
-        document.getElementById('t-fecha').innerText = fecha;
-
-        avisar("Generando imagen del comprobante...");
+        document.getElementById('t-fecha').innerText = f;
 
         setTimeout(() => {
             html2canvas(document.getElementById('ticket-print')).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Recibo_${cliente}_${mueble}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.download = `Recibo_${cli}.png`;
+                link.href = canvas.toDataURL();
                 link.click();
                 cerrarModal();
             });
-        }, 800);
+        }, 500);
     }
 
+    function guardarYRender() { localStorage.setItem('abo_db', JSON.stringify(db)); render(); }
+    
     function optimizarRuta() {
-        avisar("Buscando ubicación actual...");
         navigator.geolocation.getCurrentPosition(pos => {
-            let arr = Object.values(db);
-            arr.forEach(c => {
-                c.d = Math.sqrt(Math.pow(c.lat - pos.coords.latitude, 2) + Math.pow(c.lon - pos.coords.longitude, 2));
-            });
-            arr.sort((a,b) => a.d - b.d);
-            let nuevoDb = {};
-            arr.forEach(c => nuevoDb[c.nombre] = c);
-            db = nuevoDb;
-            render();
-            avisar("📍 Ruta inteligente calculada. Clientes ordenados por cercanía.");
+            let clis = Object.values(db);
+            clis.forEach(c => c.dist = Math.sqrt(Math.pow(c.lat - pos.coords.latitude, 2) + Math.pow(c.lon - pos.coords.longitude, 2)));
+            clis.sort((a,b) => a.dist - b.dist);
+            let nDb = {}; clis.forEach(c => nDb[c.nombre] = c);
+            db = nDb; render(); lanzarModal("📍 Ruta ordenada por cercanía.");
         });
     }
 
-    function toggle(id) {
-        const el = document.getElementById(id);
-        const disp = window.getComputedStyle(el).display;
-        el.style.display = (disp === 'none') ? 'block' : 'none';
-    }
+    init();
 </script>
 </body>
 </html>
