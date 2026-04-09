@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABONERO APP - Oficial</title>
+    <title>ABONERO APP - Profesional</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -16,113 +16,65 @@
             --bg: #f8f9fa;
             --card-bg: #ffffff;
             --text-main: #2d3436;
-            --pink-card: #ffc0cb; /* Color de la tarjeta física rosa */
+            --pink-card: #ffc0cb;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
 
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            margin: 0;
-            background-color: var(--bg);
-            color: var(--text-main);
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        header {
-            background: var(--secondary);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
+        /* UI Base */
+        header { background: var(--secondary); padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
         .brand { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Sidebar / Menú Lateral */
-        .sidebar {
-            position: fixed;
-            left: -100%;
-            top: 0;
-            width: 85%;
-            max-width: 300px;
-            height: 100%;
-            background: white;
-            z-index: 2000;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
-        }
+        
+        .sidebar { position: fixed; left: -100%; top: 0; width: 85%; max-width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.4s; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
         .sidebar.open { left: 0; }
-        .sidebar-header { background: var(--secondary); padding: 30px; font-weight: 800; text-align: center; }
         .sidebar-item { padding: 18px 25px; border-bottom: 1px solid #f0f0f0; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 15px; }
 
         .container { padding: 15px; max-width: 600px; margin: auto; }
-        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view { display: none; }
         .view.active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Tarjetas y Formularios */
         .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h4 { margin: 0 0 15px 0; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 10px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 10px; margin-bottom: 12px; outline: none; font-size: 16px; }
         
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .full { grid-column: 1 / 3; }
-
-        label { font-size: 0.75rem; font-weight: 700; color: #636e72; margin-bottom: 5px; display: block; }
-        input { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 10px; box-sizing: border-box; font-size: 1rem; margin-bottom: 12px; outline: none; }
-        input:focus { border-color: var(--primary); }
-
-        /* Botones */
-        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-main { background: var(--primary); color: white; }
         .btn-route { background: var(--success); color: white; margin-bottom: 20px; }
-        .btn-add-item { background: #f0f4ff; color: var(--primary); border: 1px dashed var(--primary); margin-top: 10px; }
 
-        /* Lista de Clientes (Colapsables) */
-        .cli-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* Clientes y Colapsables */
+        .cli-box { background: white; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; }
         .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #fff; }
-        .cli-info { flex-grow: 1; }
-        .cli-info strong { display: block; font-size: 1rem; }
-        .cli-info small { color: #b2bec3; font-size: 0.75rem; }
-
+        .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #eee; }
         .cli-body { display: none; padding: 15px; background: #fafafa; border-top: 1px solid #f0f0f0; }
 
-        /* Artículos */
+        /* Alertas de Cobro */
+        .dia-alerta { font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; background: #ffeaa7; color: #d35400; font-weight: bold; margin-top: 5px; display: inline-block; }
+        .hoy-toca { background: #55efc4; color: #00b894; }
+
+        /* Artículos y Historial Elegante */
         .art-card { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px; }
-        .art-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; }
-        .art-content { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #dfe6e9; }
+        .historial-toggle { background: #f1f3f4; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; color: var(--primary); cursor: pointer; margin-top: 10px; display: flex; justify-content: space-between; }
+        .historial-desglose { display: none; padding: 10px 0; }
+        
+        .row-hist { border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 0.85rem; }
+        .row-hist:last-child { border: none; }
+        .badge-saldo { color: #636e72; font-size: 0.75rem; display: block; }
 
-        /* Modal */
-        #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center; }
-        .modal-box { background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; animation: pop 0.2s; }
+        /* Modal Personalizado */
+        #modal-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center; }
+        .modal-box { background:white; width:85%; max-width:350px; border-radius:20px; overflow:hidden; animation: pop 0.2s; }
+        @keyframes pop { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
 
-        /* Ticket Rosa (Estilo Tarjeta de Abonos) */
+        /* Ticket Rosa */
         #ticket-wrapper { position: absolute; left: -9999px; }
         .pink-ticket { width: 350px; background: var(--pink-card); padding: 25px; color: #000; font-family: 'Arial', sans-serif; border: 1px solid #000; }
-        .pink-header { border-bottom: 2px solid #000; margin-bottom: 15px; padding-bottom: 10px; }
-        .pink-header div { border-bottom: 1px solid #000; margin-bottom: 5px; padding-bottom: 2px; font-weight: bold; text-transform: uppercase; font-size: 11px; }
-        .pink-table { width: 100%; border-collapse: collapse; }
+        .pink-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .pink-table th, .pink-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; height: 22px; }
 
-        .photo-input-label { display: block; width: 100px; height: 100px; background: #eee; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; overflow: hidden; border: 2px dashed var(--primary); }
-        .photo-input-label img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-label { display: block; width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; overflow: hidden; border: 2px dashed var(--primary); }
     </style>
 </head>
 <body>
-
-<div id="sidebar" class="sidebar">
-    <div class="sidebar-header" id="side-brand">ABONERO APP</div>
-    <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta Diaria</div>
-    <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Registrar Cliente</div>
-    <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cog"></i> Configurar Mueblería</div>
-</div>
 
 <header>
     <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer;"><i class="fas fa-bars"></i></div>
@@ -130,95 +82,90 @@
     <div style="width:30px"></div>
 </header>
 
+<div id="sidebar" class="sidebar">
+    <div style="background:var(--secondary); padding:30px; font-weight:900; text-align:center;">MENU</div>
+    <div class="sidebar-item" onclick="changeView('v-ruta')"><i class="fas fa-route"></i> Mi Ruta Diaria</div>
+    <div class="sidebar-item" onclick="changeView('v-nueva')"><i class="fas fa-user-plus"></i> Registrar Cliente</div>
+    <div class="sidebar-item" onclick="changeView('v-config')"><i class="fas fa-cogs"></i> Personalizar App</div>
+</div>
+
 <div class="container">
     
     <div id="v-ruta" class="view active">
-        <button class="btn btn-route" onclick="smartRoute()">
-            <i class="fas fa-map-marked-alt"></i> RUTA INTELIGENTE (C.P.)
-        </button>
+        <button class="btn btn-route" onclick="smartRoute()">📍 RUTA INTELIGENTE (CP)</button>
         <div id="lista-clientes"></div>
     </div>
 
     <div id="v-nueva" class="view">
         <div class="card">
-            <h4>Registro de Cliente</h4>
-            <label class="photo-input-label">
+            <h4>Nuevo Cliente</h4>
+            <label class="photo-label">
                 <input type="file" id="reg-photo" accept="image/*" style="display:none" onchange="previewImg(event, 'prev-reg')">
-                <img id="prev-reg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ccc' d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E">
+                <img id="prev-reg" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
             </label>
             <input type="text" id="reg-nom" placeholder="Nombre Completo">
-            <div class="form-grid">
-                <div class="full"><input type="text" id="reg-calle" placeholder="Calle y Número"></div>
-                <input type="text" id="reg-col" placeholder="Colonia">
-                <input type="number" id="reg-cp" placeholder="C.P.">
-                <input type="text" id="reg-mun" placeholder="Municipio">
-                <input type="text" id="reg-est" placeholder="Estado">
-            </div>
+            <input type="text" id="reg-calle" placeholder="Calle y Número">
+            <input type="text" id="reg-col" placeholder="Colonia">
+            <input type="number" id="reg-cp" placeholder="C.P.">
+            <select id="reg-dia">
+                <option value="Lunes">Lunes</option><option value="Martes">Martes</option>
+                <option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option>
+                <option value="Viernes">Viernes</option><option value="Sábado">Sábado</option>
+                <option value="Domingo">Domingo</option>
+            </select>
             <hr>
-            <h4>Detalle de Venta</h4>
-            <input type="text" id="reg-art" placeholder="Artículo (ej. Sala, Refri)">
-            <input type="number" id="reg-saldo" placeholder="Saldo Inicial $">
+            <input type="text" id="reg-art" placeholder="Artículo">
+            <input type="number" id="reg-saldo" placeholder="Saldo inicial $">
             <button class="btn btn-main" onclick="saveClient()">GUARDAR VENTA</button>
         </div>
     </div>
 
     <div id="v-config" class="view">
         <div class="card">
-            <h4>Ajustes de Marca</h4>
-            <label>Nombre de la Mueblería</label>
-            <input type="text" id="cfg-nom" placeholder="Ej. Mueblería Olimpo">
-            <label>Logotipo</label>
+            <h4>Ajustes</h4>
+            <input type="text" id="cfg-nom" placeholder="Nombre de la Mueblería">
             <input type="file" accept="image/*" onchange="previewImg(event, 'prev-logo', true)">
-            <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto; border-radius:8px;">
-            <button class="btn btn-main" onclick="applySettings()">APLICAR Y CONFIRMAR</button>
+            <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto;">
+            <button class="btn btn-main" onclick="applySettings()">CONFIRMAR CAMBIOS</button>
         </div>
     </div>
 </div>
 
 <div id="modal-ov">
     <div class="modal-box">
-        <div id="m-head" style="background:var(--secondary); padding:15px; font-weight:800; text-align:center;">AboneroApp</div>
-        <div id="m-body" style="padding:25px; text-align:center; font-weight:600;"></div>
-        <div id="m-foot" style="padding:10px; border-top:1px solid #eee;"></div>
+        <div style="background:var(--secondary); padding:15px; font-weight:900; text-align:center;">AboneroApp</div>
+        <div id="m-body" style="padding:25px; text-align:center;"></div>
+        <div id="m-foot" style="padding:15px; border-top:1px solid #eee;"></div>
     </div>
 </div>
 
 <div id="ticket-wrapper">
     <div class="pink-ticket" id="final-ticket">
-        <div style="text-align: center; margin-bottom: 10px;">
-            <img id="t-logo" style="max-height: 40px; display: none; margin: 0 auto;">
-            <h3 id="t-brand" style="margin: 5px 0 0 0; text-transform: uppercase; font-size: 14px;">ABONERO APP</h3>
+        <div style="text-align: center;">
+            <img id="t-logo" style="max-height:40px; display:none; margin:0 auto;">
+            <h3 id="t-brand" style="margin:5px 0; text-transform:uppercase; font-size:14px;">ABONERO APP</h3>
         </div>
-        <div class="pink-header">
+        <div style="font-size:11px; margin:10px 0; border-bottom:1px solid #000; padding-bottom:5px;">
             <div>Cliente: <span id="t-nom"></span></div>
             <div>Dirección: <span id="t-dir"></span></div>
             <div>Artículo: <span id="t-art"></span></div>
         </div>
         <table class="pink-table">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Abono</th>
-                    <th>Resta</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Fecha</th><th>Abono</th><th>Resta</th></tr></thead>
             <tbody id="t-rows"></tbody>
         </table>
-        <div style="font-size: 8px; text-align: center; margin-top: 8px;">TARJETA DE CONTROL DE PAGOS</div>
     </div>
 </div>
 
 <script>
-    const STORAGE_DATA = "ABO_APP_DATA_V1";
-    const STORAGE_CFG = "ABO_APP_CFG_V1";
-
-    let db = JSON.parse(localStorage.getItem(STORAGE_DATA)) || {};
-    let config = JSON.parse(localStorage.getItem(STORAGE_CFG)) || { nombre: "ABONERO APP", logo: "" };
+    const KEY_DB = "ABO_PRO_DATA";
+    const KEY_CFG = "ABO_PRO_CFG";
+    let db = JSON.parse(localStorage.getItem(KEY_DB)) || {};
+    let config = JSON.parse(localStorage.getItem(KEY_CFG)) || { nombre: "ABONERO APP", logo: "" };
     let tempLogo = config.logo;
 
     function init() {
         document.getElementById('header-title').innerText = config.nombre;
-        document.getElementById('side-brand').innerText = config.nombre;
         document.getElementById('cfg-nom').value = config.nombre;
         if(config.logo) {
             document.getElementById('prev-logo').src = config.logo;
@@ -256,7 +203,7 @@
     function applySettings() {
         config.nombre = document.getElementById('cfg-nom').value.toUpperCase();
         config.logo = tempLogo;
-        localStorage.setItem(STORAGE_CFG, JSON.stringify(config));
+        localStorage.setItem(KEY_CFG, JSON.stringify(config));
         location.reload();
     }
 
@@ -265,56 +212,56 @@
         const street = document.getElementById('reg-calle').value;
         const col = document.getElementById('reg-col').value;
         const cp = document.getElementById('reg-cp').value;
-        const mun = document.getElementById('reg-mun').value;
+        const dia = document.getElementById('reg-dia').value;
         const art = document.getElementById('reg-art').value;
         const bal = parseFloat(document.getElementById('reg-saldo').value);
         const photo = document.getElementById('prev-reg').src;
 
-        if(!nom || isNaN(bal) || !art) return avisar("⚠️ Completa los campos: Nombre, Artículo y Saldo.");
+        if(!nom || isNaN(bal)) return avisar("⚠️ Completa los datos.");
 
         if(!db[nom]) {
-            db[nom] = { 
-                nom, street, col, cp, mun, 
-                photo: photo.startsWith('data') ? photo : "", 
-                cuentas: [] 
-            };
+            db[nom] = { nom, street, col, cp, dia, photo, cuentas: [] };
         }
         db[nom].cuentas.push({ id: Date.now(), mueble: art, saldo: bal, historial: [] });
         
-        localStorage.setItem(STORAGE_DATA, JSON.stringify(db));
+        localStorage.setItem(KEY_DB, JSON.stringify(db));
         renderClients();
-        document.querySelectorAll('#v-nueva input').forEach(i => i.value = "");
-        document.getElementById('prev-reg').src = "data:image/svg+xml,...";
+        avisar("✅ Cliente registrado en AboneroApp");
         changeView('v-ruta');
-        avisar("✅ Venta registrada con éxito.");
-    }
-
-    function agregarOtro(nom) {
-        const m = prompt("Nombre del nuevo mueble:");
-        const s = parseFloat(prompt("Saldo inicial $:"));
-        if(!m || isNaN(s)) return;
-        db[nom].cuentas.push({ id: Date.now(), mueble: m, saldo: s, historial: [] });
-        localStorage.setItem(STORAGE_DATA, JSON.stringify(db));
-        renderClients();
     }
 
     function renderClients() {
         const list = document.getElementById('lista-clientes');
         list.innerHTML = "";
+        const hoy = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"][new Date().getDay()];
+
         Object.values(db).forEach(cli => {
+            const esHoy = cli.dia === hoy;
             let accountsHTML = cli.cuentas.map(c => `
                 <div class="art-card">
-                    <div class="art-head" onclick="toggleDisplay('acc-${c.id}')">
+                    <div style="display:flex; justify-content:space-between; font-weight:700;">
                         <span>📦 ${c.mueble}</span>
                         <b style="color:var(--primary)">$${c.saldo}</b>
                     </div>
-                    <div id="acc-${c.id}" class="art-content">
-                        <input type="number" id="inp-${c.id}" placeholder="Cantidad a abonar $">
-                        <button class="btn btn-main" onclick="registrarAbono('${cli.nom}', ${c.id})">PROCESAR ABONO</button>
-                        <div style="margin-top:10px; font-size:11px; color:#636e72;">
-                            <strong>Historial reciente:</strong>
-                            ${c.historial.map(h => `<div>${h.f.split(',')[0]} - Abono: $${h.m} | Saldo: $${h.r}</div>`).reverse().slice(0,3).join('')}
-                        </div>
+                    <div style="margin-top:10px;">
+                        <input type="number" id="inp-${c.id}" placeholder="Monto $">
+                        <button class="btn btn-main" onclick="registrarAbono('${cli.nom}', ${c.id})">ABONAR</button>
+                    </div>
+                    
+                    <div class="historial-toggle" onclick="toggleDisplay('hist-${c.id}')">
+                        <span>Ver movimientos recientes</span>
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div id="hist-${c.id}" class="historial-desglose">
+                        ${c.historial.map(h => `
+                            <div class="row-hist">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <strong>${h.f.split(',')[0]}</strong>
+                                    <span style="color:var(--success)">+$${h.m}</span>
+                                </div>
+                                <span class="badge-saldo">Saldo: $${h.ant} → $${h.r}</span>
+                            </div>
+                        `).reverse().slice(0,5).join('') || '<small>Sin abonos aún</small>'}
                     </div>
                 </div>
             `).join('');
@@ -325,18 +272,13 @@
                         <img src="${cli.photo || 'https://via.placeholder.com/50'}" class="cli-photo">
                         <div class="cli-info">
                             <strong>${cli.nom}</strong>
-                            <small>${cli.street}, Col. ${cli.col} (CP ${cli.cp})</small>
+                            <small>${cli.street}, Col. ${cli.col}</small><br>
+                            <span class="dia-alerta ${esHoy ? 'hoy-toca' : ''}">Cobro: ${cli.dia} ${esHoy ? '(TOCA HOY)' : ''}</span>
                         </div>
-                        <i class="fas fa-chevron-down" style="font-size:12px; color:#ccc"></i>
                     </div>
                     <div id="cli-${cli.nom.replace(/\s/g,'')}" class="cli-body">
                         ${accountsHTML}
-                        <button class="btn btn-add-item" onclick="agregarOtro('${cli.nom}')">
-                            <i class="fas fa-plus"></i> AGREGAR OTRO ARTÍCULO
-                        </button>
-                        <button class="btn" style="margin-top:10px; font-size:11px; padding:5px; background:#e17055; color:white;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col + ' ' + cli.mun)}')">
-                            <i class="fas fa-directions"></i> VER EN MAPAS
-                        </button>
+                        <button class="btn" style="margin-top:10px; background:#e17055; color:white; font-size:11px;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(cli.street + ' ' + cli.col)}')">IR AL MAPA</button>
                     </div>
                 </div>
             `;
@@ -346,7 +288,7 @@
     function registrarAbono(cliName, accId) {
         const inp = document.getElementById(`inp-${accId}`);
         const monto = parseFloat(inp.value);
-        if(!monto || isNaN(monto)) return;
+        if(!monto) return;
 
         const cuenta = db[cliName].cuentas.find(a => a.id === accId);
         const anterior = cuenta.saldo;
@@ -354,36 +296,35 @@
         const fecha = new Date().toLocaleString();
 
         cuenta.historial.push({ f: fecha, m: monto, r: cuenta.saldo, ant: anterior });
-        localStorage.setItem(STORAGE_DATA, JSON.stringify(db));
+        localStorage.setItem(KEY_DB, JSON.stringify(db));
         renderClients();
-        generarTicketRosa(cliName, cuenta);
+        generarTicket(cliName, cuenta);
     }
 
-    function generarTicketRosa(cliName, cuenta) {
+    function generarTicket(cliName, cuenta) {
         const cli = db[cliName];
         document.getElementById('t-brand').innerText = config.nombre;
         document.getElementById('t-nom').innerText = cliName;
-        document.getElementById('t-dir').innerText = `${cli.street}, Col. ${cli.col}, ${cli.mun}`;
+        document.getElementById('t-dir').innerText = `${cli.street}, Col. ${cli.col}`;
         document.getElementById('t-art').innerText = cuenta.mueble;
 
         const tbody = document.getElementById('t-rows');
         tbody.innerHTML = "";
-        // Genera 15 filas fijas como tarjeta física
         for(let i = 0; i < 15; i++) {
             const h = cuenta.historial[i] || { f: "", m: "", r: "" };
             tbody.innerHTML += `<tr><td>${h.f.split(' ')[0]}</td><td>${h.m ? '$'+h.m : ""}</td><td>${h.r ? '$'+h.r : ""}</td></tr>`;
         }
 
-        avisar("🖼️ Generando imagen del comprobante...");
+        avisar("🖼️ Generando imagen...");
         setTimeout(() => {
             html2canvas(document.getElementById('final-ticket')).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Recibo_${cliName}_${cuenta.mueble}.png`;
+                link.download = `Recibo_${cliName}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
                 closeAviso();
             });
-        }, 1000);
+        }, 800);
     }
 
     function smartRoute() {
@@ -392,7 +333,7 @@
         sorted.forEach(c => newDb[c.nom] = c);
         db = newDb;
         renderClients();
-        avisar("📍 Ruta ordenada por Código Postal.");
+        avisar("📍 Ruta ordenada por C.P.");
     }
 
     function toggleDisplay(id) {
@@ -404,4 +345,3 @@
 </script>
 </body>
 </html>
-
