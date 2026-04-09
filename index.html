@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AboneroApp Pro - CP Real</title>
+    <title>AboneroApp Pro - Pesquería & Zuazua</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -45,6 +45,7 @@
         .btn-route { background: var(--primary); color: white; margin-bottom: 20px; }
 
         .cli-box { background: var(--card-dark); border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--primary); overflow: hidden; }
+        .cli-box.liquidado { border-left-color: var(--success); opacity: 0.8; }
         .cli-head { padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         .cli-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #333; }
         .cli-body { display: none; padding: 15px; background: #181818; border-top: 1px solid #333; }
@@ -62,8 +63,6 @@
         .pink-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; height: 22px; }
 
         .photo-label { display: block; width: 80px; height: 80px; background: #333; border-radius: 50%; margin: 0 auto 15px; cursor: pointer; border: 2px dashed var(--primary); }
-        
-        .loading-cp { font-size: 0.8rem; color: var(--primary); margin-top: -10px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -85,7 +84,7 @@
     <div id="v-ruta" class="view active">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="main-search" placeholder="Buscar cliente..." onkeyup="filterClients()">
+            <input type="text" id="main-search" placeholder="Buscar por nombre..." onkeyup="filterClients()">
         </div>
         <button class="btn btn-route" onclick="smartRoute()">📍 ORDENAR POR DISTANCIA (GPS)</button>
         <div id="lista-clientes"></div>
@@ -93,7 +92,7 @@
 
     <div id="v-nueva" class="view">
         <div class="card">
-            <h4>Registro de Nuevo Cliente</h4>
+            <h4>Registro de Cliente</h4>
             <label class="photo-label">
                 <input type="file" id="reg-photo" accept="image/*" style="display:none" onchange="previewImg(event, 'prev-reg')">
                 <img id="prev-reg" src="" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:50%;">
@@ -101,10 +100,9 @@
             <input type="text" id="reg-nom" placeholder="Nombre Completo">
             
             <label>Código Postal:</label>
-            <input type="number" id="reg-cp" placeholder="Ingresa CP para buscar..." oninput="if(this.value.length == 5) buscarDireccionReal(this.value)">
-            <div id="loading-msg" class="loading-cp">Buscando dirección...</div>
+            <input type="number" id="reg-cp" placeholder="Ingresa CP de Pesquería o Zuazua..." oninput="filtrarColoniasLocales(this.value)">
             
-            <label>Colonia:</label>
+            <label>Colonia / Asentamiento:</label>
             <select id="reg-col" disabled><option value="">Ingresa CP primero</option></select>
             
             <label>Calle y Número:</label>
@@ -131,7 +129,7 @@
 
     <div id="v-config" class="view">
         <div class="card">
-            <h4>Personalizar App</h4>
+            <h4>Configurar Mueblería</h4>
             <input type="text" id="cfg-nom" placeholder="Nombre de la Mueblería">
             <input type="file" accept="image/*" onchange="previewImg(event, 'prev-logo', true)">
             <img id="prev-logo" style="max-height:80px; display:none; margin:10px auto;">
@@ -164,8 +162,34 @@
 </div>
 
 <script>
-    const KEY_DB = "ABO_MASTER_V4";
-    const KEY_CFG = "ABO_CFG_V4";
+    // BASE DE DATOS AMPLIADA (PESQUERÍA + ZUAZUA)
+    const DATA_CP = {
+        // ZUAZUA
+        "65750": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Las Arboledas", "Colonia General Zuazua Centro"] },
+        "65760": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Privadas de Santa Clara", "Colonia Carrizalejo", "Colonia Ejido Zuazua", "Colonia Pedro Martínez", "Fraccionamiento Real Palmas", "Fraccionamiento Misión de Santa Elena", "Fraccionamiento Las Bugambilias"] },
+        "65776": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Valle de Santa Elena"] },
+        "65780": { mun: "General Zuazua", est: "Nuevo León", cols: ["Fraccionamiento Hacienda San Pedro", "Fraccionamiento Portal del Norte", "Fraccionamiento Real San Pedro", "Colonia Portal de Zuazua"] },
+        // PESQUERÍA
+        "66650": { mun: "Pesquería", est: "Nuevo León", cols: ["Pueblo Pesquería"] },
+        "66653": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Villas Regina", "Colonia Desarrollo Solidaridad", "Colonia Jardines Floridos", "Fraccionamiento Paseo Lindavista", "Colonia Valles de Pesquería"] },
+        "66655": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Las Haciendas", "Colonia Floresta Residencial", "Fraccionamiento Arcos del Parque", "Fraccionamiento Privadas del Roble", "Fraccionamiento El Llano", "Pueblo Ladrillera (Entronque Pesquería)", "Colonia Zacatecas", "Colonia Colinas de Santa Engracia", "Colonia Colinas del Aeropuerto"] },
+        "66657": { mun: "Pesquería", est: "Nuevo León", cols: ["Zona industrial Airport Technology Park"] },
+        "66658": { mun: "Pesquería", est: "Nuevo León", cols: ["Colonia La Arena"] },
+        "66660": { mun: "Pesquería", est: "Nuevo León", cols: ["Colonia Los Girasoles", "Fraccionamiento Real de Loreto", "Fraccionamiento Las Aves Residencial and Golf Resort"] },
+        "66670": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Madiba", "Pueblo Dulces Nombres (La Lajita)", "Colonia Dulces Nombres", "Fraccionamiento Valle de Santa María"] },
+        "66672": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Modena", "Fraccionamiento Las Palmas", "Fraccionamiento Siena", "Fraccionamiento Los Olmos", "Fraccionamiento Paseo de San Javier"] },
+        "66673": { mun: "Pesquería", est: "Nuevo León", cols: ["Fraccionamiento Cantoral", "Fraccionamiento Lomas Diamante", "Zona comercial SIGMA Alimentos Noreste", "Fraccionamiento Lomas de San Martín"] },
+        "66674": { mun: "Pesquería", est: "Nuevo León", cols: ["Colonia Jesús María"] },
+        "66675": { mun: "Pesquería", est: "Nuevo León", cols: ["Ejido Francisco Villa"] },
+        "66679": { mun: "Pesquería", est: "Nuevo León", cols: ["Ejido La Victoria", "Zona industrial Kía Motors", "Zona industrial Ternium Planta Pesquería", "Ejido La Arena"] },
+        "66680": { mun: "Pesquería", est: "Nuevo León", cols: ["Hacienda Santa María la Floreña"] },
+        "66683": { mun: "Pesquería", est: "Nuevo León", cols: ["Ranchería La Providencia"] },
+        "66690": { mun: "Pesquería", est: "Nuevo León", cols: ["Paraje Estación Milpa"] },
+        "66693": { mun: "Pesquería", est: "Nuevo León", cols: ["Ejido Santa María Pesquería"] }
+    };
+
+    const KEY_DB = "ABO_PRO_V6_PESQUERIA";
+    const KEY_CFG = "ABO_CFG_V6_PESQUERIA";
     let db = JSON.parse(localStorage.getItem(KEY_DB)) || {};
     let config = JSON.parse(localStorage.getItem(KEY_CFG)) || { nombre: "ABONERO APP", logo: "" };
     let tempLogo = config.logo;
@@ -181,43 +205,26 @@
         renderClients();
     }
 
-    // BUSCAR DIRECCIÓN REAL POR CP (API MÉXICO)
-    async function buscarDireccionReal(cp) {
-        const loading = document.getElementById('loading-msg');
+    function filtrarColoniasLocales(cp) {
         const colSelect = document.getElementById('reg-col');
         const munInput = document.getElementById('reg-mun');
         const estInput = document.getElementById('reg-est');
         
-        loading.style.display = "block";
-        colSelect.innerHTML = "<option>Cargando...</option>";
-
-        try {
-            // Usamos la API de Zippopotam para obtener Estado y Municipio (Funciona bien en MX)
-            const response = await fetch(`https://api.zippopotam.us/mx/${cp}`);
-            if(!response.ok) throw new Error();
-            
-            const data = await response.json();
-            const info = data.places[0];
-            
-            munInput.value = info['community'] || info['place name'];
-            estInput.value = info['state'];
-            
-            // Para las colonias en México la API anterior es limitada, así que permitimos que el usuario elija o escriba
-            // Agregamos las colonias detectadas
+        if(DATA_CP[cp]) {
+            const info = DATA_CP[cp];
+            munInput.value = info.mun;
+            estInput.value = info.est;
             colSelect.innerHTML = "";
-            data.places.forEach(place => {
+            info.cols.forEach(c => {
                 const opt = document.createElement('option');
-                opt.value = place['place name'];
-                opt.textContent = place['place name'];
+                opt.value = c; opt.textContent = c;
                 colSelect.appendChild(opt);
             });
-            
             colSelect.disabled = false;
-        } catch (e) {
-            alert("No se encontró el CP o hubo un error de conexión.");
-            colSelect.innerHTML = "<option value=''>CP no encontrado</option>";
-        } finally {
-            loading.style.display = "none";
+        } else {
+            colSelect.innerHTML = "<option>CP no registrado</option>";
+            colSelect.disabled = true;
+            munInput.value = ""; estInput.value = "";
         }
     }
 
@@ -231,18 +238,15 @@
     }
 
     function smartRoute() {
-        avisar("📍 Obteniendo ubicación...");
+        avisar("📍 Calculando cercanía...");
         navigator.geolocation.getCurrentPosition(pos => {
-            const myLat = pos.coords.latitude;
-            const myLon = pos.coords.longitude;
+            const myLat = pos.coords.latitude, myLon = pos.coords.longitude;
             let arr = Object.values(db);
             arr.forEach(c => c.dist = Math.sqrt(Math.pow(c.lat - myLat, 2) + Math.pow(c.lon - myLon, 2)));
             arr.sort((a, b) => (a.dist || 0) - (b.dist || 0));
             let newDb = {}; arr.forEach(c => newDb[c.nom] = c);
             db = newDb; renderClients(); closeAviso();
-        }, () => {
-            avisar("⚠️ Error GPS.");
-        });
+        }, () => avisar("⚠️ Activa el GPS."));
     }
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -318,7 +322,7 @@
                     </div>
                     <div id="acc-${c.id}" style="display:none; padding-top:10px; border-top:1px solid #444; margin-top:10px;">
                         ${!c.liquidado ? `
-                            <input type="number" id="inp-${c.id}" placeholder="Cantidad $">
+                            <input type="number" id="inp-${c.id}" placeholder="Monto $">
                             <button class="btn btn-main" onclick="confirmarAbono('${cli.nom}', ${c.id})">ABONAR</button>
                             <button class="btn btn-liquidar" onclick="confirmarLiquidacion('${cli.nom}', ${c.id})">LIQUIDAR</button>
                         ` : ''}
@@ -344,15 +348,6 @@
         });
     }
 
-    function confirmarAbono(cli, id) {
-        const monto = document.getElementById(`inp-${id}`).value;
-        if(!monto) return;
-        avisar(`¿Abonar <b>$${monto}</b>?`, `
-            <button class="btn btn-main" onclick="registrarAbono('${cli}', ${id})">SÍ</button>
-            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
-        `);
-    }
-
     function registrarAbono(cliName, accId) {
         const inp = document.getElementById(`inp-${accId}`);
         const monto = parseFloat(inp.value);
@@ -366,6 +361,15 @@
         generarTicket(cliName, cuenta);
     }
 
+    function confirmarAbono(cli, id) {
+        const monto = document.getElementById(`inp-${id}`).value;
+        if(!monto) return;
+        avisar(`¿Abonar <b>$${monto}</b>?`, `
+            <button class="btn btn-main" onclick="registrarAbono('${cli}', ${id})">SÍ</button>
+            <button class="btn" style="background:#555; color:white;" onclick="closeAviso()">NO</button>
+        `);
+    }
+
     function confirmarLiquidacion(cli, id) {
         avisar(`¿Liquidar cuenta?`, `
             <button class="btn btn-main" onclick="liquidarCuenta('${cli}', ${id})">SÍ</button>
@@ -377,8 +381,7 @@
         const cuenta = db[cli].cuentas.find(a => a.id === id);
         cuenta.saldo = 0; cuenta.liquidado = true;
         localStorage.setItem(KEY_DB, JSON.stringify(db));
-        closeAviso();
-        renderClients();
+        closeAviso(); renderClients();
     }
 
     function generarTicket(cliName, cuenta) {
