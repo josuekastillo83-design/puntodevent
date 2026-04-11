@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEXVENT PRO - Cloud POS</title>
+    <title>NEXVENT Cloud Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -14,114 +14,120 @@
     <style>
         :root {
             --accent: #00f2fe; --success: #2ed573; --danger: #ff4757;
-            --bg-body: #000000; --bg-card: #121212; --text: #ffffff;
+            --bg: #000000; --card: #121212; --text: #ffffff;
         }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg-body); color: var(--text); height: 100vh; overflow: hidden; }
+        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
         /* AUTENTICACIÓN */
-        #login-view { display: flex; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: #000; }
-        .login-card { background: var(--bg-card); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); width: 100%; max-width: 400px; text-align: center; }
+        #login-view { display: flex; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: #000; z-index: 5000; position: fixed; width: 100%; }
+        .login-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); width: 100%; max-width: 400px; text-align: center; }
 
-        /* APP LAYOUT (WOOLWORTH STYLE) */
-        #app-view { display: none; height: 100vh; flex-direction: column; }
-        .top-bar { height: 60px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 2px solid var(--accent); }
+        /* APP LAYOUT MÓVIL */
+        #app-view { display: none; flex-direction: column; height: 100vh; width: 100%; }
+        .top-bar { height: 60px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 2px solid var(--accent); flex-shrink: 0; z-index: 4600; }
         
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        .ticket-panel { width: 35%; border-right: 1px solid #333; display: flex; flex-direction: column; background: #000; }
-        .actions-panel { width: 65%; padding: 15px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); grid-auto-rows: 110px; gap: 10px; background: #0a0a0a; }
+        /* ESCÁNER FIJO ARRIBA */
+        #reader { 
+            display: none; position: fixed; top: 60px; left: 0; width: 100%; height: 280px; 
+            z-index: 4500; background: #000; border-bottom: 3px solid var(--accent); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
 
-        /* TICKET ITEMS */
-        .cart-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #222; font-size: 14px; }
-        .total-section { padding: 20px; background: #080808; border-top: 2px solid var(--accent); }
-        .action-btn { background: var(--bg-card); border: 1px solid #333; border-radius: 12px; color: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; transition: 0.2s; }
-        .action-btn:hover { border-color: var(--accent); background: #1a1a1a; }
-        .btn-pay { background: var(--success); color: #000; grid-column: span 2; grid-row: span 2; font-size: 24px; font-weight: bold; }
+        /* ÁREA DE TICKET */
+        .ticket-area { flex: 1; overflow-y: auto; padding: 15px; background: #080808; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #222; margin-bottom: 5px; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-qty { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #444; background: #222; color: #fff; font-weight: bold; font-size: 18px; }
+
+        /* PANEL DE CONTROL ABAJO */
+        .control-panel { background: #000; padding: 15px; border-top: 2px solid var(--accent); flex-shrink: 0; }
+        .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .total-row h2 { font-size: 38px; margin: 0; color: var(--accent); font-weight: 600; }
+
+        .grid-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .btn-action { background: var(--card); border: 1px solid #333; border-radius: 12px; height: 65px; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
+        .btn-main-pay { grid-column: span 4; height: 75px; background: var(--success); color: #000; font-size: 22px; font-weight: bold; border-radius: 15px; border: none; margin-top: 5px; box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3); }
 
         /* SIDEBAR */
-        .sidebar { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: #000; z-index: 2000; transition: 0.3s; padding: 20px; border-right: 2px solid var(--accent); }
+        .sidebar { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: #000; z-index: 5000; transition: 0.3s; padding: 20px; border-right: 2px solid var(--accent); }
         .sidebar.open { left: 0; }
-        .nav-link { display: block; color: white; padding: 15px; text-decoration: none; border-radius: 10px; margin-bottom: 5px; font-size: 14px; }
+        .nav-link { display: block; color: white; padding: 15px; text-decoration: none; border-radius: 10px; margin-bottom: 5px; }
         .nav-link.active { background: var(--accent); color: #000; font-weight: 600; }
 
-        /* MODALES */
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-card); width: 95%; max-width: 450px; padding: 25px; border-radius: 20px; border: 1px solid var(--accent); }
-        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 10px; background: #000; border: 1px solid #333; color: #fff; font-size: 16px; outline: none; }
+        .modal { display: none; position: fixed; z-index: 6000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background: var(--card); width: 100%; max-width: 400px; padding: 25px; border-radius: 20px; border: 1px solid var(--accent); }
+        .input-style { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: #000; border: 1px solid #333; color: #fff; font-size: 16px; outline: none; }
 
         .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .bill-btn { background: #222; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .bill-btn { background: #222; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
         
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1999; }
-        @media (max-width: 800px) { .main-container { flex-direction: column; } .ticket-panel, .actions-panel { width: 100%; height: 50vh; } }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 4900; }
     </style>
 </head>
 <body>
 
     <div id="login-view">
         <div class="login-card">
-            <h1 style="color:var(--accent); margin-bottom:0;">NEXVENT</h1>
-            <p id="auth-title" style="margin-top:0; color:#666;">Iniciar Sesión</p>
-            <input type="email" id="email" class="input-style" placeholder="Correo">
+            <h1 style="color:var(--accent); margin-bottom:0; letter-spacing: -2px;">NEXVENT</h1>
+            <p id="auth-title" style="margin-top:0; color:#666; font-size: 14px;">Iniciar Sesión Cloud</p>
+            <input type="email" id="email" class="input-style" placeholder="Correo electrónico">
             <input type="password" id="pass" class="input-style" placeholder="Contraseña">
-            <button id="btn-auth" onclick="handleAuth()" class="btn-main" style="width:100%; background:var(--accent); color:#000; padding:15px; border-radius:10px; border:none; font-weight:600; margin-bottom:10px; cursor:pointer;">INGRESAR</button>
-            <p style="font-size:12px; cursor:pointer; color:var(--accent);" onclick="toggleAuthMode()" id="auth-toggle-text">¿No tienes cuenta? Regístrate aquí</p>
+            <button onclick="handleAuth()" class="btn-main-pay" style="height:55px; font-size:16px;">ENTRAR AL SISTEMA</button>
+            <p style="font-size:12px; color:var(--accent); margin-top:15px; cursor:pointer;" onclick="toggleAuthMode()" id="auth-toggle-text">¿No tienes cuenta? Regístrate aquí</p>
         </div>
     </div>
 
     <div id="app-view">
         <div class="top-bar">
-            <div onclick="toggleSidebar()" style="cursor:pointer; font-weight:600; color:var(--accent);">☰ MENÚ</div>
-            <div style="font-weight:300; letter-spacing:1px;">NEX<b style="color:var(--accent)">VENT</b></div>
-            <div id="user-tag" style="font-size:10px; opacity:0.6;"></div>
+            <div onclick="toggleSidebar()" style="cursor:pointer; font-weight:600; color:var(--accent);">☰ MENU</div>
+            <div style="font-weight:300;">NEX<b style="color:var(--accent)">VENT</b></div>
+            <div id="user-tag" style="font-size:10px; opacity:0.5;"></div>
         </div>
+
+        <div id="reader"></div>
 
         <div class="sidebar" id="sidebar">
             <h2 style="color:var(--accent)">NEXVENT PRO</h2>
             <nav>
-                <a href="javascript:void(0)" class="nav-link active" onclick="showSec('pos')">🛒 CAJA</a>
-                <a href="javascript:void(0)" class="nav-link" onclick="showSec('stock')">📦 STOCK</a>
-                <a href="javascript:void(0)" class="nav-link" onclick="showSec('fiados')">👥 FIADOS</a>
-                <a href="javascript:void(0)" class="nav-link" onclick="showSec('providers')">🚚 PROVEEDORES</a>
-                <a href="javascript:void(0)" class="nav-link" onclick="showSec('gastos')">💸 GASTOS</a>
-                <a href="javascript:void(0)" class="nav-link" onclick="showSec('corte')">📊 CORTE</a>
-                <a href="javascript:void(0)" class="nav-link" onclick="firebase.auth().signOut()" style="color:var(--danger); margin-top:20px;">🔴 CERRAR SESIÓN</a>
+                <a href="#" class="nav-link active" onclick="showSec('pos')">🛒 CAJA</a>
+                <a href="#" class="nav-link" onclick="showSec('stock')">📦 STOCK</a>
+                <a href="#" class="nav-link" onclick="showSec('fiados')">👥 FIADOS</a>
+                <a href="#" class="nav-link" onclick="showSec('gastos')">💸 GASTOS</a>
+                <a href="#" class="nav-link" onclick="firebase.auth().signOut()" style="color:var(--danger); margin-top:20px;">🔴 CERRAR SESIÓN</a>
             </nav>
         </div>
-        
         <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-        <div class="main-container" id="pos-section">
-            <div class="ticket-panel">
-                <div id="cart-list" style="flex:1; overflow-y:auto; padding:10px;"></div>
-                <div class="total-section">
-                    <input type="text" id="sku-in" class="input-style" placeholder="Escanear producto..." onkeypress="handleSKU(event)">
-                    <h2 id="total-val" style="font-size:45px; margin:0; text-align:right; color:var(--accent);">$0.00</h2>
-                </div>
+        <div class="ticket-area" id="cart-list">
+            <div style="text-align:center; color:#444; margin-top:80px;">Lista de productos vacía</div>
+        </div>
+
+        <div class="control-panel">
+            <div class="total-row">
+                <input type="text" id="sku-in" class="input-style" placeholder="SKU o Nombre" style="width:55%; margin-bottom:0;" onkeypress="handleSKU(event)">
+                <h2 id="total-val">$0.00</h2>
             </div>
-            <div class="actions-panel">
-                <button class="action-btn btn-pay" onclick="openPaymentModal()">COBRAR</button>
-                <button class="action-btn" onclick="toggleCam()">📷 CÁMARA</button>
-                <button class="action-btn" onclick="showSec('fiados')">👥 FIADOS</button>
-                <button class="action-btn" onclick="showSec('gastos')">💸 GASTOS</button>
-                <button class="action-btn" onclick="showSec('stock')">📦 STOCK</button>
-                <button class="action-btn" onclick="showSec('providers')">🚚 PROV</button>
-                <button class="action-btn" style="background:#222;" onclick="if(confirm('¿Vaciar ticket?')){cart=[];renderCart();}">❌ VACIAR</button>
-                <div id="reader" style="display:none; grid-column:span 3; border-radius:15px; overflow:hidden; border:1px solid var(--accent);"></div>
+            <div class="grid-buttons">
+                <button class="btn-action" onclick="toggleCam()">📷 SCAN</button>
+                <button class="btn-action" onclick="showSec('fiados')">👥 FIADOS</button>
+                <button class="btn-action" onclick="showSec('gastos')">💸 GASTOS</button>
+                <button class="btn-action" onclick="if(confirm('¿Vaciar Ticket?')) {cart=[];renderCart();}">❌ VACIAR</button>
             </div>
+            <button class="btn-main-pay" onclick="openPaymentModal()">COBRAR</button>
         </div>
     </div>
 
     <div id="pay-modal" class="modal">
         <div class="modal-content">
-            <h1 id="m-total" style="font-size:40px; text-align:center; color:var(--accent); margin:0;">$0.00</h1>
+            <h1 id="m-total" style="font-size:45px; text-align:center; color:var(--accent); margin:0;">$0.00</h1>
             <select id="p-method" class="input-style" onchange="togglePayUI()">
                 <option value="efectivo">EFECTIVO</option>
                 <option value="tarjeta">TARJETA</option>
                 <option value="fiado">FIADO</option>
             </select>
             <div id="cash-ui">
-                <input type="number" id="cash-rec" class="input-style" placeholder="Recibido" style="font-size:25px; text-align:center;" oninput="calcChange()">
+                <input type="number" id="cash-rec" class="input-style" placeholder="Recibido" style="font-size:30px; text-align:center;" oninput="calcChange()">
                 <div class="cash-grid">
                     <button class="bill-btn" onclick="addCash(20)">$20</button>
                     <button class="bill-btn" onclick="addCash(50)">$50</button>
@@ -132,13 +138,13 @@
                 <h2 id="change-text" style="text-align:center; color:var(--success);">Cambio: $0.00</h2>
             </div>
             <div id="debt-ui" style="display:none;"><input type="text" id="debt-cust" class="input-style" placeholder="Nombre deudor"></div>
-            <button class="btn-main" onclick="confirmPayment()" style="width:100%; padding:20px; background:var(--accent); color:#000; border:none; border-radius:15px; font-weight:bold; font-size:18px; cursor:pointer;">FINALIZAR VENTA</button>
-            <button class="btn-main" style="width:100%; background:none; color:#555; border:none; margin-top:10px; cursor:pointer;" onclick="document.getElementById('pay-modal').style.display='none'">CANCELAR</button>
+            <button class="btn-main-pay" onclick="confirmPayment()" style="width:100%;">FINALIZAR VENTA</button>
+            <button style="width:100%; background:none; color:#666; border:none; margin-top:15px; cursor:pointer;" onclick="document.getElementById('pay-modal').style.display='none'">CANCELAR</button>
         </div>
     </div>
 
 <script>
-    // --- CREDENCIALES INTEGRADAS ---
+    // CREDENCIALES BITACOREGUST
     const firebaseConfig = {
       apiKey: "AIzaSyD7xEDb_sa_C76G6KA5cQMsd3w-h83hpb0",
       authDomain: "bitacoregust.firebaseapp.com",
@@ -153,7 +159,7 @@
     let db = { inv:[], fiados:[], gastos:[], providers:[], vEfe:0, vTar:0, ganancia:0, abHoy:0, cfg:{name:'NEXVENT'} };
     let cart = [], currentUser, scanner, isRegisterMode = false;
 
-    // --- AUTENTICACIÓN ---
+    // AUTH
     firebase.auth().onAuthStateChanged(user => {
         if(user) {
             currentUser = user;
@@ -169,23 +175,20 @@
 
     function toggleAuthMode() {
         isRegisterMode = !isRegisterMode;
-        document.getElementById('auth-title').innerText = isRegisterMode ? "Crear Cuenta Nueva" : "Iniciar Sesión";
-        document.getElementById('btn-auth').innerText = isRegisterMode ? "REGISTRARME" : "INGRESAR";
+        document.getElementById('auth-title').innerText = isRegisterMode ? "Crear Cuenta Nueva" : "Iniciar Sesión Cloud";
         document.getElementById('auth-toggle-text').innerText = isRegisterMode ? "¿Ya tienes cuenta? Entra aquí" : "¿No tienes cuenta? Regístrate aquí";
     }
 
     async function handleAuth() {
         const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(!e || !p) return alert("Llena todos los campos");
+        if(!e || !p) return;
         try {
             if (isRegisterMode) {
                 const userCredential = await firebase.auth().createUserWithEmailAndPassword(e, p);
                 await firebase.database().ref('usuarios/' + userCredential.user.uid).set(db);
-                alert("Cuenta NEXVENT creada exitosamente.");
-            } else { 
-                await firebase.auth().signInWithEmailAndPassword(e, p); 
-            }
-        } catch(err) { alert("Error: " + err.message); }
+                alert("Bienvenido a NEXVENT");
+            } else { await firebase.auth().signInWithEmailAndPassword(e, p); }
+        } catch(err) { alert(err.message); }
     }
 
     function syncData() {
@@ -196,27 +199,46 @@
 
     function cloudSave() { if(currentUser) firebase.database().ref('usuarios/' + currentUser.uid).set(db); }
 
-    // --- CAJA LÓGICA ---
+    // CAJA
     function handleSKU(e) { if(e.key==='Enter'){ const p = db.inv.find(x=>x.sku===e.target.value); if(p) addToCart(p); e.target.value=''; } }
     
     function addToCart(p) {
         if(p.stock <= 0) return alert("PRODUCTO AGOTADO");
         const i = cart.find(x=>x.sku===p.sku);
-        if(i) { if(i.q < p.stock) i.q++; else return alert("Límite de stock alcanzado"); } else cart.push({...p, q:1});
+        if(i) { if(i.q < p.stock) i.q++; else return alert("Límite de stock"); } else cart.push({...p, q:1});
         renderCart();
     }
 
     function renderCart() {
         let t = 0;
-        document.getElementById('cart-list').innerHTML = cart.map(i => {
-            t += (i.sell * i.q);
-            return `<div class="cart-item"><span><b>${i.q}x</b> ${i.name}</span><span>$${(i.sell*i.q).toFixed(2)}</span></div>`;
-        }).join('');
+        const list = document.getElementById('cart-list');
+        if(cart.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:#444; margin-top:80px;">Lista de productos vacía</div>';
+        } else {
+            list.innerHTML = cart.map((i, idx) => {
+                t += (i.sell * i.q);
+                return `<div class="cart-item">
+                    <div style="flex:1"><b>${i.name}</b><br><small style="color:var(--accent)">$${i.sell} c/u</small></div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="updateQty(${idx},-1)">-</button>
+                        <b style="min-width:20px; text-align:center">${i.q}</b>
+                        <button class="btn-qty" onclick="updateQty(${idx},1)">+</button>
+                    </div>
+                    <div style="width:80px; text-align:right; font-weight:600;">$${(i.sell*i.q).toFixed(2)}</div>
+                </div>`;
+            }).join('');
+        }
         document.getElementById('total-val').innerText = `$${t.toFixed(2)}`;
     }
 
+    function updateQty(idx, d) {
+        const item = cart[idx], orig = db.inv.find(x => x.sku === item.sku);
+        if(d > 0 && item.q >= orig.stock) return alert("Stock máximo alcanzado");
+        item.q += d; if(item.q <= 0) cart.splice(idx,1);
+        renderCart();
+    }
+
     function addCash(n) { const inp = document.getElementById('cash-rec'); inp.value = (parseFloat(inp.value)||0) + n; calcChange(); }
-    
     function calcChange() {
         const t = parseFloat(document.getElementById('total-val').innerText.replace('$','')), r = parseFloat(document.getElementById('cash-rec').value)||0;
         document.getElementById('change-text').innerText = "Cambio: $" + (r-t).toFixed(2);
@@ -227,37 +249,43 @@
         cart.forEach(i => { const p = db.inv.find(x=>x.sku===i.sku); if(p){ p.stock-=i.q; db.ganancia+=(i.sell-i.buy)*i.q; } });
         if(m==='efectivo') db.vEfe += t; else if(m==='tarjeta') db.vTar += t;
         else {
-            const nombreD = document.getElementById('debt-cust').value || "Cliente";
+            const nombreD = document.getElementById('debt-cust').value || "Cliente Nuevo";
             const ex = db.fiados.find(f => f.n.toLowerCase() === nombreD.toLowerCase());
-            if(ex){ ex.m += t; } else { db.fiados.unshift({n: nombreD, m: t, detalles: cart.map(i=>i.name).join(', ')}); }
+            if(ex) ex.m += t; else db.fiados.unshift({n: nombreD, m: t, detalles: cart.map(i=>i.name).join(', ')});
         }
         cloudSave(); cart=[]; renderCart(); document.getElementById('pay-modal').style.display='none';
-        alert("¡Cobro exitoso y sincronizado!");
+        beep(); alert("Venta Sincronizada.");
     }
 
-    // --- UI Y MENÚ ---
     function openPaymentModal() { if(cart.length){ document.getElementById('pay-modal').style.display='flex'; document.getElementById('m-total').innerText=document.getElementById('total-val').innerText; document.getElementById('cash-rec').value=''; document.getElementById('change-text').innerText="Cambio: $0.00"; } }
     function togglePayUI() { document.getElementById('cash-ui').style.display = document.getElementById('p-method').value==='efectivo'?'block':'none'; document.getElementById('debt-ui').style.display = document.getElementById('p-method').value==='fiado'?'block':'none'; }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none'; }
+    function showSec(id) { alert("Accediendo a " + id.toUpperCase() + ". Sincronizado en bitacoregust."); toggleSidebar(); }
     
-    function showSec(id) { 
-        alert("Accediendo a la sección de " + id.toUpperCase() + ". Sincronizado en la nube bitacoregust."); 
-        toggleSidebar(); 
-    }
-
     function toggleCam() {
         const r = document.getElementById('reader');
-        if(r.style.display==='block'){ scanner.stop(); r.style.display='none'; } 
-        else { 
+        if(r.style.display==='block'){ 
+            if(scanner) scanner.stop(); 
+            r.style.display='none'; 
+        } else { 
             r.style.display='block'; 
             scanner = new Html5Qrcode("reader"); 
-            scanner.start({facingMode:"environment"}, {fps:10, qrbox:250}, t => { 
+            scanner.start({facingMode:"environment"}, {fps:20, qrbox:200}, t => { 
                 const p = db.inv.find(x=>x.sku===t);
-                if(p) addToCart(p);
-                scanner.stop(); 
-                r.style.display='none'; 
+                if(p) { addToCart(p); beep(); scanner.stop(); r.style.display='none'; }
+                else { alert("No registrado: " + t); }
             }); 
         }
+    }
+
+    function beep() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880;
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
+        o.start(); o.stop(ctx.currentTime + 0.2);
     }
 </script>
 </body>
